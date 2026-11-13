@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>GMA Staff - Booking Calendar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.wrap{max-width:980px;margin:0 auto;padding:14px 14px 60px}
+.tb{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.tb h2{margin:0;font-size:20px;flex:1;min-width:150px;font-family:"Fredoka",sans-serif;color:var(--plum)}
+.ib{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;font:inherit;font-weight:700;cursor:pointer;color:var(--ink)}
+.ib.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.dow{font-size:11px;font-weight:800;color:var(--muted);text-align:center;padding:4px 0}
+.cell{min-height:64px;border:1.5px solid var(--line);border-radius:10px;background:#fff;padding:4px 5px;cursor:pointer;text-align:left;font:inherit;display:flex;flex-direction:column;gap:2px}
+.cell.out{background:transparent;border-color:transparent;cursor:default}
+.cell .n{font-weight:800;font-size:13px}
+.cell.today .n{background:var(--brand);color:#fff;border-radius:999px;padding:0 6px;align-self:flex-start}
+.cell.sel{outline:2.5px solid var(--brand)}
+.cell .b{font-size:10.5px;font-weight:800;border-radius:6px;padding:1px 4px;align-self:flex-start}
+.b.t{background:#e6f2cf;color:#3d6b10}.b.r{background:#efe3f8;color:#6b3a8d}.b.c{background:#fde8ea;color:var(--bad)}
+.h1{background:#fff7f3}.h2{background:#ffe9df}.h3{background:#ffd5c3}
+.dayp{margin-top:14px}
+.dayp h3{font-family:"Fredoka",sans-serif;color:var(--plum);margin:0 0 8px}
+.ev{display:grid;grid-template-columns:96px 1fr;gap:10px;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px}
+.ev .tm{font-weight:800;font-size:13px;color:var(--plum)}
+.ev .tm small{display:block;font-weight:700;margin-top:4px}
+.ev .who{font-weight:800}
+.ev .kids{font-size:13px;color:var(--ink);margin:2px 0}
+.ev .meta{font-size:12px;color:var(--muted)}
+.tag{display:inline-block;border-radius:8px;padding:2px 8px;font-size:12px;font-weight:800;margin:2px 4px 2px 0}
+.tag.t{background:#e6f2cf;color:#3d6b10}.tag.r{background:#efe3f8;color:#6b3a8d}.tag.p{background:#fff3c4;color:#7a5a00}.tag.c{background:#fde8ea;color:var(--bad)}
+.act a{display:inline-block;margin:6px 6px 0 0;padding:6px 10px;border-radius:10px;border:1.5px solid var(--line);text-decoration:none;font-weight:700;font-size:13px;color:var(--plum);background:#fff}
+.act a.wa{background:#25d366;border-color:#25d366;color:#fff}
+.err{background:#fde8ea;color:var(--bad);border-radius:12px;padding:10px 12px;margin:10px 0;font-weight:700}
+.small{font-size:12px;color:var(--muted)}
+input.s{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);font:inherit;margin-bottom:10px}
+@media(max-width:560px){.cell{min-height:54px;padding:3px}.cell .b{font-size:9.5px;padding:0 3px}.ev{grid-template-columns:1fr}}
+@media print{header.top,.tb,.chips,#cal,.noprint,input.s{display:none!important}body{background:#fff}.dayp{margin:0}.ev{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="logo" id="logo"></div>
+<div><div class="t1">Genius Mind <b>Academy</b></div><div class="t2">Booking calendar · staff only</div></div>
+</header>
+<main class="wrap" id="app"></main>
+<script>
+var SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbwvukSXQHKhnbMndouaYUC07qpx_2tXQWkbUTIYsrCB8gSbByjQ7u0zqkKu4RiY66E7/exec';   // same Google Apps Script web app URL as index.html
+var LOGO_URL = 'logo.png';
+
+var PIN = '';
+try { PIN = sessionStorage.getItem('gma_view_pin') || ''; } catch (e) {}
+var app = document.getElementById('app');
+var today = new Date();
+var todayKey = today.getFullYear() + '-' + ('0' + (today.getMonth() + 1)).slice(-2) + '-' + ('0' + today.getDate()).slice(-2);
+var S = { authed: false, busy: false, err: '', events: [], bookings: [], month: [today.getFullYear(), today.getMonth() + 1], sel: todayKey, filter: 'all', q: '', updated: '' };
+var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 10 minutes.', disabled: 'The calendar is not turned on yet (set VIEW_PIN or STAFF_PIN in the Google script).', nourl: 'SUBMIT_URL is not set in calendar.html yet.' };
+var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+function dkey(y, m, d) { return y + '-' + pad(m) + '-' + pad(d); }
+function mins(l) { var m = String(l).match(/(\d+):(\d+)(am|pm)/); if (!m) return 0; return (parseInt(m[1], 10) % 12 + (m[3] === 'pm' ? 12 : 0)) * 60 + parseInt(m[2], 10); }
+function fmtDate(k) { var p = k.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]); return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
+function fmtPhone(p) { p = String(p); if (p.indexOf('60') === 0) { var r = p.slice(2); return '+60 ' + r.slice(0, 2) + '-' + r.slice(2, 5) + ' ' + r.slice(5); } return p; }
+var SVC = { TC: 'Trial class only', TCBT: 'Trial class + brain test report', BT: 'Brain test report only' };
+
+function api(body, cb) {
+  if (!SUBMIT_URL) { cb({ ok: false, error: 'nourl' }); return; }
+  body.pin = PIN;
+  fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify(body) }).then(function (r) { return r.json(); }).then(cb).catch(function () { cb(null); });
+}
+function errText(j) { return !j ? 'Could not connect. Check the internet and try again.' : (ERR[j.error] || ('Error: ' + j.error)); }
+
+function build(bookings) {
+  S.bookings = bookings; var ev = [];
+  bookings.forEach(function (b) {
+    var needsReport = b.service === 'TCBT' && !b.reportSlot;
+    if (b.service !== 'BT' && b.date) ev.push({ kind: 'trial', date: b.date, slot: b.slot, b: b, flag: b.clash || needsReport });
+    if (b.reportSlot && b.reportDate) ev.push({ kind: 'report', date: b.reportDate, slot: b.reportSlot, b: b, flag: false });
+  });
+  ev.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : mins(a.slot) - mins(b.slot); });
+  S.events = ev;
+}
+function load(cb) {
+  S.busy = true;
+  api({ action: 'cal_bookings' }, function (j) {
+    S.busy = false;
+    if (j && j.ok) {
+      S.authed = true; S.err = ''; build(j.bookings || []); S.updated = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      var first = S.events.filter(function (e) { return e.date >= todayKey; })[0] || S.events[0];
+      if (cb === 'init' && first && !S.events.some(function (e) { return e.date === S.sel; })) { S.sel = first.date; var p = first.date.split('-'); S.month = [+p[0], +p[1]]; }
+    } else { S.err = errText(j); if (j && j.error === 'auth') S.authed = false; }
+    render();
+  });
+}
+function visible() { return S.events.filter(function (e) { return S.filter === 'all' || e.kind === S.filter; }); }
+
+function render() {
+  if (!S.authed) {
+    app.innerHTML = '<div class="card" style="max-width:420px;margin:20px auto"><div class="sec" style="margin-top:0">Teacher login</div><label class="f">Password</label><input type="password" id="pin" autocomplete="off" value="' + esc(PIN) + '"><button class="btn pri" id="login" style="margin-top:12px">' + (S.busy ? 'Checking…' : 'Log in') + '</button>' + (S.err ? '<div class="err">' + esc(S.err) + '</div>' : '') + '</div>';
+    return;
+  }
+  var y = S.month[0], m = S.month[1], vis = visible(), by = {};
+  vis.forEach(function (e) { (by[e.date] = by[e.date] || []).push(e); });
+  var first = new Date(y, m - 1, 1).getDay(), n = new Date(y, m, 0).getDate();
+  var h = '<div class="tb"><button class="ib" data-nav="-1">‹</button><h2>' + MONTHS[m - 1] + ' ' + y + '</h2><button class="ib" data-nav="1">›</button><button class="ib" id="today">Today</button><button class="ib" id="refresh">' + (S.busy ? '…' : 'Refresh') + '</button></div>';
+  h += '<input class="s" id="q" placeholder="Search parent, child, phone or reference" value="' + esc(S.q) + '">';
+  h += '<div class="chips">' + [['all', 'All'], ['trial', 'Trial class'], ['report', 'Report collection']].map(function (f) { return '<button class="ib ' + (S.filter === f[0] ? 'on' : '') + '" data-f="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '<span class="small" style="align-self:center">Updated ' + esc(S.updated) + '</span></div>';
+  if (S.err) h += '<div class="err">' + esc(S.err) + '</div>';
+  if (S.q.trim()) { h += searchView(); app.innerHTML = h; return; }
+  h += '<div id="cal"><div class="grid7">' + ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(function (d) { return '<div class="dow">' + d + '</div>'; }).join('');
+  for (var i = 0; i < first; i++) h += '<div class="cell out"></div>';
+  for (var d = 1; d <= n; d++) {
+    var k = dkey(y, m, d), es = by[k] || [], t = es.filter(function (e) { return e.kind === 'trial'; }).length, r = es.length - t, flag = es.some(function (e) { return e.flag; });
+    var heat = es.length >= 8 ? 'h3' : es.length >= 4 ? 'h2' : es.length ? 'h1' : '';
+    h += '<button class="cell ' + heat + (k === todayKey ? ' today' : '') + (k === S.sel ? ' sel' : '') + '" data-day="' + k + '"><span class="n">' + d + '</span>' + (t ? '<span class="b t">Trial ' + t + '</span>' : '') + (r ? '<span class="b r">Report ' + r + '</span>' : '') + (flag ? '<span class="b c">Call</span>' : '') + '</button>';
+  }
+  h += '</div></div>';
+  h += dayView(by[S.sel] || []);
+  app.innerHTML = h;
+}
+
+function card(e, showDate) {
+  var b = e.b, kids = (b.children || []).map(function (c) { return esc(c.name) + ' (' + (c.gender === 'M' ? 'Boy' : 'Girl') + ', ' + esc(c.age) + ')'; }).join(', ');
+  var wa = 'https://wa.me/' + encodeURIComponent(b.phone) + '?text=' + encodeURIComponent('Hi ' + b.parent + ', this is Genius Mind Academy about your booking ' + b.ref + '.');
+  var h = '<div class="ev"><div class="tm">' + (showDate ? esc(e.date) + '<br>' : '') + esc(e.slot) + '<small><span class="tag ' + (e.kind === 'trial' ? 't' : 'r') + '">' + (e.kind === 'trial' ? 'Trial class' : 'Report') + '</span></small></div><div>';
+  h += '<div class="who">' + esc(b.parent) + '</div><div class="kids">' + kids + '</div>';
+  h += '<div>' + (b.prizes || []).map(function (p) { return '<span class="tag p">🎁 ' + esc(p) + '</span>'; }).join('');
+  if (b.clash) h += '<span class="tag c">Report time clash - call customer</span>';
+  else if (b.service === 'TCBT' && !b.reportSlot && e.kind === 'trial') h += '<span class="tag c">No report time - arrange with customer</span>';
+  h += '</div><div class="meta">' + esc(SVC[b.service] || '') + ' · ' + esc(b.ref) + '</div>';
+  h += '<div class="act noprint"><a class="wa" href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a><a href="tel:+' + esc(b.phone) + '">Call ' + esc(fmtPhone(b.phone)) + '</a></div>';
+  return h + '</div></div>';
+}
+function dayView(es) {
+  var t = es.filter(function (e) { return e.kind === 'trial'; }).length, r = es.length - t;
+  var h = '<div class="dayp"><div class="tb" style="margin-bottom:4px"><h3 style="flex:1;margin:0">' + esc(fmtDate(S.sel)) + '</h3><button class="ib noprint" id="print">Print</button></div><div class="small" style="margin-bottom:8px">' + t + ' trial class' + (t === 1 ? '' : 'es') + ' · ' + r + ' report collection' + (r === 1 ? '' : 's') + '</div>';
+  if (!es.length) h += '<div class="card" style="text-align:center;color:var(--muted)">No bookings on this day.</div>';
+  es.forEach(function (e) { h += card(e, false); });
+  return h + '</div>';
+}
+function searchView() {
+  var q = S.q.trim().toLowerCase(), qd = q.replace(/\D/g, '');
+  var res = visible().filter(function (e) {
+    var b = e.b; var hay = (b.parent + ' ' + b.ref + ' ' + (b.children || []).map(function (c) { return c.name; }).join(' ')).toLowerCase();
+    return hay.indexOf(q) > -1 || (qd.length > 3 && String(b.phone).indexOf(qd.replace(/^0/, '60')) > -1) || (qd.length > 3 && String(b.phone).indexOf(qd) > -1);
+  });
+  var h = '<div class="dayp"><h3>' + res.length + ' result' + (res.length === 1 ? '' : 's') + '</h3>';
+  res.forEach(function (e) { h += card(e, true); });
+  return h + '</div>';
+}
+
+document.addEventListener('click', function (e) {
+  var el = e.target.closest('button'); if (!el) return;
+  if (el.id === 'login') { PIN = document.getElementById('pin').value; S.err = ''; load('init'); try { sessionStorage.setItem('gma_view_pin', PIN); } catch (x) {} render(); return; }
+  if (el.dataset.nav) { S.month[1] += +el.dataset.nav; if (S.month[1] < 1) { S.month = [S.month[0] - 1, 12]; } if (S.month[1] > 12) { S.month = [S.month[0] + 1, 1]; } render(); return; }
+  if (el.dataset.day) { S.sel = el.dataset.day; render(); setTimeout(function () { var d = document.querySelector(".dayp"); if (d) d.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 30); return; }
+  if (el.dataset.f) { S.filter = el.dataset.f; render(); return; }
+  if (el.id === 'today') { S.sel = todayKey; S.month = [today.getFullYear(), today.getMonth() + 1]; S.q = ''; render(); return; }
+  if (el.id === 'refresh') { load(); return; }
+  if (el.id === 'print') { window.print(); return; }
+});
+document.addEventListener('input', function (e) {
+  if (e.target.id === 'q') { S.q = e.target.value; var pos = e.target.selectionStart; render(); var q = document.getElementById('q'); if (q) { q.focus(); q.setSelectionRange(pos, pos); } }
+});
+setInterval(function () { if (S.authed && !document.hidden && !S.busy) load(); }, 60000);
+
+if (LOGO_URL) { var lg = document.getElementById('logo'), im = new Image(); im.className = 'brandlogo'; im.alt = ''; im.src = LOGO_URL; im.onload = function () { lg.replaceWith(im); }; }
+if (PIN && SUBMIT_URL) load('init'); else render();
+</script>
+</body>
+</html>
