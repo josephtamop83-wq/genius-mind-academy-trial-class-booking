@@ -660,7 +660,7 @@ if(e==='taken'){S.err=t('e_taken');S.step=steps().indexOf('date');S.slot=null;st
 if(e==='phone_used'){S.err=t('e_used');render();return}
 S.err=t('e_send');render()});
 }
-function footRender(){var f=document.getElementById('foot');if(f)f.innerHTML=linksHtml()}
+function footRender(){var f=document.getElementById('foot');if(f)f.innerHTML=''}
 function editRender(){
 document.documentElement.lang=S.lang==='zh'?'zh-CN':'en';
 document.getElementById('sub').textContent=t('sub');
