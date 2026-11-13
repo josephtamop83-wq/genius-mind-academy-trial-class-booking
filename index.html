@@ -311,6 +311,7 @@
 <div class="lang" role="group" aria-label="Language"><button data-lang="en">EN</button><button data-lang="zh">中文</button></div>
 </header>
 <main id="app"></main>
+<footer class="foot" id="foot"></footer>
 <div class="bar" id="bar" hidden><div class="in"><button class="btn sec2" id="back"></button><button class="btn pri" id="next"></button></div></div>
 <script>
 var CFG = {
@@ -320,7 +321,9 @@ MAX_CHILDREN: 10,
 HOLD_MIN: 15,              // minutes a chosen slot is held while the parent completes the form
 SUBMIT_URL: '',            // Google Apps Script web app URL. Empty = DEMO mode (saves only in this browser)
 WHATSAPP: '',              // academy WhatsApp number for the fallback button, e.g. '60123456789'
-LOGO_URL: 'https://geniusmind.com.my/wp-content/uploads/2022/08/cropped-Geniusmind-logo.png'
+LOGO_URL: 'logo.png',
+WEBSITE: 'https://geniusmind.com.my',
+FACEBOOK: 'https://www.facebook.com/gmapuchongjaya'               // Facebook page link, e.g. 'https://www.facebook.com/yourpage'
 };
 var DATA=(function(){
 var EV=['6:45pm–8:15pm','8:30pm–10:00pm'],DAY=['11:00am–12:30pm','1:30pm–3:00pm','3:30pm–5:00pm'];
@@ -359,7 +362,7 @@ h_confirm:'Review & confirm',p_confirm:'Please check everything before submittin
 svc:'Service',who:'Parent',ph:'Mobile',em:'Email',ad:'Address',kids:'Children',tcd:'Trial class',btd:'Report collection',paid:'Payment slip',total:'Total',
 uploaded:'Uploaded',none_needed:'No payment needed',
 next:'Continue',back:'Back',
-s_phone:'Login',ed_date:'Change date & time',ed_det:'Edit my details',save:'Save changes',saved:'Changes saved.',cancel_edit:'Cancel',h_edit_det:'Edit your details',p_edit_det:'Update the parent and children information.',ref_lbl:'Reference',h_phone:'Welcome',p_phone:'Enter your mobile number. If you have booked or registered before, we will load your details.',
+s_phone:'Login',visit_web:'Visit our official website',visit_fb:'Follow us on Facebook',follow:'Find us online',ed_date:'Change date & time',ed_det:'Edit my details',save:'Save changes',saved:'Changes saved.',cancel_edit:'Cancel',h_edit_det:'Edit your details',p_edit_det:'Update the parent and children information.',ref_lbl:'Reference',h_phone:'Welcome',p_phone:'Enter your mobile number. If you have booked or registered before, we will load your details.',
 phone_ph:'e.g. 012-3456789',welcome_back:'Welcome back, {n}! Your details have been loaded - please check them.',new_here:'New number - please fill in your details on the next page.',
 checking:'Checking…',e_lookup:'Could not check your number. Please try again.',
 exist_h:'You already have a booking',exist_p:'Each mobile number can book only once. Your booking:',other_num:'Use a different number',
@@ -398,7 +401,7 @@ h_confirm:'核对并确认',p_confirm:'提交前请再次检查。',
 svc:'服务',who:'家长',ph:'手机',em:'电邮',ad:'地址',kids:'孩子',tcd:'试课',btd:'领取报告',paid:'银行单',total:'总额',
 uploaded:'已上传',none_needed:'无需付款',
 next:'继续',back:'返回',
-s_phone:'登入',ed_date:'更改日期与时间',ed_det:'修改我的资料',save:'保存更改',saved:'已保存更改。',cancel_edit:'取消',h_edit_det:'修改资料',p_edit_det:'更新家长与孩子的资料。',ref_lbl:'预约编号',h_phone:'欢迎',p_phone:'请输入手机号码。如果您以前预约或登记过，我们会自动载入您的资料。',
+s_phone:'登入',visit_web:'访问官方网站',visit_fb:'关注我们的 Facebook',follow:'关注我们',ed_date:'更改日期与时间',ed_det:'修改我的资料',save:'保存更改',saved:'已保存更改。',cancel_edit:'取消',h_edit_det:'修改资料',p_edit_det:'更新家长与孩子的资料。',ref_lbl:'预约编号',h_phone:'欢迎',p_phone:'请输入手机号码。如果您以前预约或登记过，我们会自动载入您的资料。',
 phone_ph:'例如 012-3456789',welcome_back:'欢迎回来，{n}！已载入您的资料，请核对。',new_here:'新号码 - 请在下一页填写资料。',
 checking:'检查中…',e_lookup:'无法检查号码，请重试。',
 exist_h:'您已经有预约了',exist_p:'每个手机号码只能预约一次。您的预约：',other_num:'使用其他号码',
@@ -450,6 +453,7 @@ if(S.holdUntil&&left<=0){stopHold();S.date=null;S.slot=null;toast(t('hold_end'))
 if(el&&S.holdUntil){var m=Math.floor(left/60000),s=Math.floor(left%60000/1000);el.textContent=pad(m)+':'+pad(s)}
 }
 function render(){
+footRender();
 document.documentElement.lang=S.lang==='zh'?'zh-CN':'en';
 document.getElementById('sub').textContent=t('sub');
 document.querySelectorAll('.lang button').forEach(function(b){b.classList.toggle('on',b.dataset.lang===S.lang)});
@@ -474,6 +478,11 @@ return '<div class="head"><h2>'+t('h_service')+'</h2><p>'+t('p_service')+'</p></
 o('TCBT','tcbt','tcbt_d','')+
 o('TC','tc','tc_d','<span class="badge g">90 min</span>')+
 o('BT','bt','bt_d','');
+}
+function linksHtml(){
+var h='<a class="lnk" href="'+CFG.WEBSITE+'" target="_blank" rel="noopener">🌐 '+t('visit_web')+'</a>';
+if(CFG.FACEBOOK)h+='<a class="lnk fb" href="'+CFG.FACEBOOK+'" target="_blank" rel="noopener">f '+t('visit_fb')+'</a>';
+return '<div class="links"><div class="lt">'+t('follow')+'</div>'+h+'</div>';
 }
 function viewPhone(){
 return '<div class="head"><h2>'+t('h_phone')+'</h2><p>'+t('p_phone')+'</p></div>'+
@@ -627,6 +636,7 @@ if(e==='taken'){S.err=t('e_taken');S.step=steps().indexOf('date');S.slot=null;st
 if(e==='phone_used'){S.err=t('e_used');render();return}
 S.err=t('e_send');render()});
 }
+function footRender(){var f=document.getElementById('foot');if(f)f.innerHTML=linksHtml()}
 function editRender(){
 document.documentElement.lang=S.lang==='zh'?'zh-CN':'en';
 document.getElementById('sub').textContent=t('sub');
