@@ -91,8 +91,56 @@ function custView() {
     } else h += '<div class="small">No spin left for this child.</div>';
     h += '</div>';
   });
-  if ((d.bookings || []).length) h += '<div class="card"><div class="sec" style="margin-top:0">Bookings</div>' + d.bookings.map(function (b) { return '<div class="small"><b>' + esc(b.ref) + '</b> · ' + esc(b.date || b.reportDate) + ' ' + esc(b.slot || b.reportSlot) + '</div>'; }).join('') + '</div>';
+  if ((d.bookings || []).length) h += '<div class="card"><div class="sec" style="margin-top:0">Bookings</div>' + d.bookings.map(function (b) {
+    var isBT = b.service === 'BT', dt = isBT ? b.reportDate : b.date, sl = isBT ? b.reportSlot : b.slot;
+    var x = '<div class="small" style="margin-top:8px"><b>' + esc(b.ref) + '</b> · ' + esc(dt) + ' ' + esc(sl) + (b.reportSlot && !isBT ? ' · report ' + esc(b.reportSlot) : '') +
+      ' <span style="color:#777">(parent changes used ' + (b.changes || 0) + '/' + (b.maxChanges || 0) + ')</span></div>';
+    if (S.chg === b.ref) return x + chgView(b);
+    return x + '<button class="btn sec2" data-chg="' + esc(b.ref) + '" style="max-width:220px;margin-top:6px">Change date / time</button>';
+  }).join('') + '</div>';
   return h;
+}
+
+
+// ---- teacher changes a booking's date/time (no limits) ----
+var DATA = (function () {
+  var EV = ['6:45pm–8:15pm', '8:30pm–10:00pm'], DAY = ['11:00am–12:30pm', '1:30pm–3:00pm', '3:30pm–5:00pm'];
+  var tr = { 0: ['10:15am–11:45am', '1:30pm–3:00pm', '3:30pm–5:00pm'], 1: EV, 2: DAY, 3: EV, 4: DAY, 5: EV, 6: ['11:00am–12:30pm', '1:30pm–3:00pm', '3:30pm–5:00pm', '5:15pm–6:45pm'] };
+  var Sl = []; for (var h = 10; h < 22; h++) { var a = h < 12 ? 'am' : 'pm', x = h % 12 || 12; Sl.push(x + ':00' + a + '–' + x + ':45' + a); }
+  var T = {}, R = {};
+  for (var i = 0; i < 39; i++) {
+    var d = new Date(Date.UTC(2026, 10, 23 + i)), w = d.getUTCDay(), k = d.toISOString().slice(0, 10);
+    if ((k >= '2026-11-27' && k <= '2026-11-29') || k >= '2026-12-04') T[k] = tr[w];
+    if (k <= '2026-12-31') R[k] = w === 0 ? Sl.slice(2) : w === 6 ? Sl.slice(0, 1) : w === 5 ? Sl.slice(0, 8) : Sl;
+  }
+  return { TRIAL: T, REPORT: R };
+})();
+function mins(l) { var m = l.match(/(\d+):(\d+)(am|pm)/); return (parseInt(m[1], 10) % 12 + (m[3] === 'pm' ? 12 : 0)) * 60 + parseInt(m[2], 10); }
+function range(l) { var p = l.split('–'); return [mins(p[0] + (/am|pm/.test(p[0]) ? '' : p[1].slice(-2))), mins(p[1])]; }
+function reportFor(date, trialLabel) { var r = range(trialLabel), list = DATA.REPORT[date] || []; for (var i = 0; i < list.length; i++) { var s = mins(list[i]); if (s >= r[0] && s < r[1]) return list[i]; } return null; }
+function loadTaken(cb) {
+  fetch(SUBMIT_URL + '?action=booked').then(function (r) { return r.json(); }).then(function (j) { S.taken = { trial: j.trial || {}, report: j.report || {} }; cb(); }).catch(function () { S.taken = { trial: {}, report: {} }; cb(); });
+}
+function chgView(b) {
+  var isBT = b.service === 'BT', kind = isBT ? 'report' : 'trial', table = isBT ? DATA.REPORT : DATA.TRIAL;
+  var dates = Object.keys(table).sort();
+  var cur = S.cd || (isBT ? b.reportDate : b.date), curSlot = S.cs;
+  if (dates.indexOf(cur) < 0) cur = dates[0];
+  var slots = table[cur] || [];
+  var h = '<div class="card child"><label class="f">New date</label><select id="cdate">' + dates.map(function (d) { return '<option value="' + d + '"' + (d === cur ? ' selected' : '') + '>' + d + '</option>'; }).join('') + '</select>' +
+    '<label class="f">New time</label><select id="cslot"><option value="">Choose…</option>' + slots.map(function (l) {
+      var holder = (S.taken && S.taken[kind] || {})[cur + '|' + l], own = holder === b.ref;
+      return '<option value="' + esc(l) + '"' + (holder && !own ? ' disabled' : '') + (l === curSlot ? ' selected' : '') + '>' + esc(l) + (own ? ' (current)' : holder ? ' (taken)' : '') + '</option>';
+    }).join('') + '</select>';
+  if (b.service === 'TCBT' && curSlot) { var rf = reportFor(cur, curSlot); h += '<div class="small" style="margin-top:6px">Report collection: ' + (rf ? esc(rf) : 'none (will need a call)') + '</div>'; }
+  h += '<div class="row2" style="margin-top:10px"><button class="btn pri" data-chgsave="' + esc(b.ref) + '" data-svc="' + esc(b.service) + '">' + (S.busy ? 'Saving…' : 'Save change') + '</button><button class="btn sec2" id="chgcancel" style="flex:0 0 100px">Cancel</button></div></div>';
+  return h;
+}
+function openChg(ref) {
+  S.chg = ref; S.cd = null; S.cs = ''; S.err = ''; S.msg = '';
+  var b = (S.data.bookings || []).filter(function (x) { return x.ref === ref; })[0];
+  S.cd = b ? (b.service === 'BT' ? b.reportDate : b.date) : null;
+  S.taken = null; render(); loadTaken(render);
 }
 
 function walkView() {
@@ -124,6 +172,21 @@ document.addEventListener('click', function (e) {
       if (j && j.ok) { S.authed = true; S.stock = j.stock; try { sessionStorage.setItem('gma_pin', PIN); } catch (x) {} S.err = ''; }
       else { S.err = errText(j); }
       render();
+    });
+  } else if (el.dataset.chg !== undefined) { openChg(el.dataset.chg);
+  } else if (el.id === 'chgcancel') { S.chg = null; render();
+  } else if (el.dataset.chgsave !== undefined) {
+    var ref = el.dataset.chgsave, svc = el.dataset.svc;
+    var dv = document.getElementById('cdate').value, sv = document.getElementById('cslot').value;
+    if (!sv) { S.err = 'Please choose a time.'; render(); return; }
+    var body = { action: 'staff_reschedule', phone: normPhone(S.phone), ref: ref, date: dv, slot: sv, reportSlot: svc === 'TCBT' ? reportFor(dv, sv) : null };
+    if (!confirm('Change ' + ref + ' to ' + dv + ' ' + sv + '?')) return;
+    S.busy = true; S.err = ''; render();
+    api(body, function (j) {
+      S.busy = false;
+      if (!j || !j.ok) { S.err = j && j.error === 'taken' ? 'That time was just taken. Please choose another.' : errText(j); render(); return; }
+      S.chg = null; S.msg = 'Changed ' + ref + ' to ' + dv + ' ' + sv + '.';
+      api({ action: 'staff_lookup', phone: normPhone(S.phone) }, function (k) { if (k && k.ok) S.data = k; render(); });
     });
   } else if (el.id === 'logout') {
     PIN = ''; try { sessionStorage.removeItem('gma_pin'); } catch (x) {}
@@ -171,6 +234,8 @@ document.addEventListener('input', function (e) {
 });
 document.addEventListener('change', function (e) {
   var el = e.target;
+  if (el.id === 'cdate') { S.cd = el.value; S.cs = ''; render(); return; }
+  if (el.id === 'cslot') { S.cs = el.value; render(); return; }
   if (el.dataset.k && el.tagName === 'SELECT') S.kids[+el.dataset.i][el.dataset.k] = el.value;
 });
 
