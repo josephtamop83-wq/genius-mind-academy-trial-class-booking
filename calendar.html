@@ -36,6 +36,14 @@
 .tag.t{background:#e6f2cf;color:#3d6b10}.tag.r{background:#efe3f8;color:#6b3a8d}.tag.p{background:#fff3c4;color:#7a5a00}.tag.c{background:#fde8ea;color:var(--bad)}
 .act a{display:inline-block;margin:6px 6px 0 0;padding:6px 10px;border-radius:10px;border:1.5px solid var(--line);text-decoration:none;font-weight:700;font-size:13px;color:var(--plum);background:#fff}
 .act a.wa{background:#25d366;border-color:#25d366;color:#fff}
+.att{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.att button{padding:8px 14px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font:inherit;font-weight:800;cursor:pointer}
+.att button.y.on{background:#3d8b1f;border-color:#3d8b1f;color:#fff}
+.att button.n.on{background:var(--bad);border-color:var(--bad);color:#fff}
+.tag.y{background:#dff3d0;color:#2f6a10}.tag.n{background:#fde8ea;color:var(--bad)}
+.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:12px}
+.stat div{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.stat b{display:block;font-size:22px;font-family:"Fredoka",sans-serif;color:var(--plum)}
 .err{background:#fde8ea;color:var(--bad);border-radius:12px;padding:10px 12px;margin:10px 0;font-weight:700}
 .small{font-size:12px;color:var(--muted)}
 input.s{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);font:inherit;margin-bottom:10px}
@@ -59,7 +67,7 @@ try { PIN = sessionStorage.getItem('gma_view_pin') || ''; } catch (e) {}
 var app = document.getElementById('app');
 var today = new Date();
 var todayKey = today.getFullYear() + '-' + ('0' + (today.getMonth() + 1)).slice(-2) + '-' + ('0' + today.getDate()).slice(-2);
-var S = { authed: false, busy: false, err: '', events: [], bookings: [], month: [today.getFullYear(), today.getMonth() + 1], sel: todayKey, filter: 'all', q: '', updated: '' };
+var S = { authed: false, busy: false, err: '', events: [], bookings: [], month: [today.getFullYear(), today.getMonth() + 1], sel: todayKey, view: 'cal', canMark: false, filter: 'all', q: '', updated: '' };
 var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 10 minutes.', disabled: 'The calendar is not turned on yet (set VIEW_PIN or STAFF_PIN in the Google script).', nourl: 'SUBMIT_URL is not set in calendar.html yet.' };
 var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -82,8 +90,8 @@ function build(bookings) {
   S.bookings = bookings; var ev = [];
   bookings.forEach(function (b) {
     var needsReport = b.service === 'TCBT' && !b.reportSlot;
-    if (b.service !== 'BT' && b.date) ev.push({ kind: 'trial', date: b.date, slot: b.slot, b: b, flag: b.clash || needsReport });
-    if (b.reportSlot && b.reportDate) ev.push({ kind: 'report', date: b.reportDate, slot: b.reportSlot, b: b, flag: false });
+    if (b.service !== 'BT' && b.date) ev.push({ kind: 'trial', date: b.date, slot: b.slot, b: b, att: b.trialAtt || '', flag: b.clash || needsReport });
+    if (b.reportSlot && b.reportDate) ev.push({ kind: 'report', date: b.reportDate, slot: b.reportSlot, b: b, att: b.repAtt || '', flag: false });
   });
   ev.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : mins(a.slot) - mins(b.slot); });
   S.events = ev;
@@ -93,7 +101,7 @@ function load(cb) {
   api({ action: 'cal_bookings' }, function (j) {
     S.busy = false;
     if (j && j.ok) {
-      S.authed = true; S.err = ''; build(j.bookings || []); S.updated = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      S.authed = true; S.err = ''; S.canMark = !!j.canMark; build(j.bookings || []); S.updated = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
       var first = S.events.filter(function (e) { return e.date >= todayKey; })[0] || S.events[0];
       if (cb === 'init' && first && !S.events.some(function (e) { return e.date === S.sel; })) { S.sel = first.date; var p = first.date.split('-'); S.month = [+p[0], +p[1]]; }
     } else { S.err = errText(j); if (j && j.error === 'auth') S.authed = false; }
@@ -110,10 +118,13 @@ function render() {
   var y = S.month[0], m = S.month[1], vis = visible(), by = {};
   vis.forEach(function (e) { (by[e.date] = by[e.date] || []).push(e); });
   var first = new Date(y, m - 1, 1).getDay(), n = new Date(y, m, 0).getDate();
-  var h = '<div class="tb"><button class="ib" data-nav="-1">‹</button><h2>' + MONTHS[m - 1] + ' ' + y + '</h2><button class="ib" data-nav="1">›</button><button class="ib" id="today">Today</button><button class="ib" id="refresh">' + (S.busy ? '…' : 'Refresh') + '</button></div>';
+  var h = '<div class="tb"><button class="ib" data-nav="-1">‹</button><h2>' + MONTHS[m - 1] + ' ' + y + '</h2><button class="ib" data-nav="1">›</button><button class="ib" id="today">Today</button><button class="ib ' + (S.view === 'today' ? 'on' : '') + '" id="todaylist">Today\'s list</button><button class="ib ' + (S.view === 'stats' ? 'on' : '') + '" id="stats">Stats</button><button class="ib" id="refresh">' + (S.busy ? '…' : 'Refresh') + '</button></div>';
   h += '<input class="s" id="q" placeholder="Search parent, child, phone or reference" value="' + esc(S.q) + '">';
   h += '<div class="chips">' + [['all', 'All'], ['trial', 'Trial class'], ['report', 'Report collection']].map(function (f) { return '<button class="ib ' + (S.filter === f[0] ? 'on' : '') + '" data-f="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '<span class="small" style="align-self:center">Updated ' + esc(S.updated) + '</span></div>';
   if (S.err) h += '<div class="err">' + esc(S.err) + '</div>';
+  if (!S.canMark) h += '<div class="small" style="margin-bottom:8px">View only. Log in with the teacher password to mark attendance.</div>';
+  if (S.view === 'today') { h += todayView(); app.innerHTML = h; return; }
+  if (S.view === 'stats') { h += statsView(); app.innerHTML = h; return; }
   if (S.q.trim()) { h += searchView(); app.innerHTML = h; return; }
   h += '<div id="cal"><div class="grid7">' + ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(function (d) { return '<div class="dow">' + d + '</div>'; }).join('');
   for (var i = 0; i < first; i++) h += '<div class="cell out"></div>';
@@ -127,6 +138,40 @@ function render() {
   app.innerHTML = h;
 }
 
+
+function attHtml(e) {
+  var a = e.att, h = '';
+  if (a === 'attended') h += '<span class="tag y">Attended</span>'; else if (a === 'noshow') h += '<span class="tag n">No-show</span>';
+  if (S.canMark) h += '<div class="att noprint"><button class="y ' + (a === 'attended' ? 'on' : '') + '" data-mark="attended" data-ref="' + esc(e.b.ref) + '" data-kind="' + e.kind + '">✓ Attended</button><button class="n ' + (a === 'noshow' ? 'on' : '') + '" data-mark="noshow" data-ref="' + esc(e.b.ref) + '" data-kind="' + e.kind + '">✗ No-show</button></div>';
+  return h;
+}
+function todayView() {
+  var es = S.events.filter(function (e) { return e.date === todayKey && (S.filter === 'all' || e.kind === S.filter); });
+  var came = es.filter(function (e) { return e.att === 'attended'; }).length, no = es.filter(function (e) { return e.att === 'noshow'; }).length;
+  var h = '<div class="dayp"><div class="tb" style="margin-bottom:4px"><h3 style="flex:1;margin:0">Today · ' + esc(fmtDate(todayKey)) + '</h3><button class="ib noprint" id="print">Print</button></div>';
+  h += '<div class="stat"><div><b>' + es.length + '</b>booked today</div><div><b>' + came + '</b>attended</div><div><b>' + no + '</b>no-show</div><div><b>' + (es.length - came - no) + '</b>not marked</div></div>';
+  if (!es.length) h += '<div class="card" style="text-align:center;color:var(--muted)">No bookings today.</div>';
+  es.forEach(function (e) { h += card(e, false); });
+  return h + '</div>';
+}
+function statsView() {
+  var past = S.events.filter(function (e) { return e.date <= todayKey; });
+  function cnt(list, a) { return list.filter(function (e) { return e.att === a; }).length; }
+  function block(title, list) {
+    var came = cnt(list, 'attended'), no = cnt(list, 'noshow'), rate = came + no ? Math.round(100 * came / (came + no)) : 0;
+    return '<div class="sec" style="margin-top:14px">' + title + '</div><div class="stat"><div><b>' + list.length + '</b>booked</div><div><b>' + came + '</b>attended</div><div><b>' + no + '</b>no-show</div><div><b>' + (came + no ? rate + '%' : '-') + '</b>attendance rate</div></div>';
+  }
+  var trials = S.events.filter(function (e) { return e.kind === 'trial'; }), reports = S.events.filter(function (e) { return e.kind === 'report'; });
+  var attendedTrialPhones = {}; trials.forEach(function (e) { if (e.att === 'attended') attendedTrialPhones[e.b.phone] = true; });
+  var withReport = {}; S.bookings.forEach(function (b) { if (b.reportSlot || b.service === 'BT') withReport[b.phone] = true; });
+  var nTrial = Object.keys(attendedTrialPhones).length, nConv = Object.keys(attendedTrialPhones).filter(function (p) { return withReport[p]; }).length;
+  var h = '<div class="dayp"><h3>Statistics</h3><div class="stat"><div><b>' + S.bookings.length + '</b>total bookings</div><div><b>' + past.filter(function (e) { return !e.att; }).length + '</b>past, not marked</div></div>';
+  h += block('Trial classes', trials) + block('Report collections', reports);
+  h += '<div class="sec" style="margin-top:14px">Trial class → brain test report</div><div class="stat"><div><b>' + nTrial + '</b>families attended a trial</div><div><b>' + nConv + '</b>of them have a report booking</div><div><b>' + (nTrial ? Math.round(100 * nConv / nTrial) + '%' : '-') + '</b>conversion</div></div>';
+  h += '<div class="small">Attendance rate = attended ÷ (attended + no-show). Only classes you have marked are counted.</div></div>';
+  return h;
+}
+
 function card(e, showDate) {
   var b = e.b, kids = (b.children || []).map(function (c) { return esc(c.name) + ' (' + (c.gender === 'M' ? 'Boy' : 'Girl') + ', ' + esc(c.age) + ')'; }).join(', ');
   var wa = 'https://wa.me/' + encodeURIComponent(b.phone) + '?text=' + encodeURIComponent('Hi ' + b.parent + ', this is Genius Mind Academy about your booking ' + b.ref + '.');
@@ -136,6 +181,7 @@ function card(e, showDate) {
   if (b.clash) h += '<span class="tag c">Report time clash - call customer</span>';
   else if (b.service === 'TCBT' && !b.reportSlot && e.kind === 'trial') h += '<span class="tag c">No report time - arrange with customer</span>';
   h += '</div><div class="meta">' + esc(SVC[b.service] || '') + ' · ' + esc(b.ref) + '</div>';
+  h += attHtml(e);
   h += '<div class="act noprint"><a class="wa" href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a><a href="tel:+' + esc(b.phone) + '">Call ' + esc(fmtPhone(b.phone)) + '</a></div>';
   return h + '</div></div>';
 }
@@ -163,12 +209,22 @@ document.addEventListener('click', function (e) {
   if (el.dataset.nav) { S.month[1] += +el.dataset.nav; if (S.month[1] < 1) { S.month = [S.month[0] - 1, 12]; } if (S.month[1] > 12) { S.month = [S.month[0] + 1, 1]; } render(); return; }
   if (el.dataset.day) { S.sel = el.dataset.day; render(); setTimeout(function () { var d = document.querySelector(".dayp"); if (d) d.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 30); return; }
   if (el.dataset.f) { S.filter = el.dataset.f; render(); return; }
-  if (el.id === 'today') { S.sel = todayKey; S.month = [today.getFullYear(), today.getMonth() + 1]; S.q = ''; render(); return; }
+  if (el.dataset.mark) {
+    var ref = el.dataset.ref, kind = el.dataset.kind, cur = null;
+    S.events.forEach(function (x) { if (x.b.ref === ref && x.kind === kind) cur = x; });
+    var st = cur && cur.att === el.dataset.mark ? '' : el.dataset.mark, old = cur ? cur.att : '';
+    if (cur) { cur.att = st; if (kind === 'trial') cur.b.trialAtt = st; else cur.b.repAtt = st; render(); }
+    api({ action: 'cal_mark', ref: ref, kind: kind, status: st }, function (j) { if (!j || !j.ok) { if (cur) { cur.att = old; if (kind === 'trial') cur.b.trialAtt = old; else cur.b.repAtt = old; } S.err = errText(j); render(); } });
+    return;
+  }
+  if (el.id === 'todaylist') { S.view = S.view === 'today' ? 'cal' : 'today'; S.q = ''; render(); return; }
+  if (el.id === 'stats') { S.view = S.view === 'stats' ? 'cal' : 'stats'; S.q = ''; render(); return; }
+  if (el.id === 'today') { S.view = 'cal'; S.sel = todayKey; S.month = [today.getFullYear(), today.getMonth() + 1]; S.q = ''; render(); return; }
   if (el.id === 'refresh') { load(); return; }
   if (el.id === 'print') { window.print(); return; }
 });
 document.addEventListener('input', function (e) {
-  if (e.target.id === 'q') { S.q = e.target.value; var pos = e.target.selectionStart; render(); var q = document.getElementById('q'); if (q) { q.focus(); q.setSelectionRange(pos, pos); } }
+  if (e.target.id === 'q') { S.q = e.target.value; if (S.q) S.view = 'cal'; var pos = e.target.selectionStart; render(); var q = document.getElementById('q'); if (q) { q.focus(); q.setSelectionRange(pos, pos); } }
 });
 setInterval(function () { if (S.authed && !document.hidden && !S.busy) load(); }, 60000);
 
