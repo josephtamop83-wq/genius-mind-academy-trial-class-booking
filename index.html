@@ -314,15 +314,12 @@
 <div class="bar" id="bar" hidden><div class="in"><button class="btn sec2" id="back"></button><button class="btn pri" id="next"></button></div></div>
 <script>
 var CFG = {
-TC_PRICE: 39,              // Trial class price (RM)
-PRICE_MODE: 'booking',     // 'booking' = RM39 per booking, 'child' = RM39 x number of children
 MIN_CHILDREN_TC: 1,        // trial class only
 MIN_CHILDREN_BT: 1,        // when brain test is included
 MAX_CHILDREN: 10,
 HOLD_MIN: 15,              // minutes a chosen slot is held while the parent completes the form
-SUBMIT_URL: '',            // POST endpoint (form/API). Empty = DEMO mode (saves only in this browser)
-BANK: { bank: '[Bank name]', holder: '[Account holder name]', number: '[Account number]' }, // put real bank details here
-WHATSAPP: '',              // optional, e.g. '60123456789'
+SUBMIT_URL: '',            // Google Apps Script web app URL. Empty = DEMO mode (saves only in this browser)
+WHATSAPP: '',              // academy WhatsApp number for the fallback button, e.g. '60123456789'
 LOGO_URL: 'https://geniusmind.com.my/wp-content/uploads/2022/08/cropped-Geniusmind-logo.png'
 };
 var DATA=(function(){
@@ -341,7 +338,7 @@ s_service:'Service',s_details:'Details',s_date:'Date & Time',s_pay:'Payment',s_c
 h_service:'Choose a service',p_service:'Pick what you would like to book.',
 tcbt:'Trial Class + Brain Test Report Collection',tcbt_d:'Book a trial class and collect the brain test report. We reserve the report time for you.',
 tc:'Trial Class Only',tc_d:'A 90-minute trial class for your child.',
-bt:'Brain Test Report Collection Only',bt_d:'Collect your child\'s brain test analysis report (45 minutes).',
+bt:'Brain Test Report Collection Only',bt_d:'Collect your child\'s brain test analysis report.',
 free:'Free',per_booking:'per booking',per_child:'per child',
 h_details:'Your details',p_details:'Tell us about you and your children.',
 parent:'Parent',pname:'Parent name',phone:'Mobile number',email:'Email',opt:'(optional)',
@@ -349,7 +346,7 @@ addr:'Address',street:'Street / unit',postcode:'Postcode',city:'City',state:'Sta
 children:'Children',child:'Child',cname:'Name',gender:'Gender',age:'Age',male:'Boy',female:'Girl',remove:'Remove',
 add_child:'+ Add another child',children_hint:'You can add {min}–{max} children.',
 consent:'I agree that Genius Mind Academy may collect and use my details to arrange this booking (PDPA).',
-h_date:'Pick a date & time',p_date_tc:'Trial class · 90 minutes',p_date_bt:'Brain test report collection · 45 minutes',
+h_date:'Pick a date & time',p_date_tc:'Trial class · 90 minutes',p_date_bt:'Brain test report collection',
 closed:'Closed / Past',avail:'Available',full:'Fully booked',slots:'Available time slots',pick_date:'Select a date to see time slots.',
 free_slot:'Available',taken:'Taken',hold:'Your slot is held for {t}',hold_end:'Your slot hold expired. Please choose again.',
 report_note:'We will reserve your brain test report collection time automatically: {t}',
@@ -361,7 +358,13 @@ slip:'Bank slip',slip_btn:'Upload bank slip',slip_hint:'JPG, PNG or PDF · max 5
 h_confirm:'Review & confirm',p_confirm:'Please check everything before submitting.',
 svc:'Service',who:'Parent',ph:'Mobile',em:'Email',ad:'Address',kids:'Children',tcd:'Trial class',btd:'Report collection',paid:'Payment slip',total:'Total',
 uploaded:'Uploaded',none_needed:'No payment needed',
-next:'Continue',back:'Back',submit:'Submit booking',sending:'Sending…',
+next:'Continue',back:'Back',
+s_phone:'Login',h_phone:'Welcome',p_phone:'Enter your mobile number. If you have booked or registered before, we will load your details.',
+phone_ph:'e.g. 012-3456789',welcome_back:'Welcome back, {n}! Your details have been loaded - please check them.',new_here:'New number - please fill in your details on the next page.',
+checking:'Checking…',e_lookup:'Could not check your number. Please try again.',
+exist_h:'You already have a booking',exist_p:'Each mobile number can book only once. Your booking:',other_num:'Use a different number',
+wa_ok:'A confirmation has been sent to your WhatsApp.',wa_btn:'Send confirmation to WhatsApp',wa_later:'We will also confirm by WhatsApp.',
+e_used:'This mobile number has already made a booking.',phone_lbl:'Mobile number',submit:'Submit booking',sending:'Sending…',
 done:'Booking received!',done_p:'Your reference number is',
 done_pay:'We will verify your payment slip and confirm by WhatsApp / phone.',done_nopay:'We will contact you to confirm your booking.',
 demo:'DEMO mode: this booking was saved only in this browser. Set SUBMIT_URL to send it to your system.',
@@ -374,7 +377,7 @@ s_service:'服务',s_details:'资料',s_date:'日期时间',s_pay:'付款',s_con
 h_service:'选择服务',p_service:'请选择您要预约的项目。',
 tcbt:'试课 + 领取脑测报告',tcbt_d:'预约试课并领取脑测报告，我们会自动为您保留领取时间。',
 tc:'只试课',tc_d:'为孩子安排 90 分钟的试课。',
-bt:'只领取脑测报告',bt_d:'领取孩子的脑测分析报告（45 分钟）。',
+bt:'只领取脑测报告',bt_d:'领取孩子的脑测分析报告。',
 free:'免费',per_booking:'每次预约',per_child:'每位孩子',
 h_details:'您的资料',p_details:'请填写家长与孩子的资料。',
 parent:'家长',pname:'家长姓名',phone:'手机号码',email:'电邮',opt:'（选填）',
@@ -382,7 +385,7 @@ addr:'地址',street:'街道 / 门牌',postcode:'邮编',city:'城市',state:'�
 children:'孩子',child:'孩子',cname:'姓名',gender:'性别',age:'年龄',male:'男',female:'女',remove:'删除',
 add_child:'+ 添加孩子',children_hint:'可添加 {min}–{max} 位孩子。',
 consent:'我同意 Genius Mind Academy 为办理此预约而收集及使用我的资料（PDPA）。',
-h_date:'选择日期与时间',p_date_tc:'试课 · 90 分钟',p_date_bt:'领取脑测报告 · 45 分钟',
+h_date:'选择日期与时间',p_date_tc:'试课 · 90 分钟',p_date_bt:'领取脑测报告',
 closed:'休息 / 已过',avail:'可预约',full:'已满',slots:'可选时段',pick_date:'请先选择日期以查看时段。',
 free_slot:'可预约',taken:'已被预约',hold:'您的时段已为您保留 {t}',hold_end:'时段保留已过期，请重新选择。',
 report_note:'我们会自动为您保留脑测报告领取时间：{t}',
@@ -394,7 +397,13 @@ slip:'银行单',slip_btn:'上传银行单',slip_hint:'JPG、PNG 或 PDF · 最�
 h_confirm:'核对并确认',p_confirm:'提交前请再次检查。',
 svc:'服务',who:'家长',ph:'手机',em:'电邮',ad:'地址',kids:'孩子',tcd:'试课',btd:'领取报告',paid:'银行单',total:'总额',
 uploaded:'已上传',none_needed:'无需付款',
-next:'继续',back:'返回',submit:'提交预约',sending:'提交中…',
+next:'继续',back:'返回',
+s_phone:'登入',h_phone:'欢迎',p_phone:'请输入手机号码。如果您以前预约或登记过，我们会自动载入您的资料。',
+phone_ph:'例如 012-3456789',welcome_back:'欢迎回来，{n}！已载入您的资料，请核对。',new_here:'新号码 - 请在下一页填写资料。',
+checking:'检查中…',e_lookup:'无法检查号码，请重试。',
+exist_h:'您已经有预约了',exist_p:'每个手机号码只能预约一次。您的预约：',other_num:'使用其他号码',
+wa_ok:'确认信息已发送到您的 WhatsApp。',wa_btn:'发送确认到 WhatsApp',wa_later:'我们也会通过 WhatsApp 确认。',
+e_used:'此手机号码已经预约过了。',phone_lbl:'手机号码',submit:'提交预约',sending:'提交中…',
 done:'预约已收到！',done_p:'您的预约编号是',
 done_pay:'我们会核对您的银行单，并通过 WhatsApp / 电话确认。',done_nopay:'我们会联络您确认预约。',
 demo:'演示模式：此预约只保存在这个浏览器里。请设置 SUBMIT_URL 以发送到您的系统。',
@@ -404,8 +413,8 @@ e_kids:'请添加 {min}–{max} 位孩子，并填写每位孩子的姓名、性
 e_slot:'请选择日期和时段。',e_slip:'请上传银行单。',e_taken:'抱歉，该时段刚被预约，请重新选择。',e_send:'提交失败，请重试。'}
 };
 var STATES=['Johor','Kedah','Kelantan','Melaka','Negeri Sembilan','Pahang','Penang','Perak','Perlis','Sabah','Sarawak','Selangor','Terengganu','Kuala Lumpur','Labuan','Putrajaya'];
-var S = {lang:'en',service:null,step:0,
-d:{parent:'',phone:'',email:'',street:'',postcode:'',city:'',state:'',consent:false,children:[{name:'',gender:'',age:''}]},
+var S = {lang:'en',service:null,step:0,looked:'',welcome:'',existing:null,
+d:{parent:'',phone:'',consent:false,children:[{name:'',gender:'',age:''}]},
 month:[2026,11],date:null,slot:null,holdUntil:0,slip:null,slipURL:'',done:null,busy:false,err:''};
 var app=document.getElementById('app'), bar=document.getElementById('bar'), nextB=document.getElementById('next'), backB=document.getElementById('back');
 var holdTimer=null;
@@ -427,8 +436,8 @@ return null;
 }
 function kind(){return S.service==='BT'?'report':'trial'}
 function table(){return S.service==='BT'?REPORT:TRIAL}
-function steps(){return S.service==='BT'?['service','details','date','confirm']:['service','details','date','pay','confirm']}
-function price(){if(S.service==='BT')return 0;return CFG.PRICE_MODE==='child'?CFG.TC_PRICE*S.d.children.length:CFG.TC_PRICE}
+function steps(){return ['phone','service','details','date','confirm']}
+function normPhone(p){var d=String(p||'').replace(/\D/g,'');if(d.charAt(0)==='0')d='6'+d;return d}
 function minKids(){return S.service==='TC'?CFG.MIN_CHILDREN_TC:CFG.MIN_CHILDREN_BT}
 function fmtDate(k){var p=k.split('-'),d=new Date(+p[0],+p[1]-1,+p[2]);return d.toLocaleDateString(S.lang==='zh'?'zh-CN':'en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
 function svcName(){return t(S.service==='TCBT'?'tcbt':S.service==='TC'?'tc':'bt')}
@@ -445,38 +454,44 @@ document.documentElement.lang=S.lang==='zh'?'zh-CN':'en';
 document.getElementById('sub').textContent=t('sub');
 document.querySelectorAll('.lang button').forEach(function(b){b.classList.toggle('on',b.dataset.lang===S.lang)});
 if(S.done){bar.hidden=true;app.innerHTML=doneView();return}
-var st=steps(),cur=st[S.step],labels={service:'s_service',details:'s_details',date:'s_date',pay:'s_pay',confirm:'s_confirm'};
+if(S.existing){bar.hidden=true;app.innerHTML=existView();return}
+var st=steps(),cur=st[S.step],labels={phone:'s_phone',service:'s_service',details:'s_details',date:'s_date',confirm:'s_confirm'};
 var h='<div class="steps">'+st.map(function(s,i){return '<div class="st '+(i<S.step?'done':i===S.step?'cur':'')+'"><div class="dot">'+(i<S.step?'✓':i+1)+'</div>'+t(labels[s])+'</div>'}).join('')+'</div>';
-h+=({service:viewService,details:viewDetails,date:viewDate,pay:viewPay,confirm:viewConfirm})[cur]();
+h+=({phone:viewPhone,service:viewService,details:viewDetails,date:viewDate,confirm:viewConfirm})[cur]();
 if(S.err)h+='<div class="msg" role="alert">'+esc(S.err)+'</div>';
 app.innerHTML=h;
 bar.hidden=false;
 backB.textContent='← '+t('back');backB.style.visibility=S.step===0?'hidden':'visible';
-nextB.textContent=cur==='confirm'?(S.busy?t('sending'):t('submit')):t('next')+' →';
+nextB.textContent=cur==='confirm'?(S.busy?t('sending'):t('submit')):(cur==='phone'&&S.busy?t('checking'):t('next')+' →');
 nextB.disabled=S.busy||(cur==='service'&&!S.service);
 tick();
 }
 function viewService(){
-function o(key,name,desc,pr,bd){return '<button class="card opt '+(S.service===key?'sel':'')+'" data-svc="'+key+'"><div class="row"><div><h3>'+t(name)+'</h3><p>'+t(desc)+'</p>'+bd+'</div><div class="price">'+pr+'</div></div></button>'}
-var p=CFG.PRICE_MODE==='child'?t('per_child'):t('per_booking');
-var rm='RM'+CFG.TC_PRICE+'<div style="font-size:11px;font-weight:600;color:#6b7280">'+p+'</div>';
+function o(key,name,desc,bd){return '<button class="card opt '+(S.service===key?'sel':'')+'" data-svc="'+key+'"><div class="row"><div><h3>'+t(name)+'</h3><p>'+t(desc)+'</p>'+bd+'</div></div></button>'}
 return '<div class="head"><h2>'+t('h_service')+'</h2><p>'+t('p_service')+'</p></div>'+
-o('TCBT','tcbt','tcbt_d',rm,'<span class="badge">90 + 45 min</span>')+
-o('TC','tc','tc_d',rm,'<span class="badge g">90 min</span>')+
-o('BT','bt','bt_d',t('free'),'<span class="badge g">45 min</span>');
+(S.welcome?'<div class="note info">'+esc(S.welcome)+'</div>':'')+
+o('TCBT','tcbt','tcbt_d','')+
+o('TC','tc','tc_d','<span class="badge g">90 min</span>')+
+o('BT','bt','bt_d','');
+}
+function viewPhone(){
+return '<div class="head"><h2>'+t('h_phone')+'</h2><p>'+t('p_phone')+'</p></div>'+
+'<div class="card"><label class="f">'+t('phone_lbl')+' *</label><input type="tel" data-f="phone" placeholder="'+t('phone_ph')+'" value="'+esc(S.d.phone)+'" autocomplete="tel"></div>';
+}
+function existView(){
+var b=S.existing,rows=[[t('svc'),t(b.service==='TCBT'?'tcbt':b.service==='TC'?'tc':'bt')]];
+if(b.service!=='BT'&&b.date)rows.push([t('tcd'),fmtDate(b.date)+' · '+b.slot]);
+if(b.reportDate&&b.reportSlot)rows.push([t('btd'),fmtDate(b.reportDate)+' · '+b.reportSlot]);
+return '<div class="card done-card"><div class="tick">!</div><h2>'+t('exist_h')+'</h2><p>'+t('exist_p')+'</p><div class="ref">'+esc(b.ref)+'</div>'+
+'<div class="sum"><dl>'+rows.map(function(r){return '<dt>'+esc(r[0])+'</dt><dd>'+esc(r[1])+'</dd>'}).join('')+'</dl></div>'+
+'<button class="btn pri" id="chgnum" style="max-width:260px;margin-top:14px">'+t('other_num')+'</button></div>';
 }
 function viewDetails(){
 var d=S.d,max=CFG.MAX_CHILDREN,mn=minKids();
 var h='<div class="head"><h2>'+t('h_details')+'</h2><p>'+t('p_details')+'</p></div>';
 h+='<div class="card"><div class="sec" style="margin-top:0">'+t('parent')+'</div>'+
 '<label class="f">'+t('pname')+' *</label><input type="text" data-f="parent" value="'+esc(d.parent)+'" autocomplete="name">'+
-'<div class="grid2"><div><label class="f">'+t('phone')+' *</label><input type="tel" data-f="phone" placeholder="012-3456789" value="'+esc(d.phone)+'" autocomplete="tel"></div>'+
-'<div><label class="f">'+t('email')+' <small>'+t('opt')+'</small></label><input type="email" data-f="email" value="'+esc(d.email)+'" autocomplete="email"></div></div>'+
-'<div class="sec">'+t('addr')+' *</div>'+
-'<label class="f">'+t('street')+'</label><input type="text" data-f="street" value="'+esc(d.street)+'" autocomplete="street-address">'+
-'<div class="grid3"><div><label class="f">'+t('city')+'</label><input type="text" data-f="city" value="'+esc(d.city)+'"></div>'+
-'<div><label class="f">'+t('postcode')+'</label><input type="text" inputmode="numeric" maxlength="5" data-f="postcode" value="'+esc(d.postcode)+'"></div>'+
-'<div style="grid-column:1/-1"><label class="f">'+t('state')+'</label><select data-f="state"><option value="">'+t('choose')+'</option>'+STATES.map(function(s){return '<option'+(d.state===s?' selected':'')+'>'+s+'</option>'}).join('')+'</select></div></div></div>';
+'<label class="f">'+t('phone_lbl')+'</label><input type="tel" value="'+esc(d.phone)+'" disabled></div>';
 h+='<div class="sec">'+t('children')+' *</div><div class="hint">'+t('children_hint',{min:mn,max:max})+'</div>';
 d.children.forEach(function(c,i){
 h+='<div class="card child"><h4>'+t('child')+' '+(i+1)+'</h4>'+(d.children.length>mn?'<button class="rm" data-rm="'+i+'">'+t('remove')+'</button>':'')+
@@ -520,53 +535,60 @@ else h+='<div class="note info">'+t('report_note',{t:'<b>'+rf+'</b>'})+'</div>';
 }else h+='<div class="hint" style="text-align:center">'+t('pick_date')+'</div>';
 return h;
 }
-function viewPay(){
-var b=CFG.BANK;
-return '<div class="head"><h2>'+t('h_pay')+'</h2><p>'+t('p_pay')+'</p></div>'+
-(S.holdUntil?'<div class="hold">⏱ '+t('hold',{t:'<span id="holdtxt"></span>'})+'</div>':'')+
-'<div class="card"><div class="total" style="margin:0 0 12px"><span>'+t('amount')+'</span><b>RM'+price().toFixed(2)+'</b></div>'+
-'<div class="sec" style="margin-top:6px">'+t('bank_details')+'</div><div class="bank">'+t('bank')+': <b>'+esc(b.bank)+'</b><br>'+t('holder')+': <b>'+esc(b.holder)+'</b><br>'+t('accno')+': <code>'+esc(b.number)+'</code></div></div>'+
-'<div class="sec">'+t('slip')+' *</div><div class="upload"><input type="file" id="slip" accept="image/jpeg,image/png,application/pdf"><label for="slip">⬆ '+t('slip_btn')+'</label><div class="hint">'+t('slip_hint')+'</div>'+
-(S.slip?'<div class="fname">✓ '+esc(S.slip.name)+'</div>'+(S.slipURL?'<img class="prev" src="'+S.slipURL+'" alt="">':''):'')+'</div>';
-}
+
 function viewConfirm(){
 var d=S.d,rows=[[t('svc'),svcName()],[t('who'),d.parent],[t('ph'),d.phone]];
-if(d.email)rows.push([t('em'),d.email]);
-rows.push([t('ad'),[d.street,d.postcode+' '+d.city,d.state].filter(Boolean).join(', ')]);
 rows.push([t('kids'),d.children.map(function(c){return c.name+' ('+(c.gender==='M'?t('male'):t('female'))+', '+c.age+')'}).join('; ')]);
 if(S.service!=='BT')rows.push([t('tcd'),fmtDate(S.date)+' · '+S.slot]);
 if(S.service==='TCBT'){var rf=reportFor(S.date,S.slot);rows.push([t('btd'),rf?(fmtDate(S.date)+' · '+rf+(taken('report',S.date,rf)?' ⚠':'')):t('report_none')])}
 if(S.service==='BT')rows.push([t('btd'),fmtDate(S.date)+' · '+S.slot]);
-rows.push([t('paid'),S.service==='BT'?t('none_needed'):(S.slip?t('uploaded')+': '+S.slip.name:'-')]);
 var h='<div class="head"><h2>'+t('h_confirm')+'</h2><p>'+t('p_confirm')+'</p></div>'+(S.holdUntil?'<div class="hold">⏱ '+t('hold',{t:'<span id="holdtxt"></span>'})+'</div>':'');
-h+='<div class="card sum"><dl>'+rows.map(function(r){return '<dt>'+esc(r[0])+'</dt><dd>'+esc(r[1])+'</dd>'}).join('')+'</dl>';
-h+='<div class="total"><span>'+t('total')+'</span><b>'+(price()?'RM'+price().toFixed(2):t('free'))+'</b></div></div>';
+h+='<div class="card sum"><dl>'+rows.map(function(r){return '<dt>'+esc(r[0])+'</dt><dd>'+esc(r[1])+'</dd>'}).join('')+'</dl></div>';
 if(S.service==='TCBT'){var r2=reportFor(S.date,S.slot);if(r2&&taken('report',S.date,r2))h+='<div class="note">'+t('report_dup')+'</div>'}
 return h;
 }
 function doneView(){
-var b=S.done;
-return '<div class="card done-card"><div class="tick">✓</div><h2>'+t('done')+'</h2><div>'+t('done_p')+'</div><div class="ref">'+esc(b.ref)+'</div>'+
-'<p>'+(b.price?t('done_pay'):t('done_nopay'))+'</p>'+(CFG.SUBMIT_URL?'':'<div class="note">'+t('demo')+'</div>')+
-'<button class="btn pri" id="again" style="max-width:260px">'+t('new_booking')+'</button></div>';
+var b=S.done,wa='';
+if(b.waSent)wa='<div class="note info">'+t('wa_ok')+'</div>';
+else if(CFG.WHATSAPP){var msg='Hi Genius Mind Academy, I have booked ('+svcName()+'). Ref: '+b.ref+(b.service!=='BT'?' | '+b.date+' '+b.slot:'')+(b.reportSlot&&b.service!=='TC'?' | Report: '+(b.reportDate||b.date)+' '+b.reportSlot:'');
+wa='<a class="btn pri" style="max-width:300px;text-decoration:none;display:inline-block;margin:6px 0" target="_blank" rel="noopener" href="https://wa.me/'+CFG.WHATSAPP+'?text='+encodeURIComponent(msg)+'">'+t('wa_btn')+'</a>'}
+else wa='<p>'+t('wa_later')+'</p>';
+return '<div class="card done-card"><div class="tick">✓</div><h2>'+t('done')+'</h2><div>'+t('done_p')+'</div><div class="ref">'+esc(b.ref)+'</div>'+wa+
+(CFG.SUBMIT_URL?'':'<div class="note">'+t('demo')+'</div>')+'</div>';
 }
 function validate(cur){
 var d=S.d,mn=minKids(),mx=CFG.MAX_CHILDREN;
+if(cur==='phone'&&!/^(\+?6?0)1\d[- ]?\d{7,8}$/.test(d.phone.replace(/\s/g,'')))return t('e_phone');
 if(cur==='service'&&!S.service)return t('e_service');
 if(cur==='details'){
-if(!d.parent.trim()||!d.street.trim()||!d.city.trim()||!d.postcode.trim()||!d.state)return t('e_req');
-if(!/^(\+?6?0)1\d[- ]?\d{7,8}$/.test(d.phone.replace(/\s/g,'')))return t('e_phone');
-if(d.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email))return t('e_email');
+if(!d.parent.trim())return t('e_req');
 if(d.children.length<mn||d.children.length>mx||d.children.some(function(c){return !c.name.trim()||!c.gender||!(+c.age>=1&&+c.age<=18)}))return t('e_kids',{min:mn,max:mx});
 if(!d.consent)return t('e_consent');
 }
 if(cur==='date'&&(!S.date||!S.slot))return t('e_slot');
-if(cur==='pay'&&!S.slip)return t('e_slip');
 return '';
+}
+function lookup(phone,cb){
+var n=normPhone(phone);
+if(!CFG.SUBMIT_URL){var bk=store().bookings.filter(function(x){return normPhone(x.phone)===n}).pop();
+cb(bk?{ok:true,found:true,parent:bk.parent,children:bk.children,booking:{ref:bk.ref,service:bk.service,date:bk.date,slot:bk.slot,reportDate:bk.service==='BT'?bk.date:(bk.reportSlot?bk.date:''),reportSlot:bk.reportSlot}}:{ok:true,found:false});return}
+fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify({action:'lookup',phone:n})}).then(function(r){return r.json()}).then(cb).catch(function(){cb(null)})
 }
 function go(delta){
 var st=steps(),cur=st[S.step];
 if(delta>0){S.err=validate(cur);if(S.err){render();return}
+if(cur==='phone'){
+var n=normPhone(S.d.phone);
+if(S.looked===n&&!S.existing){S.step++;render();window.scrollTo(0,0);return}
+S.busy=true;render();
+lookup(S.d.phone,function(j){S.busy=false;
+if(!j||!j.ok){S.err=t('e_lookup');render();return}
+S.looked=n;S.welcome='';
+if(j.found&&j.booking){S.existing=j.booking}
+else{if(j.found&&j.parent){S.d.parent=j.parent;if(j.children&&j.children.length)S.d.children=j.children.map(function(c){return {name:c.name||'',gender:c.gender||'',age:c.age||''}});S.welcome=t('welcome_back',{n:j.parent})}else S.welcome=t('new_here');
+S.step=1;S.err=''}
+render();window.scrollTo(0,0)});
+return}
 if(cur==='confirm'){submit();return}}
 S.step=Math.max(0,Math.min(st.length-1,S.step+delta));S.err='';render();window.scrollTo(0,0);
 }
@@ -576,35 +598,35 @@ fresh();
 if(taken(K,S.date,S.slot)){S.err=t('e_taken');S.step=steps().indexOf('date');S.slot=null;stopHold();render();return}
 var dup=false;
 if(S.service==='TCBT'){rf=reportFor(S.date,S.slot);if(rf&&taken('report',S.date,rf))dup=true}
-var ref='GMA'+Date.now().toString(36).toUpperCase().slice(-6);
-var b={ref:ref,service:S.service,price:price(),date:S.date,slot:S.slot,reportSlot:S.service==='TCBT'?rf:(S.service==='BT'?S.slot:null),duplicateReport:dup,
-parent:S.d.parent,phone:S.d.phone,email:S.d.email,address:{street:S.d.street,postcode:S.d.postcode,city:S.d.city,state:S.d.state},children:S.d.children,created:new Date().toISOString()};
+var pf=S.service==='TCBT'?'TB':S.service==='TC'?'TC':'BR';
+var st=range(S.slot)[0],hhmm=pad(Math.floor(st/60))+pad(st%60);
+var ref0=pf+S.date.replace(/-/g,'')+'-'+hhmm+'-';
+var seq=store().bookings.filter(function(x){return x.ref.indexOf(pf)===0&&/^[A-Z]{2}\d{8}-/.test(x.ref)}).length+1;
+var ref=ref0+('00'+seq).slice(-3);
+var b={ref:ref,service:S.service,date:S.date,slot:S.slot,reportSlot:S.service==='TCBT'?rf:(S.service==='BT'?S.slot:null),duplicateReport:dup,
+parent:S.d.parent,phone:normPhone(S.d.phone),children:S.d.children,created:new Date().toISOString()};
 S.busy=true;render();
 var finish=function(){
-var mm=store();mm[K][S.date+'|'+S.slot]=ref;
-if(S.service==='TCBT'&&rf&&!dup)mm.report[S.date+'|'+rf]=ref;
+var mm=store();mm[K][S.date+'|'+S.slot]=b.ref;
+if(S.service==='TCBT'&&rf&&!dup)mm.report[S.date+'|'+rf]=b.ref;
 mm.bookings.push(b);save(mm);
 S.busy=false;S.done=b;stopHold();render();window.scrollTo(0,0);
 };
 if(!CFG.SUBMIT_URL){setTimeout(finish,400);return}
-var send=function(slip){
-if(slip)b.slip=slip;
 fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify(b)}) // text/plain body -> no CORS preflight (Apps Script)
 .then(function(r){return r.json()}).then(function(j){
-if(j&&j.ok){if(j.ref)b.ref=j.ref;b.duplicateReport=!!j.duplicateReport;delete b.slip;finish();return}
+if(j&&j.ok){if(j.ref)b.ref=j.ref;b.duplicateReport=!!j.duplicateReport;b.waSent=!!j.waSent;finish();return}
 throw (j&&j.error)||'err';
 }).catch(function(e){S.busy=false;
 if(e==='taken'){S.err=t('e_taken');S.step=steps().indexOf('date');S.slot=null;stopHold();loadRemote(render);return}
+if(e==='phone_used'){S.err=t('e_used');render();return}
 S.err=t('e_send');render()});
-};
-if(S.slip){var fr=new FileReader();fr.onload=function(){send({name:S.slip.name,type:S.slip.type,data:String(fr.result).split(',')[1]})};fr.onerror=function(){S.busy=false;S.err=t('e_send');render()};fr.readAsDataURL(S.slip)}
-else send(null);
 }
 function fresh(){if(!CFG.SUBMIT_URL)MEM=load()}
 function loadRemote(cb){if(!CFG.SUBMIT_URL){if(cb)cb();return}
 fetch(CFG.SUBMIT_URL+'?action=booked').then(function(r){return r.json()}).then(function(j){MEM={trial:j.trial||{},report:j.report||{},bookings:[]};if(cb)cb()}).catch(function(){if(cb)cb()})}
 document.addEventListener('click',function(e){
-var el=e.target.closest('[data-svc],[data-date],[data-slot],[data-nav],[data-rm],#addkid,#again,[data-lang]');if(!el)return;
+var el=e.target.closest('[data-svc],[data-date],[data-slot],[data-nav],[data-rm],#addkid,#again,#chgnum,[data-lang]');if(!el)return;
 if(el.dataset.lang){S.lang=el.dataset.lang;render();return}
 if(el.dataset.svc){S.service=el.dataset.svc;
 var mn=minKids();while(S.d.children.length<mn)S.d.children.push({name:'',gender:'',age:''});
@@ -615,6 +637,7 @@ if(el.dataset.slot){S.slot=el.dataset.slot;S.err='';startHold();render();return}
 if(el.dataset.rm!==undefined){S.d.children.splice(+el.dataset.rm,1);render();return}
 if(el.id==='addkid'){if(S.d.children.length<CFG.MAX_CHILDREN)S.d.children.push({name:'',gender:'',age:''});render();return}
 if(el.id==='again'){location.reload()}
+if(el.id==='chgnum'){S.existing=null;S.looked='';S.d.phone='';S.welcome='';S.step=0;render()}
 });
 document.addEventListener('input',function(e){
 var el=e.target;
@@ -624,11 +647,6 @@ else if(el.dataset.c!==undefined){S.d.children[+el.dataset.c][el.dataset.k]=el.v
 document.addEventListener('change',function(e){
 var el=e.target;
 if(el.dataset.f&&el.tagName==='SELECT')S.d[el.dataset.f]=el.value;
-if(el.id==='slip'){var f=el.files[0];if(!f)return;
-if(!/^(image\/(jpeg|png)|application\/pdf)$/.test(f.type)||f.size>5*1024*1024){toast(t('slip_bad'));el.value='';return}
-S.slip=f;S.slipURL='';S.err='';
-if(f.type.indexOf('image')===0){var r=new FileReader();r.onload=function(){S.slipURL=r.result;render()};r.readAsDataURL(f)}
-render();}
 });
 nextB.addEventListener('click',function(){go(1)});
 backB.addEventListener('click',function(){go(-1)});
