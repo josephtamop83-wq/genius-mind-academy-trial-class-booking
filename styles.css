@@ -115,3 +115,8 @@ input.err,select.err{border-color:var(--bad)}
 .links .lnk{display:block;max-width:300px;margin:6px auto;padding:11px 14px;border-radius:12px;background:#fff;border:1.5px solid var(--line);color:var(--plum);font-weight:700;text-decoration:none;font-size:14px}
 .links .lnk.fb{background:#1877f2;border-color:#1877f2;color:#fff}
 .foot{padding:0 16px 110px;max-width:640px;margin:0 auto}
+
+.hlinks{display:flex;gap:8px;margin-left:auto;flex:none}
+.hlinks a{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#fff;border:1.5px solid var(--line);color:var(--plum);text-decoration:none}
+.hlinks a.fb{background:#1877f2;border-color:#1877f2;color:#fff}
+.hlinks+.lang{margin-left:0}
