@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://josephtamop83-wq.github.io/genius-mind-academy-trial-class-booking/sitemap.xml
