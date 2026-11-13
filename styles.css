@@ -107,4 +107,5 @@ input.err,select.err{border-color:var(--bad)}
 .done-card .tick{width:64px;height:64px;border-radius:50%;background:#eef2c0;color:var(--ok);display:grid;place-items:center;font-size:32px;margin:0 auto 10px}
 .ref{display:inline-block;color:var(--plum);background:#f4effb;border-radius:10px;padding:6px 14px;font-weight:800;letter-spacing:.06em;margin:6px 0 12px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:#222;color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;z-index:50;max-width:90vw;text-align:center}
-.msg{color:var(--bad);font-size:13px;margin:8px 0;font-weight:600}
+.msg{color:var(--bad);font-size:13px;margin:8px 0;font-weight:600}.bar[hidden]{display:none}
+.done-card .btn{display:block;width:100%;margin-left:auto;margin-right:auto;flex:none}

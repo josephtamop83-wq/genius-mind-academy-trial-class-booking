@@ -359,7 +359,7 @@ h_confirm:'Review & confirm',p_confirm:'Please check everything before submittin
 svc:'Service',who:'Parent',ph:'Mobile',em:'Email',ad:'Address',kids:'Children',tcd:'Trial class',btd:'Report collection',paid:'Payment slip',total:'Total',
 uploaded:'Uploaded',none_needed:'No payment needed',
 next:'Continue',back:'Back',
-s_phone:'Login',h_phone:'Welcome',p_phone:'Enter your mobile number. If you have booked or registered before, we will load your details.',
+s_phone:'Login',ed_date:'Change date & time',ed_det:'Edit my details',save:'Save changes',saved:'Changes saved.',cancel_edit:'Cancel',h_edit_det:'Edit your details',p_edit_det:'Update the parent and children information.',ref_lbl:'Reference',h_phone:'Welcome',p_phone:'Enter your mobile number. If you have booked or registered before, we will load your details.',
 phone_ph:'e.g. 012-3456789',welcome_back:'Welcome back, {n}! Your details have been loaded - please check them.',new_here:'New number - please fill in your details on the next page.',
 checking:'Checking…',e_lookup:'Could not check your number. Please try again.',
 exist_h:'You already have a booking',exist_p:'Each mobile number can book only once. Your booking:',other_num:'Use a different number',
@@ -398,7 +398,7 @@ h_confirm:'核对并确认',p_confirm:'提交前请再次检查。',
 svc:'服务',who:'家长',ph:'手机',em:'电邮',ad:'地址',kids:'孩子',tcd:'试课',btd:'领取报告',paid:'银行单',total:'总额',
 uploaded:'已上传',none_needed:'无需付款',
 next:'继续',back:'返回',
-s_phone:'登入',h_phone:'欢迎',p_phone:'请输入手机号码。如果您以前预约或登记过，我们会自动载入您的资料。',
+s_phone:'登入',ed_date:'更改日期与时间',ed_det:'修改我的资料',save:'保存更改',saved:'已保存更改。',cancel_edit:'取消',h_edit_det:'修改资料',p_edit_det:'更新家长与孩子的资料。',ref_lbl:'预约编号',h_phone:'欢迎',p_phone:'请输入手机号码。如果您以前预约或登记过，我们会自动载入您的资料。',
 phone_ph:'例如 012-3456789',welcome_back:'欢迎回来，{n}！已载入您的资料，请核对。',new_here:'新号码 - 请在下一页填写资料。',
 checking:'检查中…',e_lookup:'无法检查号码，请重试。',
 exist_h:'您已经有预约了',exist_p:'每个手机号码只能预约一次。您的预约：',other_num:'使用其他号码',
@@ -454,7 +454,8 @@ document.documentElement.lang=S.lang==='zh'?'zh-CN':'en';
 document.getElementById('sub').textContent=t('sub');
 document.querySelectorAll('.lang button').forEach(function(b){b.classList.toggle('on',b.dataset.lang===S.lang)});
 if(S.done){bar.hidden=true;app.innerHTML=doneView();return}
-if(S.existing){bar.hidden=true;app.innerHTML=existView();return}
+if(S.existing&&!S.mode){bar.hidden=true;app.innerHTML=existView();return}
+if(S.existing&&S.mode){editRender();return}
 var st=steps(),cur=st[S.step],labels={phone:'s_phone',service:'s_service',details:'s_details',date:'s_date',confirm:'s_confirm'};
 var h='<div class="steps">'+st.map(function(s,i){return '<div class="st '+(i<S.step?'done':i===S.step?'cur':'')+'"><div class="dot">'+(i<S.step?'✓':i+1)+'</div>'+t(labels[s])+'</div>'}).join('')+'</div>';
 h+=({phone:viewPhone,service:viewService,details:viewDetails,date:viewDate,confirm:viewConfirm})[cur]();
@@ -479,12 +480,15 @@ return '<div class="head"><h2>'+t('h_phone')+'</h2><p>'+t('p_phone')+'</p></div>
 '<div class="card"><label class="f">'+t('phone_lbl')+' *</label><input type="tel" data-f="phone" placeholder="'+t('phone_ph')+'" value="'+esc(S.d.phone)+'" autocomplete="tel"></div>';
 }
 function existView(){
-var b=S.existing,rows=[[t('svc'),t(b.service==='TCBT'?'tcbt':b.service==='TC'?'tc':'bt')]];
+var b=S.existing,rows=[[t('ref_lbl'),b.ref],[t('svc'),t(b.service==='TCBT'?'tcbt':b.service==='TC'?'tc':'bt')]];
 if(b.service!=='BT'&&b.date)rows.push([t('tcd'),fmtDate(b.date)+' · '+b.slot]);
 if(b.reportDate&&b.reportSlot)rows.push([t('btd'),fmtDate(b.reportDate)+' · '+b.reportSlot]);
+rows.push([t('who'),S.d.parent],[t('kids'),S.d.children.map(function(c){return c.name+' ('+(c.gender==='M'?t('male'):t('female'))+', '+c.age+')'}).join('; ')]);
 return '<div class="card done-card"><div class="tick">!</div><h2>'+t('exist_h')+'</h2><p>'+t('exist_p')+'</p><div class="ref">'+esc(b.ref)+'</div>'+
 '<div class="sum"><dl>'+rows.map(function(r){return '<dt>'+esc(r[0])+'</dt><dd>'+esc(r[1])+'</dd>'}).join('')+'</dl></div>'+
-'<button class="btn pri" id="chgnum" style="max-width:260px;margin-top:14px">'+t('other_num')+'</button></div>';
+'<button class="btn pri" id="ed_date" style="max-width:300px;margin-top:14px">'+t('ed_date')+'</button>'+
+'<button class="btn sec2" id="ed_det" style="max-width:300px;margin-top:8px">'+t('ed_det')+'</button>'+
+'<button class="btn sec2" id="chgnum" style="max-width:300px;margin-top:8px">'+t('other_num')+'</button></div>';
 }
 function viewDetails(){
 var d=S.d,max=CFG.MAX_CHILDREN,mn=minKids();
@@ -575,6 +579,7 @@ cb(bk?{ok:true,found:true,parent:bk.parent,children:bk.children,booking:{ref:bk.
 fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify({action:'lookup',phone:n})}).then(function(r){return r.json()}).then(cb).catch(function(){cb(null)})
 }
 function go(delta){
+if(S.mode){if(delta<0){S.mode=null;S.err='';stopHold();render();window.scrollTo(0,0)}else saveEdit();return}
 var st=steps(),cur=st[S.step];
 if(delta>0){S.err=validate(cur);if(S.err){render();return}
 if(cur==='phone'){
@@ -584,9 +589,9 @@ S.busy=true;render();
 lookup(S.d.phone,function(j){S.busy=false;
 if(!j||!j.ok){S.err=t('e_lookup');render();return}
 S.looked=n;S.welcome='';
+if(j.found&&j.parent){S.d.parent=j.parent;if(j.children&&j.children.length)S.d.children=j.children.map(function(c){return {name:c.name||'',gender:c.gender||'',age:c.age||''}})}
 if(j.found&&j.booking){S.existing=j.booking}
-else{if(j.found&&j.parent){S.d.parent=j.parent;if(j.children&&j.children.length)S.d.children=j.children.map(function(c){return {name:c.name||'',gender:c.gender||'',age:c.age||''}});S.welcome=t('welcome_back',{n:j.parent})}else S.welcome=t('new_here');
-S.step=1;S.err=''}
+else{S.welcome=j.found&&j.parent?t('welcome_back',{n:j.parent}):t('new_here');S.step=1;S.err=''}
 render();window.scrollTo(0,0)});
 return}
 if(cur==='confirm'){submit();return}}
@@ -622,11 +627,59 @@ if(e==='taken'){S.err=t('e_taken');S.step=steps().indexOf('date');S.slot=null;st
 if(e==='phone_used'){S.err=t('e_used');render();return}
 S.err=t('e_send');render()});
 }
+function editRender(){
+document.documentElement.lang=S.lang==='zh'?'zh-CN':'en';
+document.getElementById('sub').textContent=t('sub');
+document.querySelectorAll('.lang button').forEach(function(b){b.classList.toggle('on',b.dataset.lang===S.lang)});
+var h='<div class="note info">'+t('ref_lbl')+': <b>'+esc(S.existing.ref)+'</b></div>';
+if(S.mode==='edit-date')h+=viewDate();
+else h+='<div class="head" style="margin-top:12px"><h2>'+t('h_edit_det')+'</h2><p>'+t('p_edit_det')+'</p></div>'+viewDetails().replace(/^<div class="head">[\s\S]*?<\/div><div class="card">/,'<div class="card">').replace(/<label class="check">[\s\S]*$/,'');
+if(S.err)h+='<div class="msg" role="alert">'+esc(S.err)+'</div>';
+app.innerHTML=h;
+bar.hidden=false;backB.style.visibility='visible';
+backB.textContent='← '+t('cancel_edit');
+nextB.textContent=S.busy?t('sending'):t('save');nextB.disabled=S.busy;
+tick();
+}
+function bkView(bk){return {ref:bk.ref,service:bk.service,date:bk.date,slot:bk.slot,reportDate:bk.service==='BT'?bk.date:(bk.reportSlot?bk.date:''),reportSlot:bk.reportSlot}}
+function editApi(body,cb){
+if(CFG.SUBMIT_URL){fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify(body)}).then(function(r){return r.json()}).then(cb).catch(function(){cb(null)});return}
+setTimeout(function(){
+MEM=load();var mm=MEM,bk=mm.bookings.filter(function(x){return x.ref===body.ref&&normPhone(x.phone)===normPhone(body.phone)})[0];
+if(!bk){cb({ok:false,error:'notfound'});return}
+if(body.action==='update'){bk.parent=body.parent;bk.children=body.children;save(mm);cb({ok:true,booking:bkView(bk)});return}
+var K=bk.service==='BT'?'report':'trial',oldMain=bk.date+'|'+bk.slot,oldRep=bk.service==='TCBT'&&bk.reportSlot?bk.date+'|'+bk.reportSlot:null;
+delete mm[K][oldMain];if(oldRep)delete mm.report[oldRep];
+if(mm[K][body.date+'|'+body.slot]){mm[K][oldMain]=bk.ref;if(oldRep)mm.report[oldRep]=bk.ref;cb({ok:false,error:'taken'});return}
+var dup=!!(body.reportSlot&&bk.service==='TCBT'&&mm.report[body.date+'|'+body.reportSlot]);
+mm[K][body.date+'|'+body.slot]=bk.ref;if(bk.service==='TCBT'&&body.reportSlot&&!dup)mm.report[body.date+'|'+body.reportSlot]=bk.ref;
+bk.date=body.date;bk.slot=body.slot;bk.reportSlot=body.reportSlot;bk.duplicateReport=dup;save(mm);cb({ok:true,booking:bkView(bk)});
+},300)
+}
+function saveEdit(){
+var ex=S.existing,d=S.d,body;
+S.service=ex.service;
+if(S.mode==='edit-details'){
+var mn=minKids(),mx=CFG.MAX_CHILDREN;
+if(!d.parent.trim()){S.err=t('e_req');render();return}
+if(d.children.length<mn||d.children.length>mx||d.children.some(function(c){return !c.name.trim()||!c.gender||!(+c.age>=1&&+c.age<=18)})){S.err=t('e_kids',{min:mn,max:mx});render();return}
+body={action:'update',phone:normPhone(d.phone),ref:ex.ref,parent:d.parent,children:d.children};
+}else{
+if(!S.date||!S.slot){S.err=t('e_slot');render();return}
+var rf=ex.service==='TCBT'?reportFor(S.date,S.slot):(ex.service==='BT'?S.slot:null);
+body={action:'reschedule',phone:normPhone(d.phone),ref:ex.ref,date:S.date,slot:S.slot,reportSlot:rf};
+}
+S.err='';S.busy=true;render();
+editApi(body,function(j){S.busy=false;
+if(j&&j.ok){S.existing=j.booking;S.mode=null;stopHold();S.date=null;S.slot=null;render();toast(t('saved'));window.scrollTo(0,0);return}
+if(j&&j.error==='taken'){S.err=t('e_taken');S.slot=null;stopHold();loadRemote(render);return}
+S.err=t('e_send');render()});
+}
 function fresh(){if(!CFG.SUBMIT_URL)MEM=load()}
 function loadRemote(cb){if(!CFG.SUBMIT_URL){if(cb)cb();return}
 fetch(CFG.SUBMIT_URL+'?action=booked').then(function(r){return r.json()}).then(function(j){MEM={trial:j.trial||{},report:j.report||{},bookings:[]};if(cb)cb()}).catch(function(){if(cb)cb()})}
 document.addEventListener('click',function(e){
-var el=e.target.closest('[data-svc],[data-date],[data-slot],[data-nav],[data-rm],#addkid,#again,#chgnum,[data-lang]');if(!el)return;
+var el=e.target.closest('[data-svc],[data-date],[data-slot],[data-nav],[data-rm],#addkid,#again,#chgnum,#ed_date,#ed_det,[data-lang]');if(!el)return;
 if(el.dataset.lang){S.lang=el.dataset.lang;render();return}
 if(el.dataset.svc){S.service=el.dataset.svc;
 var mn=minKids();while(S.d.children.length<mn)S.d.children.push({name:'',gender:'',age:''});
@@ -637,7 +690,9 @@ if(el.dataset.slot){S.slot=el.dataset.slot;S.err='';startHold();render();return}
 if(el.dataset.rm!==undefined){S.d.children.splice(+el.dataset.rm,1);render();return}
 if(el.id==='addkid'){if(S.d.children.length<CFG.MAX_CHILDREN)S.d.children.push({name:'',gender:'',age:''});render();return}
 if(el.id==='again'){location.reload()}
-if(el.id==='chgnum'){S.existing=null;S.looked='';S.d.phone='';S.welcome='';S.step=0;render()}
+if(el.id==='ed_date'){S.mode='edit-date';S.service=S.existing.service;S.date=null;S.slot=null;S.month=[2026,11];S.err='';stopHold();render();window.scrollTo(0,0);return}
+if(el.id==='ed_det'){S.mode='edit-details';S.service=S.existing.service;S.err='';render();window.scrollTo(0,0);return}
+if(el.id==='chgnum'){S.mode=null;S.existing=null;S.looked='';S.d.phone='';S.welcome='';S.step=0;render()}
 });
 document.addEventListener('input',function(e){
 var el=e.target;
