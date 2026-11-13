@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- BASE:START (managed by Coding Agent — do not edit) -->
+<base href="/genius-mind-academy-trial-class-booking/">
+<!-- BASE:END -->
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="description" content="Book a trial class and collect your child's brain test report at Genius Mind Academy.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+
+<!-- SEO Meta Tags -->
+<title>Genius Mind Academy - Trial Class Booking</title>
+<meta property="og:title" content="Genius Mind Academy - Trial Class Booking" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Genius Mind Academy - Trial Class Booking" />
+<!-- End SEO Meta Tags -->
+<script data-lp-token-hydrate>
+(function(){try{
+  var slug="lp-mwepl70p-8okcp";
+  var SITEK="";
+  var SK='lp_access_'+slug;
+  var map={access_token:'lp_pw_',allowlist_access_token:'lp_al_',pin_access_token:'lp_pin_',paywall_access_token:'lp_paid_'};
+  function siteTok(){try{return SITEK?localStorage.getItem(SITEK):null;}catch(e){return null;}}
+  var u=new URL(location.href);var found=null;var changed=false;
+  var PINP=true;
+  if(!PINP){try{localStorage.removeItem('lp_pin_'+slug);if(SITEK)localStorage.removeItem(SITEK);}catch(e){}}
+  Object.keys(map).forEach(function(p){var v=u.searchParams.get(p);if(v){found=v;try{if(PINP||p!=='pin_access_token'){localStorage.setItem(map[p]+slug,v);if(SITEK&&p==='pin_access_token')localStorage.setItem(SITEK,v);}}catch(e){}if(p==='pin_access_token'){try{sessionStorage.setItem('lp_fresh_'+slug,'1');}catch(e){}}u.searchParams.delete(p);changed=true;}});
+  if(found){try{sessionStorage.setItem(SK,found);}catch(e){}}
+  else{try{if(!sessionStorage.getItem(SK)){var t=localStorage.getItem('lp_pw_'+slug)||localStorage.getItem('lp_al_'+slug)||localStorage.getItem('lp_pin_'+slug)||localStorage.getItem('lp_paid_'+slug)||siteTok();if(t)sessionStorage.setItem(SK,t);}}catch(e){}}
+  if(changed){try{history.replaceState(null,'',u.toString());}catch(e){}}
+  function getTok(){try{return sessionStorage.getItem(SK)||localStorage.getItem('lp_pw_'+slug)||localStorage.getItem('lp_al_'+slug)||localStorage.getItem('lp_pin_'+slug)||localStorage.getItem('lp_paid_'+slug)||siteTok();}catch(e){return null;}}
+  function needsToken(url,method){if(!url)return false;var s=String(url);var m=(method||'GET').toUpperCase();var isSheetWrite=(m==='POST'||m==='PATCH'||m==='PUT'||m==='DELETE')&&/\/sheet-rows(\/|$|\?)/.test(s);var isSheetRead=/\/sheet-data(\/|$|\?)/.test(s);var isLlm=/\/api\/landing-pages\/public\/[^/]+\/(llm|llm-config)(\/|$|\?)/.test(s);return isSheetWrite||isSheetRead||isLlm;}
+  if(window.fetch){var _f=window.fetch;window.fetch=function(input,init){try{var url=typeof input==='string'?input:(input&&input.url)||'';var method=(init&&init.method)||(input&&input.method)||'GET';if(needsToken(url,method)){var tok=getTok();if(tok){init=init||{};var h=new Headers(init.headers||(typeof input!=='string'?input.headers:undefined)||{});if(!h.has('X-Landing-Page-Token'))h.set('X-Landing-Page-Token',tok);init.headers=h;}}}catch(e){}return _f.call(this,input,init);};}
+  if(window.XMLHttpRequest){var _o=XMLHttpRequest.prototype.open;var _s=XMLHttpRequest.prototype.send;XMLHttpRequest.prototype.open=function(m,u){this.__lpM=m;this.__lpU=u;return _o.apply(this,arguments);};XMLHttpRequest.prototype.send=function(){try{if(needsToken(this.__lpU,this.__lpM)){var tok=getTok();if(tok)this.setRequestHeader('X-Landing-Page-Token',tok);}}catch(e){}return _s.apply(this,arguments);};}
+}catch(e){}})();
+</script>
+
+<script data-field-replace>
+(function(){
+  var params=new URLSearchParams(window.location.search);
+  var fields={};
+  var paramMap={
+    'first_name':'firstName','last_name':'lastName','full_name':'fullName',
+    'email':'email','phone':'phone','company':'company',
+    'city':'city','state':'state','country':'country'
+  };
+  var skipTags={'SCRIPT':1,'STYLE':1,'NOSCRIPT':1,'TEXTAREA':1,'CODE':1,'PRE':1};
+  var hasUrlFields=false;
+  for(var p in paramMap){
+    var v=params.get(p);
+    if(v){fields[paramMap[p]]=v;hasUrlFields=true;}
+  }
+  var contactId=params.get('contact_id');
+  function esc(s){
+    if(!s)return s;
+    var d=document.createElement('div');
+    d.appendChild(document.createTextNode(s));
+    return d.innerHTML;
+  }
+  function doReplace(data){
+    var r={};
+    r['{{full_name}}']=esc(((data.firstName||'')+' '+(data.lastName||'')).trim()||((data.fullName||data.name)||''));
+    r['{{first_name}}']=esc(data.firstName||(data.name?data.name.split(' ')[0]:'')||'');
+    r['{{last_name}}']=esc(data.lastName||(data.name&&data.name.indexOf(' ')>-1?data.name.substring(data.name.indexOf(' ')+1):'')||'');
+    r['{{email}}']=esc(data.email||'');
+    r['{{phone}}']=esc(data.phone||'');
+    r['{{company}}']=esc(data.company||'');
+    r['{{city}}']=esc(data.city||'');
+    r['{{state}}']=esc(data.state||'');
+    r['{{country}}']=esc(data.country||'');
+    r['{{date}}']=new Date().toLocaleDateString();
+    r['{{time}}']=new Date().toLocaleTimeString();
+    r['{{location}}']=[data.city,data.state,data.country].filter(Boolean).join(', ');
+    r['{{tracking_id}}']=esc(data.trackingId||'');
+    r['{{lastClickedProduct}}']=esc(data.lastClickedProduct||'');
+    r['{{lastProductClickDate}}']=esc(data.lastProductClickDate||'');
+    r['{{lastClickedProductPrice}}']=esc(data.lastClickedProductPrice||'');
+    r['{{lastClickedProductURL}}']=esc(data.lastClickedProductURL||'');
+    r['{{productsClickedCount}}']=esc(data.productsClickedCount||'0');
+    r['{{ip_address}}']=esc(data.ipAddress||'');
+    r['{{ip}}']=esc(data.ipAddress||'');
+    if(data.customFields){
+      for(var k in data.customFields){
+        r['{{'+k+'}}']=esc(String(data.customFields[k]||''));
+      }
+    }
+    params.forEach(function(v,k){
+      if(!paramMap[k]&&k!=='contact_id'&&k!=='page_id'&&k.indexOf('utm_')!==0){
+        r['{{'+k+'}}']=esc(v);
+      }
+    });
+    var hasValues=false;
+    for(var key in r){if(r[key]){hasValues=true;break;}}
+    if(!hasValues)return;
+    var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{
+      acceptNode:function(n){
+        var p=n.parentNode;
+        if(p&&skipTags[p.nodeName])return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    var node;
+    while(node=walker.nextNode()){
+      var txt=node.nodeValue;
+      if(txt&&txt.indexOf('{{')>-1){
+        var changed=txt;
+        for(var ph in r){
+          if(r[ph]&&changed.indexOf(ph)>-1){
+            changed=changed.split(ph).join(r[ph]);
+          }
+        }
+        if(changed!==txt)node.nodeValue=changed;
+      }
+    }
+    var attrs=['value','placeholder','content','alt','title'];
+    attrs.forEach(function(attr){
+      var els=document.querySelectorAll('['+attr+'*="{{"]');
+      for(var i=0;i<els.length;i++){
+        var tag=els[i].tagName;
+        if(skipTags[tag])continue;
+        var val=els[i].getAttribute(attr);
+        if(val){
+          var nv=val;
+          for(var ph in r){
+            if(r[ph]&&nv.indexOf(ph)>-1){
+              nv=nv.split(ph).join(r[ph]);
+            }
+          }
+          if(nv!==val)els[i].setAttribute(attr,nv);
+        }
+      }
+    });
+  }
+  function run(){
+    if(contactId){
+      var xhr=new XMLHttpRequest();
+      xhr.open('GET','https://my.chatbees.io/api/landing/context/'+encodeURIComponent(contactId)+'?page_id=9214');
+      xhr.onload=function(){
+        if(xhr.status===200){
+          try{
+            var resp=JSON.parse(xhr.responseText);
+            if(resp.success&&resp.contact){
+              var merged=resp.contact;
+              for(var k in fields){merged[k]=fields[k];}
+              doReplace(merged);
+              return;
+            }
+          }catch(e){}
+        }
+        if(hasUrlFields)doReplace(fields);
+      };
+      xhr.onerror=function(){if(hasUrlFields)doReplace(fields);};
+      xhr.send();
+    }else if(hasUrlFields){
+      doReplace(fields);
+    }
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',run);}
+  else{run();}
+})();
+</script>
+<script data-payment>
+(function(){
+  var slug='rATA6bv';
+  var apiBase='https://my.chatbees.io';
+  var successSubtext='';var successBtnLabel='Continue';var successBtnColor='#16a34a';var successRedirect='';
+  function findEmail(){
+    var ids=['email','emailAddress','buyer-email','buyerEmail','user-email','userEmail','checkout-email','customer-email','contact-email'];
+    for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&el.value&&el.value.includes('@'))return el.value.trim();}
+    var inputs=document.querySelectorAll('input[type="email"],input[name*="email"],input[placeholder*="email"],input[placeholder*="Email"]');
+    for(var j=0;j<inputs.length;j++){if(inputs[j].value&&inputs[j].value.includes('@'))return inputs[j].value.trim();}
+    return '';
+  }
+  function findName(){
+    var ids=['name','fullName','full-name','buyer-name','buyerName','customer-name','userName','user-name'];
+    for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&el.value)return el.value.trim();}
+    var inputs=document.querySelectorAll('input[name*="name"]:not([name*="email"]):not([type="email"]),input[placeholder*="name"]:not([placeholder*="email"]):not([type="email"]),input[placeholder*="Name"]:not([type="email"])');
+    for(var j=0;j<inputs.length;j++){if(inputs[j].value)return inputs[j].value.trim();}
+    return '';
+  }
+  function findPhone(){var ids=['phone','phoneNumber','phone-number','tel','telephone','mobile','mobileNumber','cell','contact-phone','buyer-phone'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&el.value&&el.value.trim())return el.value.trim();}var inputs=document.querySelectorAll('input[type="tel"],input[name*="phone"],input[name*="tel"],input[name*="mobile"],input[placeholder*="phone"],input[placeholder*="Phone"]');for(var j=0;j<inputs.length;j++){if(inputs[j].value&&inputs[j].value.trim())return inputs[j].value.trim();}return '';}
+  var __realProcessPayment=function(a,b,c,d,e){
+    var amountCents,email,productName,productDescription,customerName,quantity;
+    if(a&&typeof a==='object'){
+      amountCents=a.amountCents;email=a.email;productName=a.productName;
+      productDescription=a.productDescription||'';customerName=a.name||'';quantity=a.quantity||1;
+    }else{
+      amountCents=typeof a==='number'?a:0;productName=typeof b==='string'?b:'';
+      productDescription=typeof c==='string'?c:'';email='';customerName='';quantity=1;
+    }
+    if(!email)email=findEmail();
+    if(!customerName)customerName=findName();
+    var phone=findPhone();
+    if(!productName){alert('Product name is required.');return Promise.reject('no_product_name');}
+    if(!amountCents||amountCents<100){alert('Amount must be at least $1.00');return Promise.reject('invalid_amount');}
+    if(!email){alert('Please enter your email address.');return Promise.reject('no_email');}
+    var successBase=window.location.href.split('?')[0];
+    var __pLoc=(document.documentElement.lang||navigator.language||'en');
+    return fetch(apiBase+'/api/landing-pages/public/'+slug+'/payment/checkout',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:email,name:customerName,phone:phone||'',amountCents:amountCents,productName:productName,productDescription:productDescription,quantity:quantity,locale:__pLoc,successUrl:successBase+'?payment=success&product='+encodeURIComponent(productName)+'&session_id={CHECKOUT_SESSION_ID}',cancelUrl:successBase+'?payment=cancelled'})
+    }).then(function(r){return r.json();}).then(function(d){
+      if(d.checkoutUrl){window.location.href=d.checkoutUrl;}
+      else{alert(d.error||'Failed to process payment');throw new Error(d.error);}
+    });
+  };
+  Object.defineProperty(window,'__processPayment',{value:__realProcessPayment,writable:false,configurable:false});
+  document.addEventListener('DOMContentLoaded',function(){
+    var urlParams=new URLSearchParams(window.location.search);
+    if(urlParams.get('payment')==='success'){
+      var sidP=urlParams.get('session_id');
+      if(sidP){try{fetch(apiBase+'/api/landing-pages/public/'+slug+'/checkout/confirm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:sidP})}).catch(function(){});}catch(e){}}
+      var pName=urlParams.get('product')||'your item';
+      var overlay=document.createElement('div');overlay.id='payment-success-overlay';
+      overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:999999;font-family:system-ui,-apple-system,sans-serif;';
+      function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+      var subTxt=successSubtext||('Thank you for purchasing '+pName+'.');
+      overlay.innerHTML='<div style="background:white;border-radius:16px;padding:40px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.15);"><div style="width:64px;height:64px;border-radius:50%;background:#dcfce7;background:color-mix(in srgb,'+successBtnColor+' 12%,white);margin:0 auto 20px;display:flex;align-items:center;justify-content:center;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="'+successBtnColor+'" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><h2 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#111827;">Payment Successful!</h2><p style="margin:0 0 24px;color:#6b7280;font-size:16px;">'+esc(subTxt)+'</p><button id="lp-pay-success-btn" style="padding:12px 32px;font-size:16px;font-weight:600;background:'+successBtnColor+';color:white;border:none;border-radius:8px;cursor:pointer;">'+esc(successBtnLabel)+'</button></div>';
+      document.body.appendChild(overlay);
+      var pBtn=document.getElementById('lp-pay-success-btn');
+      if(pBtn){pBtn.addEventListener('click',function(){if(successRedirect){window.location.href=successRedirect;}else{overlay.remove();window.history.replaceState({},'',window.location.pathname);}});}
+    }
+  });
+})();
+</script>
+<script data-cart>
+(function(){
+  var slug='rATA6bv';
+  var apiBase='https://my.chatbees.io';
+  var successSubtext='';var successBtnLabel='Continue';var successBtnColor='#16a34a';var successRedirect='';
+  function findCartEmail(){
+    var ids=['email','emailAddress','buyer-email','buyerEmail','user-email','userEmail','checkout-email','customer-email','contact-email'];
+    for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&el.value&&el.value.includes('@'))return el.value.trim();}
+    var inputs=document.querySelectorAll('input[type="email"],input[name*="email"],input[placeholder*="email"],input[placeholder*="Email"]');
+    for(var j=0;j<inputs.length;j++){if(inputs[j].value&&inputs[j].value.includes('@'))return inputs[j].value.trim();}
+    return '';
+  }
+  function findCartName(){
+    var ids=['name','fullName','full-name','buyer-name','buyerName','customer-name','userName','user-name'];
+    for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&el.value)return el.value.trim();}
+    var inputs=document.querySelectorAll('input[name*="name"]:not([name*="email"]):not([type="email"]),input[placeholder*="name"]:not([placeholder*="email"]):not([type="email"]),input[placeholder*="Name"]:not([type="email"])');
+    for(var j=0;j<inputs.length;j++){if(inputs[j].value)return inputs[j].value.trim();}
+    return '';
+  }
+  function findCartPhone(){var ids=['phone','phoneNumber','phone-number','tel','telephone','mobile','mobileNumber','cell','contact-phone','buyer-phone'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&el.value&&el.value.trim())return el.value.trim();}var inputs=document.querySelectorAll('input[type="tel"],input[name*="phone"],input[name*="tel"],input[name*="mobile"],input[placeholder*="phone"],input[placeholder*="Phone"]');for(var j=0;j<inputs.length;j++){if(inputs[j].value&&inputs[j].value.trim())return inputs[j].value.trim();}return '';}
+  var __realCart=function(arg){
+    var items, email='', customerName='', successUrl, cancelUrl, currency;
+    if(Array.isArray(arg)){items=arg;}
+    else if(arg&&typeof arg==='object'){
+      items=arg.items;email=arg.email||'';customerName=arg.name||arg.customerName||'';
+      successUrl=arg.successUrl;cancelUrl=arg.cancelUrl;currency=arg.currency;
+    }
+    if(!Array.isArray(items)||items.length===0){alert('No items in cart.');return Promise.reject('no_items');}
+    var cleanItems=[];var totalCents=0;
+    for(var i=0;i<items.length;i++){
+      var it=items[i];if(!it||typeof it!=='object'){alert('Invalid item at position '+i);return Promise.reject('bad_item');}
+      var nm=typeof it.name==='string'?it.name.trim():'';
+      if(!nm){alert('Item '+(i+1)+' is missing a name.');return Promise.reject('no_name');}
+      var amt=typeof it.amountCents==='number'?it.amountCents:(typeof it.amount==='number'?Math.round(it.amount*100):NaN);
+      if(!isFinite(amt)||amt<1){alert('Item "'+nm+'" needs a valid amount in cents.');return Promise.reject('bad_amount');}
+      var qty=(typeof it.quantity==='number'&&it.quantity>0)?Math.floor(it.quantity):1;
+      cleanItems.push({name:nm,description:it.description||'',amountCents:amt,quantity:qty});
+      totalCents+=amt*qty;
+    }
+    if(totalCents<50){alert('Cart total must be at least $0.50');return Promise.reject('total_too_low');}
+    if(!email)email=findCartEmail();
+    if(!customerName)customerName=findCartName();
+    var cartPhone=findCartPhone();
+    if(!email){var p=window.prompt('Enter your email for the receipt:','');if(p&&p.indexOf('@')>-1){email=p.trim();}else{alert('An email address is required to complete checkout.');return Promise.reject('no_email');}}
+    var successBase=window.location.href.split('?')[0];
+    var body={email:email,name:customerName,items:cleanItems,locale:(document.documentElement.lang||navigator.language||'en')};
+    if(currency)body.currency=currency;
+    if(cartPhone)body.phone=cartPhone;
+    body.successUrl=successUrl||(successBase+'?cart=success&email='+encodeURIComponent(email)+'&session_id={CHECKOUT_SESSION_ID}');
+    body.cancelUrl=cancelUrl||(successBase+'?cart=cancelled');
+    return fetch(apiBase+'/api/landing-pages/public/'+slug+'/cart/checkout',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    }).then(function(r){return r.json();}).then(function(d){
+      if(d.checkoutUrl){window.location.href=d.checkoutUrl;}
+      else{alert(d.error||'Failed to process checkout');throw new Error(d.error);}
+    });
+  };
+  try{Object.defineProperty(window,'__processCart',{value:__realCart,writable:false,configurable:false});}catch(e){window.__processCart=__realCart;}
+  document.addEventListener('DOMContentLoaded',function(){
+    var urlParams=new URLSearchParams(window.location.search);
+    if(urlParams.get('cart')==='success'){
+      var sidC=urlParams.get('session_id');
+      if(sidC){try{fetch(apiBase+'/api/landing-pages/public/'+slug+'/checkout/confirm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:sidC})}).catch(function(){});}catch(e){}}
+      if(document.getElementById('payment-success-overlay')||document.getElementById('donation-success-overlay')||document.getElementById('cart-success-overlay'))return;
+      var overlay=document.createElement('div');overlay.id='cart-success-overlay';
+      overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:999999;font-family:system-ui,-apple-system,sans-serif;';
+      function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+      var subTxt=successSubtext||'Thank you for your order.';
+      overlay.innerHTML='<div style="background:white;border-radius:16px;padding:40px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.15);"><div style="width:64px;height:64px;border-radius:50%;background:#dcfce7;background:color-mix(in srgb,'+successBtnColor+' 12%,white);margin:0 auto 20px;display:flex;align-items:center;justify-content:center;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="'+successBtnColor+'" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><h2 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#111827;">Order Confirmed!</h2><p style="margin:0 0 24px;color:#6b7280;font-size:16px;">'+esc(subTxt)+'</p><button id="lp-cart-success-btn" style="padding:12px 32px;font-size:16px;font-weight:600;background:'+successBtnColor+';color:white;border:none;border-radius:8px;cursor:pointer;">'+esc(successBtnLabel)+'</button></div>';
+      document.body.appendChild(overlay);
+      var cBtn=document.getElementById('lp-cart-success-btn');
+      if(cBtn){cBtn.addEventListener('click',function(){if(successRedirect){window.location.href=successRedirect;}else{overlay.remove();window.history.replaceState({},'',window.location.pathname);}});}
+    }
+  });
+})();
+</script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+<div class="logo" id="logo"></div>
+<div><div class="t1">Genius Mind <b>Academy</b></div><div class="t2" id="sub"></div></div>
+<div class="lang" role="group" aria-label="Language"><button data-lang="en">EN</button><button data-lang="zh">中文</button></div>
+</header>
+<main id="app"></main>
+<div class="bar" id="bar" hidden><div class="in"><button class="btn sec2" id="back"></button><button class="btn pri" id="next"></button></div></div>
+<script>
+var CFG = {
+TC_PRICE: 39,              // Trial class price (RM)
+PRICE_MODE: 'booking',     // 'booking' = RM39 per booking, 'child' = RM39 x number of children
+MIN_CHILDREN_TC: 1,        // trial class only
+MIN_CHILDREN_BT: 1,        // when brain test is included
+MAX_CHILDREN: 10,
+HOLD_MIN: 15,              // minutes a chosen slot is held while the parent completes the form
+SUBMIT_URL: '',            // POST endpoint (form/API). Empty = DEMO mode (saves only in this browser)
+BANK: { bank: '[Bank name]', holder: '[Account holder name]', number: '[Account number]' }, // put real bank details here
+WHATSAPP: '',              // optional, e.g. '60123456789'
+LOGO_URL: 'https://geniusmind.com.my/wp-content/uploads/2022/08/cropped-Geniusmind-logo.png'
+};
+var DATA=(function(){
+var EV=['6:45pm–8:15pm','8:30pm–10:00pm'],DAY=['11:00am–12:30pm','1:30pm–3:00pm','3:30pm–5:00pm'];
+var tr={0:['10:15am–11:45am','1:30pm–3:00pm','3:30pm–5:00pm'],1:EV,2:DAY,3:EV,4:DAY,5:EV,6:['11:00am–12:30pm','1:30pm–3:00pm','3:30pm–5:00pm','5:15pm–6:45pm']};
+var S=[];for(var h=10;h<22;h++){var a=h<12?'am':'pm',x=h%12||12;S.push(x+':00'+a+'–'+x+':45'+a)}
+var T={},R={};
+for(var i=0;i<39;i++){var d=new Date(Date.UTC(2026,10,23+i)),w=d.getUTCDay(),k=d.toISOString().slice(0,10);
+if((k>='2026-11-27'&&k<='2026-11-29')||k>='2026-12-04')T[k]=tr[w];
+if(k<='2026-12-24'){R[k]=w===0?S.slice(2):w===6?S.slice(0,1):w===5?S.slice(0,8):S}}
+return {TRIAL:T,REPORT:R}})();
+var TRIAL = DATA.TRIAL, REPORT = DATA.REPORT;
+var I = {
+en:{sub:'Book your trial class & brain test report',
+s_service:'Service',s_details:'Details',s_date:'Date & Time',s_pay:'Payment',s_confirm:'Confirm',
+h_service:'Choose a service',p_service:'Pick what you would like to book.',
+tcbt:'Trial Class + Brain Test Report Collection',tcbt_d:'Book a trial class and collect the brain test report. We reserve the report time for you.',
+tc:'Trial Class Only',tc_d:'A 90-minute trial class for your child.',
+bt:'Brain Test Report Collection Only',bt_d:'Collect your child\'s brain test analysis report (45 minutes).',
+free:'Free',per_booking:'per booking',per_child:'per child',
+h_details:'Your details',p_details:'Tell us about you and your children.',
+parent:'Parent',pname:'Parent name',phone:'Mobile number',email:'Email',opt:'(optional)',
+addr:'Address',street:'Street / unit',postcode:'Postcode',city:'City',state:'State',choose:'Choose…',
+children:'Children',child:'Child',cname:'Name',gender:'Gender',age:'Age',male:'Boy',female:'Girl',remove:'Remove',
+add_child:'+ Add another child',children_hint:'You can add {min}–{max} children.',
+consent:'I agree that Genius Mind Academy may collect and use my details to arrange this booking (PDPA).',
+h_date:'Pick a date & time',p_date_tc:'Trial class · 90 minutes',p_date_bt:'Brain test report collection · 45 minutes',
+closed:'Closed / Past',avail:'Available',full:'Fully booked',slots:'Available time slots',pick_date:'Select a date to see time slots.',
+free_slot:'Available',taken:'Taken',hold:'Your slot is held for {t}',hold_end:'Your slot hold expired. Please choose again.',
+report_note:'We will reserve your brain test report collection time automatically: {t}',
+report_dup:'The matching report-collection time is already taken. Our team will contact you to arrange a suitable time.',
+report_none:'No matching report-collection slot on this day. Our team will arrange it with you.',
+h_pay:'Payment',p_pay:'Transfer the trial class fee and upload your bank slip.',
+amount:'Amount to pay',bank_details:'Bank details',bank:'Bank',holder:'Account name',accno:'Account no.',
+slip:'Bank slip',slip_btn:'Upload bank slip',slip_hint:'JPG, PNG or PDF · max 5 MB',slip_bad:'Please upload a JPG, PNG or PDF under 5 MB.',
+h_confirm:'Review & confirm',p_confirm:'Please check everything before submitting.',
+svc:'Service',who:'Parent',ph:'Mobile',em:'Email',ad:'Address',kids:'Children',tcd:'Trial class',btd:'Report collection',paid:'Payment slip',total:'Total',
+uploaded:'Uploaded',none_needed:'No payment needed',
+next:'Continue',back:'Back',submit:'Submit booking',sending:'Sending…',
+done:'Booking received!',done_p:'Your reference number is',
+done_pay:'We will verify your payment slip and confirm by WhatsApp / phone.',done_nopay:'We will contact you to confirm your booking.',
+demo:'DEMO mode: this booking was saved only in this browser. Set SUBMIT_URL to send it to your system.',
+new_booking:'Make another booking',
+e_service:'Please choose a service.',e_req:'Please fill in all required fields.',e_phone:'Please enter a valid Malaysian mobile number.',e_email:'Please enter a valid email.',
+e_kids:'Please add {min}–{max} children and fill in each child\'s name, gender and age.',e_consent:'Please tick the consent box.',
+e_slot:'Please choose a date and a time slot.',e_slip:'Please upload your bank slip.',e_taken:'Sorry, that slot was just taken. Please choose another.',e_send:'Could not send your booking. Please try again.'},
+zh:{sub:'预约试课与领取脑测报告',
+s_service:'服务',s_details:'资料',s_date:'日期时间',s_pay:'付款',s_confirm:'确认',
+h_service:'选择服务',p_service:'请选择您要预约的项目。',
+tcbt:'试课 + 领取脑测报告',tcbt_d:'预约试课并领取脑测报告，我们会自动为您保留领取时间。',
+tc:'只试课',tc_d:'为孩子安排 90 分钟的试课。',
+bt:'只领取脑测报告',bt_d:'领取孩子的脑测分析报告（45 分钟）。',
+free:'免费',per_booking:'每次预约',per_child:'每位孩子',
+h_details:'您的资料',p_details:'请填写家长与孩子的资料。',
+parent:'家长',pname:'家长姓名',phone:'手机号码',email:'电邮',opt:'（选填）',
+addr:'地址',street:'街道 / 门牌',postcode:'邮编',city:'城市',state:'州属',choose:'请选择…',
+children:'孩子',child:'孩子',cname:'姓名',gender:'性别',age:'年龄',male:'男',female:'女',remove:'删除',
+add_child:'+ 添加孩子',children_hint:'可添加 {min}–{max} 位孩子。',
+consent:'我同意 Genius Mind Academy 为办理此预约而收集及使用我的资料（PDPA）。',
+h_date:'选择日期与时间',p_date_tc:'试课 · 90 分钟',p_date_bt:'领取脑测报告 · 45 分钟',
+closed:'休息 / 已过',avail:'可预约',full:'已满',slots:'可选时段',pick_date:'请先选择日期以查看时段。',
+free_slot:'可预约',taken:'已被预约',hold:'您的时段已为您保留 {t}',hold_end:'时段保留已过期，请重新选择。',
+report_note:'我们会自动为您保留脑测报告领取时间：{t}',
+report_dup:'对应的报告领取时间已被预约，我们的团队会联络您安排合适的时间。',
+report_none:'当天没有对应的报告领取时段，我们的团队会与您安排。',
+h_pay:'付款',p_pay:'请转账试课费用并上传银行单。',
+amount:'应付金额',bank_details:'银行资料',bank:'银行',holder:'户口名称',accno:'户口号码',
+slip:'银行单',slip_btn:'上传银行单',slip_hint:'JPG、PNG 或 PDF · 最大 5MB',slip_bad:'请上传小于 5MB 的 JPG、PNG 或 PDF。',
+h_confirm:'核对并确认',p_confirm:'提交前请再次检查。',
+svc:'服务',who:'家长',ph:'手机',em:'电邮',ad:'地址',kids:'孩子',tcd:'试课',btd:'领取报告',paid:'银行单',total:'总额',
+uploaded:'已上传',none_needed:'无需付款',
+next:'继续',back:'返回',submit:'提交预约',sending:'提交中…',
+done:'预约已收到！',done_p:'您的预约编号是',
+done_pay:'我们会核对您的银行单，并通过 WhatsApp / 电话确认。',done_nopay:'我们会联络您确认预约。',
+demo:'演示模式：此预约只保存在这个浏览器里。请设置 SUBMIT_URL 以发送到您的系统。',
+new_booking:'再预约一次',
+e_service:'请选择服务。',e_req:'请填写所有必填项。',e_phone:'请输入有效的马来西亚手机号码。',e_email:'请输入有效的电邮。',
+e_kids:'请添加 {min}–{max} 位孩子，并填写每位孩子的姓名、性别和年龄。',e_consent:'请勾选同意框。',
+e_slot:'请选择日期和时段。',e_slip:'请上传银行单。',e_taken:'抱歉，该时段刚被预约，请重新选择。',e_send:'提交失败，请重试。'}
+};
+var STATES=['Johor','Kedah','Kelantan','Melaka','Negeri Sembilan','Pahang','Penang','Perak','Perlis','Sabah','Sarawak','Selangor','Terengganu','Kuala Lumpur','Labuan','Putrajaya'];
+var S = {lang:'en',service:null,step:0,
+d:{parent:'',phone:'',email:'',street:'',postcode:'',city:'',state:'',consent:false,children:[{name:'',gender:'',age:''}]},
+month:[2026,11],date:null,slot:null,holdUntil:0,slip:null,slipURL:'',done:null,busy:false,err:''};
+var app=document.getElementById('app'), bar=document.getElementById('bar'), nextB=document.getElementById('next'), backB=document.getElementById('back');
+var holdTimer=null;
+function t(k,v){var s=(I[S.lang][k]!==undefined?I[S.lang][k]:I.en[k])||k;if(v)for(var x in v)s=s.replace('{'+x+'}',v[x]);return s}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function pad(n){return (n<10?'0':'')+n}
+function dkey(y,m,d){return y+'-'+pad(m)+'-'+pad(d)}
+function toast(m){var e=document.createElement('div');e.className='toast';e.textContent=m;document.body.appendChild(e);setTimeout(function(){e.remove()},2800)}
+function load(){try{return JSON.parse(localStorage.getItem('gma_booked_v1'))||{trial:{},report:{},bookings:[]}}catch(e){return {trial:{},report:{},bookings:[]}}}
+function save(o){if(CFG.SUBMIT_URL)return;try{localStorage.setItem('gma_booked_v1',JSON.stringify(o))}catch(e){}}
+var MEM=null; function store(){if(!MEM)MEM=CFG.SUBMIT_URL?{trial:{},report:{},bookings:[]}:load();return MEM}
+function taken(kind,date,label){return !!store()[kind][date+'|'+label]}
+function mins(l){var m=l.match(/(\d+):(\d+)(am|pm)/);return (parseInt(m[1],10)%12+(m[3]==='pm'?12:0))*60+parseInt(m[2],10)}
+function range(l){var p=l.split('–');return [mins(p[0]+(/am|pm/.test(p[0])?'':p[1].slice(-2))),mins(p[1])]}
+function reportFor(date,trialLabel){ // the report slot that starts inside the trial window (first one)
+var r=range(trialLabel),list=REPORT[date]||[];
+for(var i=0;i<list.length;i++){var s=mins(list[i]);if(s>=r[0]&&s<r[1])return list[i]}
+return null;
+}
+function kind(){return S.service==='BT'?'report':'trial'}
+function table(){return S.service==='BT'?REPORT:TRIAL}
+function steps(){return S.service==='BT'?['service','details','date','confirm']:['service','details','date','pay','confirm']}
+function price(){if(S.service==='BT')return 0;return CFG.PRICE_MODE==='child'?CFG.TC_PRICE*S.d.children.length:CFG.TC_PRICE}
+function minKids(){return S.service==='TC'?CFG.MIN_CHILDREN_TC:CFG.MIN_CHILDREN_BT}
+function fmtDate(k){var p=k.split('-'),d=new Date(+p[0],+p[1]-1,+p[2]);return d.toLocaleDateString(S.lang==='zh'?'zh-CN':'en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+function svcName(){return t(S.service==='TCBT'?'tcbt':S.service==='TC'?'tc':'bt')}
+function startHold(){S.holdUntil=Date.now()+CFG.HOLD_MIN*60000;tick();clearInterval(holdTimer);holdTimer=setInterval(tick,1000)}
+function stopHold(){clearInterval(holdTimer);S.holdUntil=0}
+function tick(){
+var el=document.getElementById('holdtxt');
+var left=S.holdUntil-Date.now();
+if(S.holdUntil&&left<=0){stopHold();S.date=null;S.slot=null;toast(t('hold_end'));S.step=steps().indexOf('date');render();return}
+if(el&&S.holdUntil){var m=Math.floor(left/60000),s=Math.floor(left%60000/1000);el.textContent=pad(m)+':'+pad(s)}
+}
+function render(){
+document.documentElement.lang=S.lang==='zh'?'zh-CN':'en';
+document.getElementById('sub').textContent=t('sub');
+document.querySelectorAll('.lang button').forEach(function(b){b.classList.toggle('on',b.dataset.lang===S.lang)});
+if(S.done){bar.hidden=true;app.innerHTML=doneView();return}
+var st=steps(),cur=st[S.step],labels={service:'s_service',details:'s_details',date:'s_date',pay:'s_pay',confirm:'s_confirm'};
+var h='<div class="steps">'+st.map(function(s,i){return '<div class="st '+(i<S.step?'done':i===S.step?'cur':'')+'"><div class="dot">'+(i<S.step?'✓':i+1)+'</div>'+t(labels[s])+'</div>'}).join('')+'</div>';
+h+=({service:viewService,details:viewDetails,date:viewDate,pay:viewPay,confirm:viewConfirm})[cur]();
+if(S.err)h+='<div class="msg" role="alert">'+esc(S.err)+'</div>';
+app.innerHTML=h;
+bar.hidden=false;
+backB.textContent='← '+t('back');backB.style.visibility=S.step===0?'hidden':'visible';
+nextB.textContent=cur==='confirm'?(S.busy?t('sending'):t('submit')):t('next')+' →';
+nextB.disabled=S.busy||(cur==='service'&&!S.service);
+tick();
+}
+function viewService(){
+function o(key,name,desc,pr,bd){return '<button class="card opt '+(S.service===key?'sel':'')+'" data-svc="'+key+'"><div class="row"><div><h3>'+t(name)+'</h3><p>'+t(desc)+'</p>'+bd+'</div><div class="price">'+pr+'</div></div></button>'}
+var p=CFG.PRICE_MODE==='child'?t('per_child'):t('per_booking');
+var rm='RM'+CFG.TC_PRICE+'<div style="font-size:11px;font-weight:600;color:#6b7280">'+p+'</div>';
+return '<div class="head"><h2>'+t('h_service')+'</h2><p>'+t('p_service')+'</p></div>'+
+o('TCBT','tcbt','tcbt_d',rm,'<span class="badge">90 + 45 min</span>')+
+o('TC','tc','tc_d',rm,'<span class="badge g">90 min</span>')+
+o('BT','bt','bt_d',t('free'),'<span class="badge g">45 min</span>');
+}
+function viewDetails(){
+var d=S.d,max=CFG.MAX_CHILDREN,mn=minKids();
+var h='<div class="head"><h2>'+t('h_details')+'</h2><p>'+t('p_details')+'</p></div>';
+h+='<div class="card"><div class="sec" style="margin-top:0">'+t('parent')+'</div>'+
+'<label class="f">'+t('pname')+' *</label><input type="text" data-f="parent" value="'+esc(d.parent)+'" autocomplete="name">'+
+'<div class="grid2"><div><label class="f">'+t('phone')+' *</label><input type="tel" data-f="phone" placeholder="012-3456789" value="'+esc(d.phone)+'" autocomplete="tel"></div>'+
+'<div><label class="f">'+t('email')+' <small>'+t('opt')+'</small></label><input type="email" data-f="email" value="'+esc(d.email)+'" autocomplete="email"></div></div>'+
+'<div class="sec">'+t('addr')+' *</div>'+
+'<label class="f">'+t('street')+'</label><input type="text" data-f="street" value="'+esc(d.street)+'" autocomplete="street-address">'+
+'<div class="grid3"><div><label class="f">'+t('city')+'</label><input type="text" data-f="city" value="'+esc(d.city)+'"></div>'+
+'<div><label class="f">'+t('postcode')+'</label><input type="text" inputmode="numeric" maxlength="5" data-f="postcode" value="'+esc(d.postcode)+'"></div>'+
+'<div style="grid-column:1/-1"><label class="f">'+t('state')+'</label><select data-f="state"><option value="">'+t('choose')+'</option>'+STATES.map(function(s){return '<option'+(d.state===s?' selected':'')+'>'+s+'</option>'}).join('')+'</select></div></div></div>';
+h+='<div class="sec">'+t('children')+' *</div><div class="hint">'+t('children_hint',{min:mn,max:max})+'</div>';
+d.children.forEach(function(c,i){
+h+='<div class="card child"><h4>'+t('child')+' '+(i+1)+'</h4>'+(d.children.length>mn?'<button class="rm" data-rm="'+i+'">'+t('remove')+'</button>':'')+
+'<label class="f">'+t('cname')+'</label><input type="text" data-c="'+i+'" data-k="name" value="'+esc(c.name)+'">'+
+'<div class="grid2"><div><label class="f">'+t('gender')+'</label><select data-c="'+i+'" data-k="gender"><option value="">'+t('choose')+'</option><option value="M"'+(c.gender==='M'?' selected':'')+'>'+t('male')+'</option><option value="F"'+(c.gender==='F'?' selected':'')+'>'+t('female')+'</option></select></div>'+
+'<div><label class="f">'+t('age')+'</label><input type="number" min="1" max="18" data-c="'+i+'" data-k="age" value="'+esc(c.age)+'"></div></div></div>';
+});
+h+='<button class="add" id="addkid"'+(d.children.length>=max?' disabled':'')+'>'+t('add_child')+'</button>';
+h+='<label class="check"><input type="checkbox" data-f="consent"'+(d.consent?' checked':'')+'><span>'+t('consent')+'</span></label>';
+return h;
+}
+function monthDays(y,m){return new Date(y,m,0).getDate()}
+function viewDate(){
+var y=S.month[0],m=S.month[1],tb=table(),k=kind(),first=new Date(y,m-1,1).getDay(),n=monthDays(y,m);
+var names=S.lang==='zh'?['日','一','二','三','四','五','六']:['SUN','MON','TUE','WED','THU','FRI','SAT'];
+var mname=new Date(y,m-1,1).toLocaleDateString(S.lang==='zh'?'zh-CN':'en-GB',{month:'long',year:'numeric'});
+var today=new Date(),tk=dkey(today.getFullYear(),today.getMonth()+1,today.getDate());
+var h='<div class="head"><h2>'+t('h_date')+'</h2><p>'+t(S.service==='BT'?'p_date_bt':'p_date_tc')+'</p></div>';
+if(S.holdUntil)h+='<div class="hold">⏱ '+t('hold',{t:'<span id="holdtxt"></span>'})+'</div>';
+h+='<div class="card cal"><div class="calhead"><button class="nav" data-nav="-1"'+(m<=11?' disabled':'')+' aria-label="Previous month">‹</button><h3>'+esc(mname)+'</h3><button class="nav" data-nav="1"'+(m>=12?' disabled':'')+' aria-label="Next month">›</button></div>';
+h+='<div class="dow">'+names.map(function(x){return '<div>'+x+'</div>'}).join('')+'</div><div class="days">';
+for(var i=0;i<first;i++)h+='<div></div>';
+for(var d=1;d<=n;d++){
+var key=dkey(y,m,d),slots=tb[key],cls='day'+(S.date===key?' sel':'')+(key===tk?' today':''),dis=!slots,dot='',sub='';
+if(slots){var free=slots.filter(function(l){return !taken(k,key,l)}).length;dot='<i class="'+(free?'ok':'full')+'"></i>';if(!free)dis=true}
+else{var dow=new Date(y,m-1,d).getDay();if(dow===1&&key>=tk)sub='<small>'+(S.lang==='zh'?'休息':'Closed')+'</small>'}
+h+='<button class="'+cls+'"'+(dis?' disabled':'')+' data-date="'+key+'">'+d+dot+sub+'</button>';
+}
+h+='</div><div class="legend"><span><i style="background:var(--ok)"></i>'+t('avail')+'</span><span><i style="background:var(--bad)"></i>'+t('full')+'</span><span><i style="background:var(--off)"></i>'+t('closed')+'</span></div></div>';
+if(S.date){
+h+='<div class="sec" style="margin-top:6px">'+t('slots')+' · '+esc(fmtDate(S.date))+'</div><div class="slots">';
+tb[S.date].forEach(function(l){var tk2=taken(k,S.date,l);
+h+='<button class="slot'+(S.slot===l?' sel':'')+(tk2?' taken':'')+'" data-slot="'+l+'"'+(tk2?' disabled':'')+'><b>'+l+'</b><span>'+(tk2?t('taken'):t('free_slot'))+'</span></button>'});
+h+='</div>';
+if(S.slot&&S.service==='TCBT'){
+var rf=reportFor(S.date,S.slot);
+if(!rf)h+='<div class="note">'+t('report_none')+'</div>';
+else if(taken('report',S.date,rf))h+='<div class="note">'+t('report_dup')+'</div>';
+else h+='<div class="note info">'+t('report_note',{t:'<b>'+rf+'</b>'})+'</div>';
+}
+}else h+='<div class="hint" style="text-align:center">'+t('pick_date')+'</div>';
+return h;
+}
+function viewPay(){
+var b=CFG.BANK;
+return '<div class="head"><h2>'+t('h_pay')+'</h2><p>'+t('p_pay')+'</p></div>'+
+(S.holdUntil?'<div class="hold">⏱ '+t('hold',{t:'<span id="holdtxt"></span>'})+'</div>':'')+
+'<div class="card"><div class="total" style="margin:0 0 12px"><span>'+t('amount')+'</span><b>RM'+price().toFixed(2)+'</b></div>'+
+'<div class="sec" style="margin-top:6px">'+t('bank_details')+'</div><div class="bank">'+t('bank')+': <b>'+esc(b.bank)+'</b><br>'+t('holder')+': <b>'+esc(b.holder)+'</b><br>'+t('accno')+': <code>'+esc(b.number)+'</code></div></div>'+
+'<div class="sec">'+t('slip')+' *</div><div class="upload"><input type="file" id="slip" accept="image/jpeg,image/png,application/pdf"><label for="slip">⬆ '+t('slip_btn')+'</label><div class="hint">'+t('slip_hint')+'</div>'+
+(S.slip?'<div class="fname">✓ '+esc(S.slip.name)+'</div>'+(S.slipURL?'<img class="prev" src="'+S.slipURL+'" alt="">':''):'')+'</div>';
+}
+function viewConfirm(){
+var d=S.d,rows=[[t('svc'),svcName()],[t('who'),d.parent],[t('ph'),d.phone]];
+if(d.email)rows.push([t('em'),d.email]);
+rows.push([t('ad'),[d.street,d.postcode+' '+d.city,d.state].filter(Boolean).join(', ')]);
+rows.push([t('kids'),d.children.map(function(c){return c.name+' ('+(c.gender==='M'?t('male'):t('female'))+', '+c.age+')'}).join('; ')]);
+if(S.service!=='BT')rows.push([t('tcd'),fmtDate(S.date)+' · '+S.slot]);
+if(S.service==='TCBT'){var rf=reportFor(S.date,S.slot);rows.push([t('btd'),rf?(fmtDate(S.date)+' · '+rf+(taken('report',S.date,rf)?' ⚠':'')):t('report_none')])}
+if(S.service==='BT')rows.push([t('btd'),fmtDate(S.date)+' · '+S.slot]);
+rows.push([t('paid'),S.service==='BT'?t('none_needed'):(S.slip?t('uploaded')+': '+S.slip.name:'-')]);
+var h='<div class="head"><h2>'+t('h_confirm')+'</h2><p>'+t('p_confirm')+'</p></div>'+(S.holdUntil?'<div class="hold">⏱ '+t('hold',{t:'<span id="holdtxt"></span>'})+'</div>':'');
+h+='<div class="card sum"><dl>'+rows.map(function(r){return '<dt>'+esc(r[0])+'</dt><dd>'+esc(r[1])+'</dd>'}).join('')+'</dl>';
+h+='<div class="total"><span>'+t('total')+'</span><b>'+(price()?'RM'+price().toFixed(2):t('free'))+'</b></div></div>';
+if(S.service==='TCBT'){var r2=reportFor(S.date,S.slot);if(r2&&taken('report',S.date,r2))h+='<div class="note">'+t('report_dup')+'</div>'}
+return h;
+}
+function doneView(){
+var b=S.done;
+return '<div class="card done-card"><div class="tick">✓</div><h2>'+t('done')+'</h2><div>'+t('done_p')+'</div><div class="ref">'+esc(b.ref)+'</div>'+
+'<p>'+(b.price?t('done_pay'):t('done_nopay'))+'</p>'+(CFG.SUBMIT_URL?'':'<div class="note">'+t('demo')+'</div>')+
+'<button class="btn pri" id="again" style="max-width:260px">'+t('new_booking')+'</button></div>';
+}
+function validate(cur){
+var d=S.d,mn=minKids(),mx=CFG.MAX_CHILDREN;
+if(cur==='service'&&!S.service)return t('e_service');
+if(cur==='details'){
+if(!d.parent.trim()||!d.street.trim()||!d.city.trim()||!d.postcode.trim()||!d.state)return t('e_req');
+if(!/^(\+?6?0)1\d[- ]?\d{7,8}$/.test(d.phone.replace(/\s/g,'')))return t('e_phone');
+if(d.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email))return t('e_email');
+if(d.children.length<mn||d.children.length>mx||d.children.some(function(c){return !c.name.trim()||!c.gender||!(+c.age>=1&&+c.age<=18)}))return t('e_kids',{min:mn,max:mx});
+if(!d.consent)return t('e_consent');
+}
+if(cur==='date'&&(!S.date||!S.slot))return t('e_slot');
+if(cur==='pay'&&!S.slip)return t('e_slip');
+return '';
+}
+function go(delta){
+var st=steps(),cur=st[S.step];
+if(delta>0){S.err=validate(cur);if(S.err){render();return}
+if(cur==='confirm'){submit();return}}
+S.step=Math.max(0,Math.min(st.length-1,S.step+delta));S.err='';render();window.scrollTo(0,0);
+}
+function submit(){
+var K=kind(),m=store(),rf=null;
+fresh();
+if(taken(K,S.date,S.slot)){S.err=t('e_taken');S.step=steps().indexOf('date');S.slot=null;stopHold();render();return}
+var dup=false;
+if(S.service==='TCBT'){rf=reportFor(S.date,S.slot);if(rf&&taken('report',S.date,rf))dup=true}
+var ref='GMA'+Date.now().toString(36).toUpperCase().slice(-6);
+var b={ref:ref,service:S.service,price:price(),date:S.date,slot:S.slot,reportSlot:S.service==='TCBT'?rf:(S.service==='BT'?S.slot:null),duplicateReport:dup,
+parent:S.d.parent,phone:S.d.phone,email:S.d.email,address:{street:S.d.street,postcode:S.d.postcode,city:S.d.city,state:S.d.state},children:S.d.children,created:new Date().toISOString()};
+S.busy=true;render();
+var finish=function(){
+var mm=store();mm[K][S.date+'|'+S.slot]=ref;
+if(S.service==='TCBT'&&rf&&!dup)mm.report[S.date+'|'+rf]=ref;
+mm.bookings.push(b);save(mm);
+S.busy=false;S.done=b;stopHold();render();window.scrollTo(0,0);
+};
+if(!CFG.SUBMIT_URL){setTimeout(finish,400);return}
+var send=function(slip){
+if(slip)b.slip=slip;
+fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify(b)}) // text/plain body -> no CORS preflight (Apps Script)
+.then(function(r){return r.json()}).then(function(j){
+if(j&&j.ok){if(j.ref)b.ref=j.ref;b.duplicateReport=!!j.duplicateReport;delete b.slip;finish();return}
+throw (j&&j.error)||'err';
+}).catch(function(e){S.busy=false;
+if(e==='taken'){S.err=t('e_taken');S.step=steps().indexOf('date');S.slot=null;stopHold();loadRemote(render);return}
+S.err=t('e_send');render()});
+};
+if(S.slip){var fr=new FileReader();fr.onload=function(){send({name:S.slip.name,type:S.slip.type,data:String(fr.result).split(',')[1]})};fr.onerror=function(){S.busy=false;S.err=t('e_send');render()};fr.readAsDataURL(S.slip)}
+else send(null);
+}
+function fresh(){if(!CFG.SUBMIT_URL)MEM=load()}
+function loadRemote(cb){if(!CFG.SUBMIT_URL){if(cb)cb();return}
+fetch(CFG.SUBMIT_URL+'?action=booked').then(function(r){return r.json()}).then(function(j){MEM={trial:j.trial||{},report:j.report||{},bookings:[]};if(cb)cb()}).catch(function(){if(cb)cb()})}
+document.addEventListener('click',function(e){
+var el=e.target.closest('[data-svc],[data-date],[data-slot],[data-nav],[data-rm],#addkid,#again,[data-lang]');if(!el)return;
+if(el.dataset.lang){S.lang=el.dataset.lang;render();return}
+if(el.dataset.svc){S.service=el.dataset.svc;
+var mn=minKids();while(S.d.children.length<mn)S.d.children.push({name:'',gender:'',age:''});
+S.date=null;S.slot=null;stopHold();S.err='';render();return}
+if(el.dataset.nav){S.month[1]+=+el.dataset.nav;render();return}
+if(el.dataset.date){S.date=el.dataset.date;S.slot=null;stopHold();S.err='';render();return}
+if(el.dataset.slot){S.slot=el.dataset.slot;S.err='';startHold();render();return}
+if(el.dataset.rm!==undefined){S.d.children.splice(+el.dataset.rm,1);render();return}
+if(el.id==='addkid'){if(S.d.children.length<CFG.MAX_CHILDREN)S.d.children.push({name:'',gender:'',age:''});render();return}
+if(el.id==='again'){location.reload()}
+});
+document.addEventListener('input',function(e){
+var el=e.target;
+if(el.dataset.f){S.d[el.dataset.f]=el.type==='checkbox'?el.checked:el.value;if(el.type!=='checkbox')S.err=''}
+else if(el.dataset.c!==undefined){S.d.children[+el.dataset.c][el.dataset.k]=el.value}
+});
+document.addEventListener('change',function(e){
+var el=e.target;
+if(el.dataset.f&&el.tagName==='SELECT')S.d[el.dataset.f]=el.value;
+if(el.id==='slip'){var f=el.files[0];if(!f)return;
+if(!/^(image\/(jpeg|png)|application\/pdf)$/.test(f.type)||f.size>5*1024*1024){toast(t('slip_bad'));el.value='';return}
+S.slip=f;S.slipURL='';S.err='';
+if(f.type.indexOf('image')===0){var r=new FileReader();r.onload=function(){S.slipURL=r.result;render()};r.readAsDataURL(f)}
+render();}
+});
+nextB.addEventListener('click',function(){go(1)});
+backB.addEventListener('click',function(){go(-1)});
+if(CFG.LOGO_URL){var hd=document.querySelector('header.top'),lg=document.getElementById('logo'),tt=lg.nextElementSibling;
+var im=new Image();im.alt='Genius Mind Academy';im.className='brandlogo';im.src=CFG.LOGO_URL;
+im.onload=function(){lg.replaceWith(im);var t1=tt.querySelector('.t1');if(t1)t1.style.display='none'};
+}
+render();
+loadRemote(render);
+</script>
+</body>
+</html>
