@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>GMA Staff - Lucky Draw</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.wrap{max-width:640px;margin:0 auto;padding:16px 16px 60px}
+.stock{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.stock span{background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:700}
+.stock span.low{border-color:var(--bad);color:var(--bad)}
+.pz{display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px}
+.pz button{padding:12px;border-radius:12px;border:1.5px solid var(--tint-line);background:var(--tint);font:inherit;font-weight:800;cursor:pointer;text-align:left}
+.pz button:disabled{opacity:.4;cursor:not-allowed}
+.pz button.none{background:#fff;border-color:var(--line);font-weight:600}
+.won{display:inline-block;background:#e8f5d4;color:#3d6b10;border-radius:10px;padding:6px 10px;font-weight:800;margin-top:6px}
+.code{font-family:monospace;font-weight:800;color:var(--plum)}
+.err{background:#fde8ea;color:var(--bad);border-radius:12px;padding:10px 12px;margin:10px 0;font-weight:700}
+.okm{background:#e8f5d4;color:#3d6b10;border-radius:12px;padding:10px 12px;margin:10px 0;font-weight:700}
+.row2{display:flex;gap:8px}.row2>*{flex:1}
+.small{font-size:12px;color:var(--muted)}
+.btn{cursor:pointer}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="logo" id="logo"></div>
+<div><div class="t1">Genius Mind <b>Academy</b></div><div class="t2">Staff · Lucky draw</div></div>
+</header>
+<main class="wrap" id="app"></main>
+<script>
+var SUBMIT_URL = '';   // same Google Apps Script web app URL as index.html
+var LOGO_URL = 'logo.png';
+
+var PIN = '';
+try { PIN = sessionStorage.getItem('gma_pin') || ''; } catch (e) {}
+var app = document.getElementById('app');
+var S = { authed: false, msg: '', err: '', phone: '', data: null, stock: [], prizes: [], busy: false, walk: false, kids: [{ name: '', gender: '', age: '' }], parent: '' };
+
+var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 10 minutes.', disabled: 'Staff page is not turned on yet (set STAFF_PIN in the Google script).',
+  nospins: 'No spins left for this number.', childdone: 'This child already spun.', outofstock: 'This prize is out of stock.', notfound: 'Not found.',
+  already: 'This prize was already collected.', cancelled: 'This prize was cancelled.', missing: 'Please fill in the parent name and at least one child.', badprize: 'Unknown prize.' };
+
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function api(body, cb) {
+  if (!SUBMIT_URL) { cb({ ok: false, error: 'nourl' }); return; }
+  body.pin = PIN;
+  fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify(body) }).then(function (r) { return r.json(); }).then(cb).catch(function () { cb(null); });
+}
+function errText(j) { return !j ? 'Could not connect. Check the internet and try again.' : j.error === 'nourl' ? 'SUBMIT_URL is not set in staff.html yet.' : (ERR[j.error] || ('Error: ' + j.error)); }
+
+function render() {
+  var h = '';
+  if (!S.authed) {
+    h = '<div class="card"><div class="sec" style="margin-top:0">Teacher login</div><label class="f">Password</label><input type="password" id="pin" autocomplete="off" value="' + esc(PIN) + '"><button class="btn pri" id="login" style="margin-top:12px">' + (S.busy ? 'Checking…' : 'Log in') + '</button>' + (S.err ? '<div class="err">' + esc(S.err) + '</div>' : '') + '</div>';
+    app.innerHTML = h; return;
+  }
+  h += '<div class="stock">' + S.stock.filter(function (s) { return s.key !== 'NONE'; }).map(function (s) {
+    var left = s.left === null ? '∞' : s.left;
+    return '<span class="' + (s.left !== null && s.left <= 2 ? 'low' : '') + '">' + esc(s.name) + ': given ' + s.given + (s.stock > 0 ? ', left ' + left : '') + '</span>';
+  }).join('') + '</div>';
+  h += '<div class="card"><label class="f">Parent mobile number</label><div class="row2"><input type="tel" id="phone" placeholder="e.g. 012-3456789" value="' + esc(S.phone) + '"><button class="btn pri" id="find" style="flex:0 0 110px">' + (S.busy ? '…' : 'Find') + '</button></div></div>';
+  if (S.msg) h += '<div class="okm">' + esc(S.msg) + '</div>';
+  if (S.err) h += '<div class="err">' + esc(S.err) + '</div>';
+  if (S.walk) h += walkView(); else if (S.data) h += custView();
+  h += '<div class="card"><div class="sec" style="margin-top:0">Collect a prize (gift / voucher)</div><div class="row2"><input type="text" id="code" placeholder="Prize code e.g. FG-0002" autocapitalize="characters"><button class="btn sec2" id="redeem" style="flex:0 0 110px">Collect</button></div></div>';
+  h += '<div style="text-align:center;margin-top:14px"><button class="btn sec2" id="logout" style="max-width:200px">Log out</button></div>';
+  app.innerHTML = h;
+}
+
+function custView() {
+  var d = S.data, left = (d.spinsAllowed || 0) - (d.spinsUsed || 0);
+  var h = '<div class="card"><div class="sec" style="margin-top:0">' + esc(d.parent || '') + ' · ' + esc(S.phone) + '</div>';
+  h += '<div class="small">Spins used ' + (d.spinsUsed || 0) + ' of ' + (d.spinsAllowed || 0) + (left <= 0 ? ' - no spins left' : '') + '</div></div>';
+  var kids = d.children || [];
+  kids.forEach(function (c, i) {
+    var sp = (d.spins || []).filter(function (s) { return String(s.child) === String(c.name); })[0];
+    h += '<div class="card child"><h4>' + esc(c.name) + ' <span class="small">' + (c.gender === 'M' ? 'Boy' : 'Girl') + ', ' + esc(c.age) + '</span></h4>';
+    if (sp) {
+      h += '<div class="won">' + (sp.key === 'NONE' ? 'No prize' : '🎁 ' + esc(sp.name)) + '</div>' + (sp.code ? '<div class="small">Code <span class="code">' + esc(sp.code) + '</span> · ' + esc(sp.status) + '</div>' : '');
+    } else if (left > 0) {
+      h += '<div class="small">What did ' + esc(c.name) + ' win?</div><div class="pz">' + (d.prizeList || []).map(function (p) {
+        var st = (d.stock || []).filter(function (x) { return x.key === p.key; })[0];
+        var out = st && st.stock > 0 && st.left <= 0;
+        return '<button data-spin="' + i + '" data-prize="' + esc(p.key) + '" class="' + (p.key === 'NONE' ? 'none' : '') + '"' + (out ? ' disabled' : '') + '>' + esc(p.name) + (out ? ' (out of stock)' : '') + '</button>';
+      }).join('') + '</div>';
+    } else h += '<div class="small">No spin left for this child.</div>';
+    h += '</div>';
+  });
+  if ((d.bookings || []).length) h += '<div class="card"><div class="sec" style="margin-top:0">Bookings</div>' + d.bookings.map(function (b) { return '<div class="small"><b>' + esc(b.ref) + '</b> · ' + esc(b.date || b.reportDate) + ' ' + esc(b.slot || b.reportSlot) + '</div>'; }).join('') + '</div>';
+  return h;
+}
+
+function walkView() {
+  var h = '<div class="card"><div class="sec" style="margin-top:0">New customer - register</div><div class="small">Not found. Fill in the details so the children can spin.</div>' +
+    '<label class="f">Parent name *</label><input type="text" data-p="parent" value="' + esc(S.parent) + '">';
+  S.kids.forEach(function (c, i) {
+    h += '<div class="card child"><h4>Child ' + (i + 1) + '</h4><label class="f">Name</label><input type="text" data-k="name" data-i="' + i + '" value="' + esc(c.name) + '">' +
+      '<div class="grid2"><div><label class="f">Gender</label><select data-k="gender" data-i="' + i + '"><option value="">Choose…</option><option value="M"' + (c.gender === 'M' ? ' selected' : '') + '>Boy</option><option value="F"' + (c.gender === 'F' ? ' selected' : '') + '>Girl</option></select></div>' +
+      '<div><label class="f">Age</label><input type="number" min="1" max="18" data-k="age" data-i="' + i + '" value="' + esc(c.age) + '"></div></div></div>';
+  });
+  h += '<button class="add" id="addk">+ Add child</button><button class="btn pri" id="reg" style="margin-top:10px">' + (S.busy ? 'Saving…' : 'Save') + '</button></div>';
+  return h;
+}
+
+function setData(j) {
+  S.busy = false;
+  if (!j || !j.ok) { S.err = errText(j); render(); return false; }
+  S.err = ''; if (j.stock) S.stock = j.stock; return true;
+}
+function normPhone(p) { var d = String(p || '').replace(/\D/g, ''); if (d.charAt(0) === '0') d = '6' + d; return d; }
+function refreshStock() { api({ action: 'staff_stats' }, function (j) { if (j && j.ok) { S.stock = j.stock; render(); } }); }
+
+document.addEventListener('click', function (e) {
+  var el = e.target.closest('button'); if (!el) return;
+  if (el.id === 'login') {
+    PIN = document.getElementById('pin').value; S.busy = true; S.err = ''; render();
+    api({ action: 'staff_stats' }, function (j) {
+      S.busy = false;
+      if (j && j.ok) { S.authed = true; S.stock = j.stock; try { sessionStorage.setItem('gma_pin', PIN); } catch (x) {} S.err = ''; }
+      else { S.err = errText(j); }
+      render();
+    });
+  } else if (el.id === 'logout') {
+    PIN = ''; try { sessionStorage.removeItem('gma_pin'); } catch (x) {}
+    S.authed = false; S.data = null; S.walk = false; S.phone = ''; S.msg = ''; render();
+  } else if (el.id === 'find') {
+    S.phone = document.getElementById('phone').value; S.msg = ''; S.err = '';
+    if (!/^(\+?6?0)1\d[- ]?\d{7,8}$/.test(S.phone.replace(/\s/g, ''))) { S.err = 'Please enter a valid Malaysian mobile number.'; render(); return; }
+    S.busy = true; render();
+    api({ action: 'staff_lookup', phone: normPhone(S.phone) }, function (j) {
+      if (!setData(j)) return;
+      if (j.found && j.children && j.children.length) { S.data = j; S.walk = false; } else { S.data = null; S.walk = true; S.kids = [{ name: '', gender: '', age: '' }]; S.parent = j.parent || ''; }
+      render();
+    });
+  } else if (el.dataset.spin !== undefined) {
+    var c = S.data.children[+el.dataset.spin], key = el.dataset.prize;
+    var pn = (S.data.prizeList.filter(function (p) { return p.key === key; })[0] || {}).name;
+    if (!confirm('Record "' + pn + '" for ' + c.name + '?')) return;
+    S.busy = true; S.msg = ''; render();
+    api({ action: 'staff_spin', phone: normPhone(S.phone), child: c.name, prize: key }, function (j) {
+      if (!setData(j)) return;
+      S.data = j; S.msg = 'Saved: ' + c.name + ' → ' + pn; render();
+    });
+  } else if (el.id === 'addk') { S.kids.push({ name: '', gender: '', age: '' }); render(); }
+  else if (el.id === 'reg') {
+    var kids = S.kids.filter(function (k) { return k.name.trim(); });
+    if (!S.parent.trim() || !kids.length || kids.some(function (k) { return !k.gender || !(+k.age >= 1 && +k.age <= 18); })) { S.err = 'Please fill in the parent name, and each child\'s name, gender and age.'; render(); return; }
+    S.busy = true; S.err = ''; render();
+    api({ action: 'staff_register', phone: normPhone(S.phone), parent: S.parent, children: kids }, function (j) {
+      if (!setData(j)) return;
+      S.data = j; S.walk = false; S.msg = 'Registered.'; render();
+    });
+  } else if (el.id === 'redeem') {
+    var code = document.getElementById('code').value.trim().toUpperCase(); if (!code) return;
+    S.busy = true; S.err = ''; S.msg = ''; api({ action: 'staff_redeem', code: code }, function (j) {
+      S.busy = false;
+      if (j && j.ok) S.msg = 'Collected: ' + j.prize + ' for ' + j.child + ' (' + j.parent + ')'; else S.err = errText(j);
+      render();
+    });
+  }
+});
+document.addEventListener('input', function (e) {
+  var el = e.target;
+  if (el.dataset.p === 'parent') S.parent = el.value;
+  else if (el.dataset.k) S.kids[+el.dataset.i][el.dataset.k] = el.value;
+});
+document.addEventListener('change', function (e) {
+  var el = e.target;
+  if (el.dataset.k && el.tagName === 'SELECT') S.kids[+el.dataset.i][el.dataset.k] = el.value;
+});
+
+if (LOGO_URL) { var lg = document.getElementById('logo'), im = new Image(); im.className = 'brandlogo'; im.alt = ''; im.src = LOGO_URL; im.onload = function () { lg.replaceWith(im); }; }
+if (PIN && SUBMIT_URL) { api({ action: 'staff_stats' }, function (j) { if (j && j.ok) { S.authed = true; S.stock = j.stock; } render(); }); } else render();
+</script>
+</body>
+</html>
