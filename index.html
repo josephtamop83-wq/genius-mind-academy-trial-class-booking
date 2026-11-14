@@ -482,9 +482,9 @@ function o(key,name,desc,bd){return '<button class="card opt '+(S.service===key?
 var tcN=unusedPrize('TC').map(function(p){return p.child}),btN=unusedPrize('BT').map(function(p){return p.child});
 return '<div class="head"><h2>'+t('h_service')+'</h2><p>'+t('p_service')+'</p></div>'+
 (S.welcome?'<div class="note info">'+esc(S.welcome)+'</div>':'')+prizeCard()+
-(allowedSvc('TCBT')?o('TCBT','tcbt','tcbt_d',free(tcN.concat(btN))):'')+
-(allowedSvc('TC')?o('TC','tc','tc_d','<span class="badge g">90 min</span>'+free(tcN)):'')+
-(allowedSvc('BT')?o('BT','bt','bt_d',free(btN)):'')+
+(allowedSvc('TCBT')?o('TCBT','tcbt','tcbt_d','<span class="badge g">90 min + 45 min</span> <span class="badge g">RM39</span>'+free(tcN.concat(btN))):'')+
+(allowedSvc('TC')?o('TC','tc','tc_d','<span class="badge g">90 min</span> <span class="badge g">RM39</span>'+free(tcN)):'')+
+(allowedSvc('BT')?o('BT','bt','bt_d','<span class="badge g">45 min</span>'+free(btN)):'')+
 '<div class="hint" style="text-align:center">'+t('pay_centre')+'</div>';
 }
 function linksHtml(){
