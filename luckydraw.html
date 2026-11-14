@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Lucky Draw Sign-up - Genius Mind Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 50px}
+.wrap h2{font-family:"Fredoka",sans-serif;color:var(--plum);margin:6px 0 4px}
+.sub{color:var(--muted);margin:0 0 12px}
+.big{font-family:"Fredoka",sans-serif;font-size:44px;color:var(--brand);line-height:1;margin:6px 0}
+.kidline{padding:6px 0;border-bottom:1px solid var(--line)}
+.kidline:last-child{border-bottom:0}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="logo" id="logo"></div>
+<div><div class="t1">Genius Mind <b>Academy</b></div><div class="t2" id="sub">Puchong Jaya</div></div>
+<div class="lang" role="group" aria-label="Language"><button data-lang="en">EN</button><button data-lang="zh">中文</button></div>
+</header>
+<main class="wrap" id="app"></main>
+<script>
+var SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbwvukSXQHKhnbMndouaYUC07qpx_2tXQWkbUTIYsrCB8gSbByjQ7u0zqkKu4RiY66E7/exec';
+var LOGO_URL = 'logo.png';
+var MAX_CHILDREN = 10;
+
+var T = {
+ en: { h: 'Lucky Draw Sign-up', p: 'Fill in your details, then show the screen to our teacher. Each registered child gets one spin on the wheel (up to 3 spins per family).',
+  parent: 'Parent name', phone: 'Mobile number', phone_h: 'e.g. 012-3456789', child: 'Child', cname: "Child's name", gender: 'Gender', male: 'Boy', female: 'Girl', age: 'Age', choose: 'Choose…',
+  add: '+ Add another child', remove: 'Remove', consent: 'I agree that Genius Mind Academy may collect and use my details for this lucky draw and to contact me about my prizes and bookings (PDPA).',
+  submit: 'Register', busy: 'Please wait…', e_req: 'Please enter the parent name.', e_phone: 'Please enter a valid Malaysian mobile number.', e_kids: "Please fill in each child's name, gender and age (1–18).", e_consent: 'Please tick the consent box.', e_send: 'Could not send. Please check the internet and try again.',
+  done: 'You are registered!', spins: 'spin(s) for the wheel', show: 'Show this screen to our teacher, then let your child spin the wheel.', already: 'This number is already registered. Here are your details.', children: 'Children', book: 'Book your trial class / brain test report', another: 'Register another number' },
+ zh: { h: '幸运转盘登记', p: '请填写资料，然后把屏幕给老师看。每位登记的孩子可转一次转盘（每个家庭最多 3 次）。',
+  parent: '家长姓名', phone: '手机号码', phone_h: '例如 012-3456789', child: '孩子', cname: '孩子姓名', gender: '性别', male: '男孩', female: '女孩', age: '年龄', choose: '请选择…',
+  add: '+ 添加孩子', remove: '删除', consent: '我同意 Genius Mind Academy 为本次转盘活动及联系我领取奖品和预约而收集及使用我的资料（PDPA）。',
+  submit: '登记', busy: '请稍候…', e_req: '请输入家长姓名。', e_phone: '请输入有效的马来西亚手机号码。', e_kids: '请填写每位孩子的姓名、性别和年龄（1–18）。', e_consent: '请勾选同意。', e_send: '发送失败，请检查网络后重试。',
+  done: '登记成功！', spins: '次转盘机会', show: '请把此屏幕给老师看，然后让孩子转转盘。', already: '此号码已登记过，以下是您的资料。', children: '孩子', book: '预约试课 / 脑测报告', another: '登记另一个号码' }
+};
+var S = { lang: 'en', parent: '', phone: '', kids: [{ name: '', gender: '', age: '' }], consent: false, err: '', busy: false, done: null };
+var app = document.getElementById('app');
+function t(k) { return T[S.lang][k]; }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function normPhone(p) { var d = String(p || '').replace(/\D/g, ''); if (d.charAt(0) === '0') d = '6' + d; return d; }
+
+function render() {
+  document.documentElement.lang = S.lang;
+  [].forEach.call(document.querySelectorAll('.lang button'), function (b) { b.classList.toggle('on', b.dataset.lang === S.lang); });
+  if (S.done) { app.innerHTML = doneView(); return; }
+  var h = '<h2>' + t('h') + '</h2><p class="sub">' + t('p') + '</p><div class="card">';
+  h += '<label class="f">' + t('parent') + ' *</label><input type="text" id="parent" value="' + esc(S.parent) + '" autocomplete="name">';
+  h += '<label class="f">' + t('phone') + ' *</label><input type="tel" id="phone" placeholder="' + t('phone_h') + '" value="' + esc(S.phone) + '" autocomplete="tel"></div>';
+  S.kids.forEach(function (c, i) {
+    h += '<div class="card child"><h4>' + t('child') + ' ' + (i + 1) + '</h4>' + (S.kids.length > 1 ? '<button class="rm" data-rm="' + i + '">' + t('remove') + '</button>' : '') +
+      '<label class="f">' + t('cname') + '</label><input type="text" data-c="' + i + '" data-k="name" value="' + esc(c.name) + '">' +
+      '<div class="grid2"><div><label class="f">' + t('gender') + '</label><select data-c="' + i + '" data-k="gender"><option value="">' + t('choose') + '</option><option value="M"' + (c.gender === 'M' ? ' selected' : '') + '>' + t('male') + '</option><option value="F"' + (c.gender === 'F' ? ' selected' : '') + '>' + t('female') + '</option></select></div>' +
+      '<div><label class="f">' + t('age') + '</label><input type="number" min="1" max="18" data-c="' + i + '" data-k="age" value="' + esc(c.age) + '"></div></div></div>';
+  });
+  h += '<button class="add" id="addkid"' + (S.kids.length >= MAX_CHILDREN ? ' disabled' : '') + '>' + t('add') + '</button>';
+  h += '<label class="check" style="margin-top:12px"><input type="checkbox" id="consent"' + (S.consent ? ' checked' : '') + '><span>' + t('consent') + '</span></label>';
+  if (S.err) h += '<div class="msg">' + esc(S.err) + '</div>';
+  h += '<button class="btn pri" id="submit" style="width:100%;margin-top:10px"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? t('busy') : t('submit')) + '</button>';
+  app.innerHTML = h;
+}
+function doneView() {
+  var d = S.done, kids = (d.children || []).map(function (c) { return '<div class="kidline">' + esc(c.name) + ' · ' + (c.gender === 'M' ? t('male') : t('female')) + ' · ' + esc(c.age) + '</div>'; }).join('');
+  var left = Math.max(0, (d.spinsAllowed || 0) - (d.spinsUsed || 0));
+  return '<div class="card done-card" style="text-align:center"><div class="tick">✓</div><h2>' + t('done') + '</h2>' + (d.already ? '<p>' + t('already') + '</p>' : '') +
+    '<div><b>' + esc(d.parent || S.parent) + '</b> · ' + esc(S.phone) + '</div><div class="big">' + left + '</div><div>' + t('spins') + '</div>' +
+    '<p style="margin-top:12px"><b>' + t('show') + '</b></p><div style="text-align:left;margin-top:10px"><b>' + t('children') + '</b>' + kids + '</div></div>' +
+    '<a class="btn pri" style="display:block;text-align:center;text-decoration:none;margin-bottom:10px" href="index.html">' + t('book') + '</a>' +
+    '<button class="btn sec2" id="again" style="width:100%">' + t('another') + '</button>';
+}
+function api(body, cb) { fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify(body) }).then(function (r) { return r.json(); }).then(cb).catch(function () { cb(null); }); }
+
+document.addEventListener('click', function (e) {
+  var el = e.target.closest('button'); if (!el) return;
+  if (el.dataset.lang) { S.lang = el.dataset.lang; render(); return; }
+  if (el.id === 'addkid') { S.kids.push({ name: '', gender: '', age: '' }); render(); return; }
+  if (el.dataset.rm !== undefined) { S.kids.splice(+el.dataset.rm, 1); render(); return; }
+  if (el.id === 'again') { S = { lang: S.lang, parent: '', phone: '', kids: [{ name: '', gender: '', age: '' }], consent: false, err: '', busy: false, done: null }; render(); return; }
+  if (el.id === 'submit') {
+    if (!S.parent.trim()) { S.err = t('e_req'); render(); return; }
+    if (!/^(\+?6?0)1\d[- ]?\d{7,8}$/.test(S.phone.replace(/\s/g, ''))) { S.err = t('e_phone'); render(); return; }
+    if (S.kids.some(function (c) { return !c.name.trim() || !c.gender || !(+c.age >= 1 && +c.age <= 18); })) { S.err = t('e_kids'); render(); return; }
+    if (!S.consent) { S.err = t('e_consent'); render(); return; }
+    S.err = ''; S.busy = true; render();
+    var ph = normPhone(S.phone);
+    // If this number is already registered, show the saved details instead of overwriting them.
+    api({ action: 'lookup', phone: ph }, function (j) {
+      if (j && j.ok && j.found && j.children && j.children.length) { S.busy = false; j.already = true; S.done = j; render(); return; }
+      api({ action: 'register', phone: ph, parent: S.parent.trim(), children: S.kids.map(function (c) { return { name: c.name.trim(), gender: c.gender, age: +c.age }; }) }, function (r) {
+        S.busy = false;
+        if (r && r.ok) { r.children = r.children && r.children.length ? r.children : S.kids; r.parent = r.parent || S.parent; S.done = r; } else S.err = t('e_send');
+        render();
+      });
+    });
+  }
+});
+document.addEventListener('input', function (e) {
+  var el = e.target;
+  if (el.id === 'parent') S.parent = el.value; else if (el.id === 'phone') S.phone = el.value;
+  else if (el.dataset.c !== undefined) S.kids[+el.dataset.c][el.dataset.k] = el.value;
+});
+document.addEventListener('change', function (e) {
+  var el = e.target;
+  if (el.id === 'consent') S.consent = el.checked;
+  else if (el.dataset.c !== undefined && el.tagName === 'SELECT') S.kids[+el.dataset.c][el.dataset.k] = el.value;
+});
+if (LOGO_URL) { var lg = document.getElementById('logo'), im = new Image(); im.className = 'brandlogo'; im.alt = ''; im.src = LOGO_URL; im.onload = function () { lg.replaceWith(im); }; }
+render();
+</script>
+</body>
+</html>
