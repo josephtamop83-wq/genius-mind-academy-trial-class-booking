@@ -139,8 +139,13 @@ function render() {
 }
 
 
+function payHtml(e) {
+  var b = e.b, ps = b.payStatus || '', h = '<div>' + (ps === 'Paid' ? '<span class="tag y">💳 Paid</span>' : ps ? '<span class="tag p">🧾 Slip uploaded</span>' : '<span class="tag n">No payment slip</span>');
+  if (S.canMark) { if (b.slipUrl) h += '<a class="noprint" href="' + esc(b.slipUrl) + '" target="_blank" rel="noopener" style="font-size:13px;margin-right:8px">View slip</a>'; h += '<button class="ib noprint" data-pay="' + (ps === 'Paid' ? '' : 'paid') + '" data-ref="' + esc(b.ref) + '" style="padding:4px 10px;font-size:13px">' + (ps === 'Paid' ? 'Undo paid' : 'Mark paid') + '</button>'; }
+  return h + '</div>';
+}
 function attHtml(e) {
-  var a = e.att, h = '';
+  var a = e.att, h = payHtml(e);
   if (a === 'attended') h += '<span class="tag y">Attended</span>'; else if (a === 'noshow') h += '<span class="tag n">No-show</span>';
   if (S.canMark) h += '<div class="att noprint"><button class="y ' + (a === 'attended' ? 'on' : '') + '" data-mark="attended" data-ref="' + esc(e.b.ref) + '" data-kind="' + e.kind + '">✓ Attended</button><button class="n ' + (a === 'noshow' ? 'on' : '') + '" data-mark="noshow" data-ref="' + esc(e.b.ref) + '" data-kind="' + e.kind + '">✗ No-show</button></div>';
   return h;
@@ -215,6 +220,11 @@ document.addEventListener('click', function (e) {
     var st = cur && cur.att === el.dataset.mark ? '' : el.dataset.mark, old = cur ? cur.att : '';
     if (cur) { cur.att = st; if (kind === 'trial') cur.b.trialAtt = st; else cur.b.repAtt = st; render(); }
     api({ action: 'cal_mark', ref: ref, kind: kind, status: st }, function (j) { if (!j || !j.ok) { if (cur) { cur.att = old; if (kind === 'trial') cur.b.trialAtt = old; else cur.b.repAtt = old; } S.err = errText(j); render(); } });
+    return;
+  }
+  if (el.dataset.pay !== undefined) {
+    var pr = el.dataset.ref, pst = el.dataset.pay;
+    api({ action: 'cal_mark', ref: pr, kind: 'pay', status: pst }, function (j) { if (j && j.ok) { S.bookings.forEach(function (x) { if (x.ref === pr) x.payStatus = j.status; }); render(); } else { S.err = errText(j); render(); } });
     return;
   }
   if (el.id === 'todaylist') { S.view = S.view === 'today' ? 'cal' : 'today'; S.q = ''; render(); return; }
