@@ -361,8 +361,8 @@ h_date:'Pick a date & time',p_date_tc:'Trial class · 90 minutes',p_date_bt:'Bra
 closed:'Closed / Past',avail:'Available',full:'Fully booked',slots:'Available time slots',pick_date:'Select a date to see time slots.',
 free_slot:'Available',taken:'Taken',hold:'Your slot is held for {t}',hold_end:'Your slot hold expired. Please choose again.',
 report_note:'We will reserve your brain test report collection time automatically: {t}',
-report_dup:'The matching report-collection time is already taken. Our team will contact you to arrange a suitable time.',
-report_none:'No matching report-collection slot on this day. Our team will arrange it with you.',
+report_dup:'The matching report-collection time is already taken. Please choose another report collection date and time below.',
+report_none:'There is no matching report-collection time on this day. Please choose your own report collection date and time below.',rp_h:'Choose your report collection',rp_date:'Report date',rp_pick:'Choose a date',rp_slot:'Report time',rp_nofree:'No free time on this date. Please pick another date.',e_rep:'Please choose your brain test report collection date and time.',
 h_pay:'Payment',p_pay:'Transfer the trial class fee and upload your bank slip.',
 amount:'Amount to pay',bank_details:'Bank details',bank:'Bank',holder:'Account name',accno:'Account no.',
 slip:'Bank slip',slip_btn:'Upload bank slip',slip_hint:'JPG, PNG or PDF · max 5 MB',slip_bad:'Please upload a JPG, PNG or PDF under 5 MB.',
@@ -400,8 +400,8 @@ h_date:'选择日期与时间',p_date_tc:'试课 · 90 分钟',p_date_bt:'领取
 closed:'休息 / 已过',avail:'可预约',full:'已满',slots:'可选时段',pick_date:'请先选择日期以查看时段。',
 free_slot:'可预约',taken:'已被预约',hold:'您的时段已为您保留 {t}',hold_end:'时段保留已过期，请重新选择。',
 report_note:'我们会自动为您保留脑测报告领取时间：{t}',
-report_dup:'对应的报告领取时间已被预约，我们的团队会联络您安排合适的时间。',
-report_none:'当天没有对应的报告领取时段，我们的团队会与您安排。',
+report_dup:'对应的报告领取时间已被预约，请在下面选择其他报告领取日期和时间。',
+report_none:'当天没有对应的报告领取时段，请在下面自己选择报告领取的日期和时间。',rp_h:'选择报告领取时间',rp_date:'报告日期',rp_pick:'请选择日期',rp_slot:'报告时间',rp_nofree:'此日期没有空位，请选择其他日期。',e_rep:'请选择脑测报告领取的日期和时间。',
 h_pay:'付款',p_pay:'请转账试课费用并上传银行单。',
 amount:'应付金额',bank_details:'银行资料',bank:'银行',holder:'户口名称',accno:'户口号码',
 slip:'银行单',slip_btn:'上传银行单',slip_hint:'JPG、PNG 或 PDF · 最大 5MB',slip_bad:'请上传小于 5MB 的 JPG、PNG 或 PDF。',
@@ -445,6 +445,17 @@ var r=range(trialLabel),list=REPORT[date]||[];
 for(var i=0;i<list.length;i++){var s=mins(list[i]);if(s>=r[0]&&s<r[1])return list[i]}
 return null;
 }
+function repSel(){ // report time that goes with a trial class: the matching one if free, otherwise the one the parent picked
+var rf=reportFor(S.date,S.slot);
+if(rf&&!taken('report',S.date,rf))return {date:S.date,slot:rf,auto:1};
+if(S.rdate&&S.rslot&&repFree(S.rdate).indexOf(S.rslot)>-1)return {date:S.rdate,slot:S.rslot};
+return null}
+function repFree(d){var t0=(d===S.date&&S.slot)?range(S.slot)[0]:0;return (REPORT[d]||[]).filter(function(l){return !taken('report',d,l)&&mins(l)>=t0})}   // same day: only after the class starts
+function repDates(){return Object.keys(REPORT).filter(function(d){return d>=S.date&&repFree(d).length}).sort()}
+function repPicker(){
+var ds=repDates(),h='<div class="card" style="margin-top:10px"><div class="sec" style="margin-top:0">'+t('rp_h')+'</div><label class="f">'+t('rp_date')+'</label><select id="rdsel"><option value="">'+t('rp_pick')+'</option>'+ds.map(function(d){return '<option value="'+d+'"'+(S.rdate===d?' selected':'')+'>'+esc(fmtDate(d))+'</option>'}).join('')+'</select>';
+if(S.rdate){var fl=repFree(S.rdate);h+='<label class="f">'+t('rp_slot')+'</label>'+(fl.length?'<div class="slots">'+fl.map(function(l){return '<button class="slot'+(S.rslot===l?' sel':'')+'" data-rslot="'+l+'"><b>'+l+'</b></button>'}).join('')+'</div>':'<div class="hint">'+t('rp_nofree')+'</div>')}
+return h+'</div>'}
 function kind(){return S.service==='BT'?'report':'trial'}
 function table(){return S.service==='BT'?REPORT:TRIAL}
 function needsPay(){if(!S.service)return true;var tc=unusedPrize('TC').length>0,bt=unusedPrize('BT').length>0;if(S.service==='TC')return !tc;if(S.service==='BT')return !bt;return !(tc&&bt)}
@@ -458,7 +469,7 @@ function stopHold(){clearInterval(holdTimer);S.holdUntil=0}
 function tick(){
 var el=document.getElementById('holdtxt');
 var left=S.holdUntil-Date.now();
-if(S.holdUntil&&left<=0){stopHold();S.date=null;S.slot=null;toast(t('hold_end'));S.step=steps().indexOf('date');render();return}
+if(S.holdUntil&&left<=0){stopHold();S.date=null;S.slot=null;S.rdate=null;S.rslot=null;toast(t('hold_end'));S.step=steps().indexOf('date');render();return}
 if(el&&S.holdUntil){var m=Math.floor(left/60000),s=Math.floor(left%60000/1000);el.textContent=pad(m)+':'+pad(s)}
 }
 function render(){
@@ -560,10 +571,9 @@ tb[S.date].forEach(function(l){var tk2=taken(k,S.date,l),own=S.mode==='edit-date
 h+='<button class="slot'+(S.slot===l?' sel':'')+(tk2?' taken':'')+'" data-slot="'+l+'"'+(tk2?' disabled':'')+'><b>'+l+'</b><span>'+(own?t('current_slot'):tk2?t('taken'):t('free_slot'))+'</span></button>'});
 h+='</div>';
 if(S.slot&&S.service==='TCBT'){
-var rf=reportFor(S.date,S.slot);
-if(!rf)h+='<div class="note">'+t('report_none')+'</div>';
-else if(taken('report',S.date,rf))h+='<div class="note">'+t('report_dup')+'</div>';
-else h+='<div class="note info">'+t('report_note',{t:'<b>'+rf+'</b>'})+'</div>';
+var rf=reportFor(S.date,S.slot),rs=repSel();
+if(rs&&rs.auto)h+='<div class="note info">'+t('report_note',{t:'<b>'+rf+'</b>'})+'</div>';
+else{if(!rf)h+='<div class="note">'+t('report_none')+'</div>';else if(taken('report',S.date,rf))h+='<div class="note">'+t('report_dup')+'</div>';h+=repPicker()}
 }
 }else h+='<div class="hint" style="text-align:center">'+t('pick_date')+'</div>';
 return h;
@@ -573,12 +583,11 @@ function viewConfirm(){
 var d=S.d,rows=[[t('svc'),svcName()],[t('who'),d.parent],[t('ph'),d.phone]];
 rows.push([t('kids'),d.children.map(function(c){return c.name+' ('+(c.gender==='M'?t('male'):t('female'))+', '+c.age+')'}).join('; ')]);
 if(S.service!=='BT')rows.push([t('tcd'),fmtDate(S.date)+' · '+S.slot]);
-if(S.service==='TCBT'){var rf=reportFor(S.date,S.slot);rows.push([t('btd'),rf?(fmtDate(S.date)+' · '+rf+(taken('report',S.date,rf)?' ⚠':'')):t('report_none')])}
+if(S.service==='TCBT'){var rs=repSel();rows.push([t('btd'),rs?(fmtDate(rs.date)+' · '+rs.slot):t('report_none')])}
 if(S.service==='BT')rows.push([t('btd'),fmtDate(S.date)+' · '+S.slot]);
 if(needsPay())rows.push([t('pay_h'),S.slip?t('slip_att'):t('slip_none')]);
 var h='<div class="head"><h2>'+t('h_confirm')+'</h2><p>'+t('p_confirm')+'</p></div>'+(S.holdUntil?'<div class="hold">⏱ '+t('hold',{t:'<span id="holdtxt"></span>'})+'</div>':'');
 h+='<div class="card sum"><dl>'+rows.map(function(r){return '<dt>'+esc(r[0])+'</dt><dd>'+esc(r[1])+'</dd>'}).join('')+'</dl></div>';
-if(S.service==='TCBT'){var r2=reportFor(S.date,S.slot);if(r2&&taken('report',S.date,r2))h+='<div class="note">'+t('report_dup')+'</div>'}
 return h;
 }
 
@@ -629,15 +638,15 @@ function openEdit(ref,kind){
 var bk=S.bookings.filter(function(x){return x.ref===ref})[0];
 if(!bk){S.done=null;S.home=S.bookings.length>0;if(!S.home)S.step=0;render();return}
 S.done=null;S.home=true;S.existing=bk;S.service=bk.service;S.err='';
-if(kind==='date'){S.mode='edit-date';S.date=null;S.slot=null;S.month=[2026,11];stopHold();render();window.scrollTo(0,0);loadRemote(render)}
+if(kind==='date'){S.mode='edit-date';S.date=null;S.slot=null;S.rdate=null;S.rslot=null;S.month=[2026,11];stopHold();render();window.scrollTo(0,0);loadRemote(render)}
 else{S.mode='edit-details';render();window.scrollTo(0,0)}}
 function resetAll(){
-stopHold();S.mode=null;S.existing=null;S.done=null;S.home=false;S.bookings=[];S.prizes=[];S.looked='';S.welcome='';S.step=0;S.service=null;S.date=null;S.slot=null;S.slip=null;S.slipURL='';S.busy=false;S.err='';
+stopHold();S.mode=null;S.existing=null;S.done=null;S.home=false;S.bookings=[];S.prizes=[];S.looked='';S.welcome='';S.step=0;S.service=null;S.date=null;S.slot=null;S.rdate=null;S.rslot=null;S.slip=null;S.slipURL='';S.busy=false;S.err='';
 S.d={parent:'',phone:'',consent:false,children:[{name:'',gender:'',age:''}]};
 render();window.scrollTo(0,0)}
 function goHome(kind,ref){
 var wasDone=S.done;
-S.mode=null;S.existing=null;S.err='';stopHold();S.date=null;S.slot=null;S.slip=null;
+S.mode=null;S.existing=null;S.err='';stopHold();S.date=null;S.slot=null;S.rdate=null;S.rslot=null;S.slip=null;
 var phone=S.d.phone||'';
 function finish(){
 if(kind&&ref){openEdit(ref,kind);return}
@@ -667,6 +676,7 @@ if(d.children.length<mn||d.children.length>mx||d.children.some(function(c){retur
 if(!d.consent)return t('e_consent');
 }
 if(cur==='date'&&(!S.date||!S.slot))return t('e_slot');
+if(cur==='date'&&S.service==='TCBT'&&!repSel())return t('e_rep');
 if(cur==='pay'&&payConfigured()&&!S.slip)return t('e_slip');
 return '';
 }
@@ -714,19 +724,19 @@ function submit(){
 var K=kind(),m=store(),rf=null;
 fresh();
 if(taken(K,S.date,S.slot)){S.err=t('e_taken');S.step=steps().indexOf('date');S.slot=null;stopHold();render();return}
-var dup=false;
-if(S.service==='TCBT'){rf=reportFor(S.date,S.slot);if(rf&&taken('report',S.date,rf))dup=true}
+var dup=false,rdt=null;
+if(S.service==='TCBT'){var rs0=repSel();if(!rs0){S.err=t('e_rep');S.step=steps().indexOf('date');render();return}rf=rs0.slot;rdt=rs0.date}
 var pf=S.service==='TCBT'?'TB':S.service==='TC'?'TC':'BR';
 var st=range(S.slot)[0],hhmm=pad(Math.floor(st/60))+pad(st%60);
 var ref0=pf+S.date.replace(/-/g,'')+'-'+hhmm+'-';
 var seq=store().bookings.filter(function(x){return x.ref.indexOf(pf)===0&&/^[A-Z]{2}\d{8}-/.test(x.ref)}).length+1;
 var ref=ref0+('00'+seq).slice(-3);
-var b={ref:ref,service:S.service,date:S.date,slot:S.slot,reportSlot:S.service==='TCBT'?rf:(S.service==='BT'?S.slot:null),duplicateReport:dup,
+var b={ref:ref,service:S.service,date:S.date,slot:S.slot,reportSlot:S.service==='TCBT'?rf:(S.service==='BT'?S.slot:null),reportDate:S.service==='TCBT'?rdt:null,duplicateReport:dup,
 parent:S.d.parent,phone:normPhone(S.d.phone),children:S.d.children,created:new Date().toISOString()};
 S.busy=true;render();
 var finish=function(){
 var mm=store();mm[K][S.date+'|'+S.slot]=b.ref;
-if(S.service==='TCBT'&&rf&&!dup)mm.report[S.date+'|'+rf]=b.ref;
+if(S.service==='TCBT'&&rf&&!dup)mm.report[rdt+'|'+rf]=b.ref;
 mm.bookings.push(b);save(mm);
 S.busy=false;S.done=b;stopHold();render();window.scrollTo(0,0);
 };
@@ -799,12 +809,14 @@ if(d.children.length<mn||d.children.length>mx||d.children.some(function(c){retur
 body={action:'update',phone:normPhone(d.phone),ref:ex.ref,parent:d.parent,children:d.children};
 }else{
 if(!S.date||!S.slot){S.err=t('e_slot');render();return}
-var rf=ex.service==='TCBT'?reportFor(S.date,S.slot):(ex.service==='BT'?S.slot:null);
-body={action:'reschedule',phone:normPhone(d.phone),ref:ex.ref,date:S.date,slot:S.slot,reportSlot:rf};
+var rs1=ex.service==='TCBT'?repSel():null;
+if(ex.service==='TCBT'&&!rs1){S.err=t('e_rep');render();return}
+var rf=ex.service==='TCBT'?rs1.slot:(ex.service==='BT'?S.slot:null);
+body={action:'reschedule',phone:normPhone(d.phone),ref:ex.ref,date:S.date,slot:S.slot,reportSlot:rf,reportDate:ex.service==='TCBT'?rs1.date:null};
 }
 S.err='';S.busy=true;render();
 editApi(body,function(j){S.busy=false;
-if(j&&j.ok){S.bookings=S.bookings.map(function(x){return x.ref===j.booking.ref?j.booking:x});S.existing=j.booking;S.mode=null;stopHold();S.date=null;S.slot=null;render();toast(t('saved'));window.scrollTo(0,0);loadRemote(render);return}
+if(j&&j.ok){S.bookings=S.bookings.map(function(x){return x.ref===j.booking.ref?j.booking:x});S.existing=j.booking;S.mode=null;stopHold();S.date=null;S.slot=null;S.rdate=null;S.rslot=null;render();toast(t('saved'));window.scrollTo(0,0);loadRemote(render);return}
 if(j&&j.error==='taken'){S.err=t('e_taken');S.slot=null;stopHold();loadRemote(render);return}
 if(j&&(j.error==='limit'||j.error==='toolate')){S.mode=null;S.err='';stopHold();S.existing.changesLeft=j.error==='limit'?0:S.existing.changesLeft;S.existing.tooLate=j.error==='toolate';S.bookings=S.bookings.map(function(x){return x.ref===S.existing.ref?S.existing:x});render();return}
 S.err=t('e_send');render()});
@@ -813,7 +825,7 @@ function fresh(){if(!CFG.SUBMIT_URL)MEM=load()}
 function loadRemote(cb){if(!CFG.SUBMIT_URL){if(cb)cb();return}
 fetch(CFG.SUBMIT_URL+'?action=booked').then(function(r){return r.json()}).then(function(j){MEM={trial:j.trial||{},report:j.report||{},bookings:[]};if(cb)cb()}).catch(function(){if(cb)cb()})}
 document.addEventListener('click',function(e){
-var el=e.target.closest('[data-svc],[data-date],[data-slot],[data-nav],[data-rm],#addkid,#again,#chgnum,#newbk,#homebtn,[data-refprize],[data-mg],[data-back],[data-edate],[data-edet],[data-lang]');if(!el)return;
+var el=e.target.closest('[data-svc],[data-date],[data-slot],[data-rslot],[data-nav],[data-rm],#addkid,#again,#chgnum,#newbk,#homebtn,[data-refprize],[data-mg],[data-back],[data-edate],[data-edet],[data-lang]');if(!el)return;
 if(el.dataset.mg!==undefined){var mk=el.dataset.mg,rf=S.done&&S.done.ref;if(mk==='home')resetAll();else goHome(mk,rf);return}
 if(el.id==='homebtn'){resetAll();return}
 if(el.dataset.refprize){S.busy=true;lookup(S.d.phone,function(j){S.busy=false;if(j&&j.ok){S.prizes=j.prizes||[]}render()});render();return}
@@ -822,16 +834,17 @@ if(el.dataset.back==='home'){S.home=false;S.step=0;S.looked='';S.err='';S.welcom
 if(el.dataset.lang){S.lang=el.dataset.lang;render();return}
 if(el.dataset.svc){S.service=el.dataset.svc;
 var mn=minKids();while(S.d.children.length<mn)S.d.children.push({name:'',gender:'',age:''});
-S.date=null;S.slot=null;stopHold();S.err='';render();return}
+S.date=null;S.slot=null;S.rdate=null;S.rslot=null;stopHold();S.err='';render();return}
 if(el.dataset.nav){S.month[1]+=+el.dataset.nav;render();return}
-if(el.dataset.date){S.date=el.dataset.date;S.slot=null;stopHold();S.err='';render();return}
-if(el.dataset.slot){S.slot=el.dataset.slot;S.err='';startHold();render();return}
+if(el.dataset.date){S.date=el.dataset.date;S.slot=null;S.rdate=null;S.rslot=null;stopHold();S.err='';render();return}
+if(el.dataset.rslot){S.rslot=el.dataset.rslot;S.err='';render();return}
+if(el.dataset.slot){S.slot=el.dataset.slot;S.rdate=null;S.rslot=null;S.err='';startHold();render();return}
 if(el.dataset.rm!==undefined){S.d.children.splice(+el.dataset.rm,1);render();return}
 if(el.id==='addkid'){if(S.d.children.length<CFG.MAX_CHILDREN)S.d.children.push({name:'',gender:'',age:''});render();return}
 if(el.id==='again'){location.reload()}
-if(el.dataset.edate!==undefined){S.existing=S.bookings.filter(function(x){return x.ref===el.dataset.edate})[0];S.mode='edit-date';S.service=S.existing.service;S.date=null;S.slot=null;S.month=[2026,11];S.err='';stopHold();render();window.scrollTo(0,0);loadRemote(render);return}
+if(el.dataset.edate!==undefined){S.existing=S.bookings.filter(function(x){return x.ref===el.dataset.edate})[0];S.mode='edit-date';S.service=S.existing.service;S.date=null;S.slot=null;S.rdate=null;S.rslot=null;S.month=[2026,11];S.err='';stopHold();render();window.scrollTo(0,0);loadRemote(render);return}
 if(el.dataset.edet!==undefined){S.existing=S.bookings.filter(function(x){return x.ref===el.dataset.edet})[0];S.mode='edit-details';S.service=S.existing.service;S.err='';render();window.scrollTo(0,0);return}
-if(el.id==='newbk'){S.home=false;S.step=1;S.service=null;S.date=null;S.slot=null;S.welcome='';S.err='';stopHold();render();window.scrollTo(0,0);return}
+if(el.id==='newbk'){S.home=false;S.step=1;S.service=null;S.date=null;S.slot=null;S.rdate=null;S.rslot=null;S.welcome='';S.err='';stopHold();render();window.scrollTo(0,0);return}
 if(el.id==='chgnum'){S.mode=null;S.existing=null;S.home=false;S.bookings=[];S.prizes=[];S.looked='';S.d.phone='';S.welcome='';S.step=0;render()}
 });
 document.addEventListener('input',function(e){
@@ -842,6 +855,7 @@ else if(el.dataset.c!==undefined){S.d.children[+el.dataset.c][el.dataset.k]=el.v
 document.addEventListener('change',function(e){
 var el=e.target;
 if(el.dataset.f&&el.tagName==='SELECT')S.d[el.dataset.f]=el.value;
+if(el.id==='rdsel'){S.rdate=el.value||null;S.rslot=null;render()}
 });
 nextB.addEventListener('click',function(){go(1)});
 backB.addEventListener('click',function(){go(-1)});

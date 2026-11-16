@@ -181,13 +181,22 @@ function chgView(b) {
       var holder = (S.taken && S.taken[kind] || {})[cur + '|' + l], own = holder === b.ref;
       return '<option value="' + esc(l) + '"' + (holder && !own ? ' disabled' : '') + (l === curSlot ? ' selected' : '') + '>' + esc(l) + (own ? ' (current)' : holder ? ' (taken)' : '') + '</option>';
     }).join('') + '</select>';
-  if (b.service === 'TCBT' && curSlot) { var rf = reportFor(cur, curSlot); h += '<div class="small" style="margin-top:6px">Report collection: ' + (rf ? esc(rf) : 'none (will need a call)') + '</div>'; }
+  if (b.service === 'TCBT') {
+    var rdates = Object.keys(DATA.REPORT).sort(), rd = S.rd || '', rslots = rd ? (DATA.REPORT[rd] || []) : [];
+    h += '<div class="sec" style="margin-top:12px">Report collection (Brain Test)</div><label class="f">Report date</label><select id="rdate"><option value="">No report time yet</option>' + rdates.map(function (d) { return '<option value="' + d + '"' + (d === rd ? ' selected' : '') + '>' + d + '</option>'; }).join('') + '</select>';
+    if (rd) h += '<label class="f">Report time</label><select id="rslot"><option value="">Choose…</option>' + rslots.map(function (l) {
+      var holder = (S.taken && S.taken.report || {})[rd + '|' + l], own = holder === b.ref;
+      return '<option value="' + esc(l) + '"' + (holder && !own ? ' disabled' : '') + (l === S.rs ? ' selected' : '') + '>' + esc(l) + (own ? ' (current)' : holder ? ' (taken)' : '') + '</option>';
+    }).join('') + '</select>';
+  }
   h += '<div class="row2" style="margin-top:10px"><button class="btn pri" data-chgsave="' + esc(b.ref) + '" data-svc="' + esc(b.service) + '">' + (S.busy ? 'Saving…' : 'Save change') + '</button><button class="btn sec2" id="chgcancel" style="flex:0 0 100px">Cancel</button></div></div>';
   return h;
 }
 function openChg(ref) {
   S.chg = ref; S.cd = null; S.cs = ''; S.err = ''; S.msg = '';
   var b = (S.data.bookings || []).filter(function (x) { return x.ref === ref; })[0];
+  if (b) S.cs = b.service === 'BT' ? (b.reportSlot || '') : (b.slot || '');
+  S.rd = b && b.service === 'TCBT' ? (b.reportDate || '') : ''; S.rs = b && b.service === 'TCBT' ? (b.reportSlot || '') : '';
   S.cd = b ? (b.service === 'BT' ? b.reportDate : b.date) : null;
   S.taken = null; render(); loadTaken(render);
 }
@@ -245,8 +254,8 @@ document.addEventListener('click', function (e) {
     var ref = el.dataset.chgsave, svc = el.dataset.svc;
     var dv = document.getElementById('cdate').value, sv = document.getElementById('cslot').value;
     if (!sv) { S.err = 'Please choose a time.'; render(); return; }
-    var body = { action: 'staff_reschedule', phone: normPhone(S.phone), ref: ref, date: dv, slot: sv, reportSlot: svc === 'TCBT' ? reportFor(dv, sv) : null };
-    if (!confirm('Change ' + ref + ' to ' + dv + ' ' + sv + '?')) return;
+    var body = { action: 'staff_reschedule', phone: normPhone(S.phone), ref: ref, date: dv, slot: sv, reportSlot: svc === 'TCBT' ? (S.rs || null) : null, reportDate: svc === 'TCBT' && S.rs ? S.rd : null };
+    if (!confirm('Change ' + ref + ' to ' + dv + ' ' + sv + (svc === 'TCBT' ? (S.rs ? ' · report ' + S.rd + ' ' + S.rs : ' · no report time yet') : '') + '?')) return;
     S.busy = true; S.err = ''; render();
     api(body, function (j) {
       S.busy = false;
@@ -323,7 +332,17 @@ document.addEventListener('input', function (e) {
 document.addEventListener('change', function (e) {
   var el = e.target;
   if (el.id === 'cdate') { S.cd = el.value; S.cs = ''; render(); return; }
-  if (el.id === 'cslot') { S.cs = el.value; render(); return; }
+  if (el.id === 'cslot') {
+    S.cs = el.value;
+    var cb = (S.data.bookings || []).filter(function (x) { return x.ref === S.chg; })[0];
+    if (cb && cb.service === 'TCBT' && S.cs && !S.rs) {   // pre-fill the matching report time when it is free
+      var rf0 = reportFor(S.cd, S.cs), h0 = rf0 && ((S.taken && S.taken.report || {})[S.cd + '|' + rf0]);
+      if (rf0 && !h0) { S.rd = S.cd; S.rs = rf0; }
+    }
+    render(); return;
+  }
+  if (el.id === 'rdate') { S.rd = el.value; S.rs = ''; render(); return; }
+  if (el.id === 'rslot') { S.rs = el.value; render(); return; }
   if (el.dataset.k && el.tagName === 'SELECT') S.kids[+el.dataset.i][el.dataset.k] = el.value;
 });
 
