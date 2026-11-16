@@ -458,7 +458,7 @@ if(S.rdate){var fl=repFree(S.rdate);h+='<label class="f">'+t('rp_slot')+'</label
 return h+'</div>'}
 function kind(){return S.service==='BT'?'report':'trial'}
 function table(){return S.service==='BT'?REPORT:TRIAL}
-function needsPay(){if(!S.service)return true;var tc=unusedPrize('TC').length>0,bt=unusedPrize('BT').length>0;if(S.service==='TC')return !tc;if(S.service==='BT')return !bt;return !(tc&&bt)}
+function needsPay(){if(!S.service)return true;var tc=unusedPrize('TC').length>0,bt=unusedPrize('BT').length>0;if(S.service==='TC')return !tc;if(S.service==='BT')return false;return !(tc&&bt)}
 function steps(){var a=['phone','service','details','date'];if(needsPay())a.push('pay');a.push('confirm');return a}
 function normPhone(p){var d=String(p||'').replace(/\D/g,'');if(d.charAt(0)==='0')d='6'+d;return d}
 function minKids(){return S.service==='TC'?CFG.MIN_CHILDREN_TC:CFG.MIN_CHILDREN_BT}
@@ -603,6 +603,7 @@ if(S.slip){h+='<div style="margin-top:12px;text-align:center">'+(S.slip.preview?
 else h+='<label class="btn pri" style="display:block;margin-top:12px;text-align:center;cursor:pointer">'+t('slip_pick')+'<input type="file" accept="image/*,application/pdf" data-slip="__new__" style="display:none"></label>'+(payConfigured()?'':'<div class="hint" style="margin-top:8px">'+t('slip_none')+'</div>');
 return h+'</div>'}
 function payBlock(b){
+if(b.service==='BT')return '';
 var P=CFG.PAYMENT||{},has=P.QR||P.ACCOUNT_NO,st=b.payStatus||'',busy=S.slipBusy===b.ref;
 var h='<div class="note info" style="text-align:left;margin-top:10px"><b>'+t('pay_h')+'</b>';
 if(st==='Paid')return h+'<br>'+t('pay_paid')+'</div>';
