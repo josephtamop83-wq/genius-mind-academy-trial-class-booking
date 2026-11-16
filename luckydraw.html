@@ -50,7 +50,7 @@ function render() {
   document.documentElement.lang = S.lang;
   [].forEach.call(document.querySelectorAll('.lang button'), function (b) { b.classList.toggle('on', b.dataset.lang === S.lang); });
   if (S.done) { app.innerHTML = doneView(); return; }
-  var h = '<h2>' + t('h') + '</h2><p class="sub">' + t('p') + '</p><div class="card">';
+  var h = '<div style="font-family:Fredoka,sans-serif;font-weight:700;font-size:34px;letter-spacing:1px;color:#f7941d;margin:0 0 6px">SPIN &amp; WIN</div><h2>' + t('h') + '</h2><p class="sub">' + t('p') + '</p><div class="card">';
   h += '<label class="f">' + t('parent') + ' *</label><input type="text" id="parent" value="' + esc(S.parent) + '" autocomplete="name">';
   h += '<label class="f">' + t('phone') + ' *</label><input type="tel" id="phone" placeholder="' + t('phone_h') + '" value="' + esc(S.phone) + '" autocomplete="tel"></div>';
   S.kids.forEach(function (c, i) {
