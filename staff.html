@@ -73,24 +73,23 @@ function render() {
 }
 
 function custView() {
-  var d = S.data, left = (d.spinsAllowed || 0) - (d.spinsUsed || 0);
+  var d = S.data, left = 1 - (d.spinsUsed ? 1 : 0);
   var h = '<div class="card"><div class="sec" style="margin-top:0">' + esc(d.parent || '') + ' · ' + esc(S.phone) + '</div>';
   h += '<div class="small">Spins used ' + (d.spinsUsed || 0) + ' of ' + (d.spinsAllowed || 0) + (left <= 0 ? ' - no spins left' : '') + '</div></div>';
   var kids = d.children || [];
-  kids.forEach(function (c, i) {
-    var sp = (d.spins || []).filter(function (s) { return String(s.child) === String(c.name); })[0];
-    h += '<div class="card child"><h4>' + esc(c.name) + ' <span class="small">' + (c.gender === 'M' ? 'Male' : 'Female') + ', ' + esc(c.age) + '</span></h4>';
-    if (sp) {
-      h += '<div class="won">' + (sp.key === 'NONE' ? 'No prize' : '🎁 ' + esc(sp.name)) + '</div>' + (sp.code ? '<div class="small">Code <span class="code">' + esc(sp.code) + '</span> · ' + esc(sp.status) + '</div>' : '');
-    } else if (left > 0) {
-      h += '<div class="small">What did ' + esc(c.name) + ' win?</div><div class="pz">' + (d.prizeList || []).map(function (p) {
-        var st = (d.stock || []).filter(function (x) { return x.key === p.key; })[0];
-        var out = st && st.stock > 0 && st.left <= 0;
-        return '<button data-spin="' + i + '" data-prize="' + esc(p.key) + '" class="' + (p.key === 'NONE' ? 'none' : '') + '"' + (out ? ' disabled' : '') + '>' + esc(p.name) + (out ? ' (out of stock)' : '') + '</button>';
-      }).join('') + '</div>';
-    } else h += '<div class="small">No spin left for this child.</div>';
+  h += '<div class="card"><div class="sec" style="margin-top:0">Children</div><div class="small">' + kids.map(function (c) { return esc(c.name) + ' (' + (c.gender === 'M' ? 'Male' : 'Female') + ', ' + esc(c.age) + ')'; }).join(' · ') + '</div></div>';
+  var sps = d.spins || [];
+  if (sps.length) {
+    h += '<div class="card"><div class="sec" style="margin-top:0">Prize won</div><div class="won">' + (sps[0].key === 'NONE' ? 'No prize' : '🎁 ' + esc(sps[0].name)) + '</div><div class="small">One spin per registration. The same prize applies to every child.</div>';
+    sps.forEach(function (sp) { if (sp.code) h += '<div class="small">' + esc(sp.child) + ': <span class="code">' + esc(sp.code) + '</span> · ' + esc(sp.status) + '</div>'; });
     h += '</div>';
-  });
+  } else {
+    h += '<div class="card"><div class="sec" style="margin-top:0">What did the family win?</div><div class="small">One spin per registration. Free Trial Class / Brain Test Report applies to every child.</div><div class="pz">' + (d.prizeList || []).map(function (p) {
+      var st = (d.stock || []).filter(function (x) { return x.key === p.key; })[0];
+      var out = st && st.stock > 0 && st.left <= 0;
+      return '<button data-spin="0" data-prize="' + esc(p.key) + '" class="' + (p.key === 'NONE' ? 'none' : '') + '"' + (out ? ' disabled' : '') + '>' + esc(p.name) + (out ? ' (out of stock)' : '') + '</button>';
+    }).join('') + '</div></div>';
+  }
   if ((d.bookings || []).length) h += '<div class="card"><div class="sec" style="margin-top:0">Bookings</div>' + d.bookings.map(function (b) {
     var isBT = b.service === 'BT', dt = isBT ? b.reportDate : b.date, sl = isBT ? b.reportSlot : b.slot;
     var x = '<div class="small" style="margin-top:8px"><b>' + esc(b.ref) + '</b> · ' + esc(dt) + ' ' + esc(sl) + (b.reportSlot && !isBT ? ' · report ' + esc(b.reportSlot) : '') +
@@ -201,13 +200,13 @@ document.addEventListener('click', function (e) {
       render();
     });
   } else if (el.dataset.spin !== undefined) {
-    var c = S.data.children[+el.dataset.spin], key = el.dataset.prize;
+    var key = el.dataset.prize;
     var pn = (S.data.prizeList.filter(function (p) { return p.key === key; })[0] || {}).name;
-    if (!confirm('Record "' + pn + '" for ' + c.name + '?')) return;
+    if (!confirm('Record "' + pn + '" for the whole family? Only one spin is allowed.')) return;
     S.busy = true; S.msg = ''; render();
-    api({ action: 'staff_spin', phone: normPhone(S.phone), child: c.name, prize: key }, function (j) {
+    api({ action: 'staff_spin', phone: normPhone(S.phone), prize: key }, function (j) {
       if (!setData(j)) return;
-      S.data = j; S.msg = 'Saved: ' + c.name + ' → ' + pn; render();
+      S.data = j; S.msg = 'Saved: ' + pn; render();
     });
   } else if (el.id === 'addk') { S.kids.push({ name: '', gender: '', age: '' }); render(); }
   else if (el.id === 'reg') {
