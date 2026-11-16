@@ -46,7 +46,7 @@ var app = document.getElementById('app');
 var S = { authed: false, msg: '', err: '', phone: '', data: null, stock: [], prizes: [], busy: false, walk: false, kids: [{ name: '', gender: '', age: '' }], parent: '' };
 
 var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 10 minutes.', disabled: 'Staff page is not turned on yet (set STAFF_PIN in the Google script).',
-  nospins: 'No spins left for this number.', childdone: 'This child already spun.', outofstock: 'This prize is out of stock.', notfound: 'Not found.',
+  nospins: 'No spins left for this number.', used: 'This prize has already been used or collected, so it cannot be changed.', same: 'That is already the recorded prize.', childdone: 'This child already spun.', outofstock: 'This prize is out of stock.', notfound: 'Not found.',
   already: 'This prize was already collected.', cancelled: 'This prize was cancelled.', missing: 'Please fill in the parent name and at least one child.', badprize: 'Unknown prize.' };
 
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -118,9 +118,20 @@ function custView() {
   var kids = d.children || [];
   h += '<div class="card"><div class="sec" style="margin-top:0">Children</div><div class="small">' + kids.map(function (c) { return esc(c.name) + ' (' + (c.gender === 'M' ? 'Male' : 'Female') + ', ' + esc(c.age) + ')'; }).join(' · ') + '</div></div>';
   var sps = d.spins || [];
+  var pzBtns = function () {
+    return '<div class="pz">' + (d.prizeList || []).map(function (p) {
+      var st = (d.stock || []).filter(function (x) { return x.key === p.key; })[0];
+      var out = st && st.stock > 0 && st.left <= 0;
+      return '<button data-spin="0" data-prize="' + esc(p.key) + '"' + (out ? ' disabled' : '') + '>' + esc(p.name) + (out ? ' (out of stock)' : '') + '</button>';
+    }).join('') + '</div>';
+  };
   if (sps.length) {
+    var locked = sps.some(function (sp) { return sp.status !== 'Won' || sp.ref; });
     h += '<div class="card"><div class="sec" style="margin-top:0">Prize won</div><div class="won">' + (sps[0].key === 'NONE' ? 'No prize' : '🎁 ' + esc(sps[0].name)) + '</div><div class="small">One spin per registration. The same prize applies to every child.</div>';
-    sps.forEach(function (sp) { if (sp.code) h += '<div class="small">' + esc(sp.child) + ': <span class="code">' + esc(sp.code) + '</span> · ' + esc(sp.status) + '</div>'; });
+    sps.forEach(function (sp) { if (sp.code) h += '<div class="small">' + esc(sp.child) + ': <span class="code">' + esc(sp.code) + '</span> · ' + esc(sp.status) + (sp.ref ? ' · booked ' + esc(sp.ref) : '') + '</div>'; });
+    if (locked) h += '<div class="small" style="margin-top:8px">Already booked or collected - the prize can no longer be changed.</div>';
+    else if (S.changing) h += '<div class="small" style="margin-top:10px"><b>Choose the correct prize:</b></div>' + pzBtns() + '<button class="btn sec2" id="cancelchg" style="max-width:160px;margin-top:8px">Cancel</button>';
+    else h += '<button class="btn sec2" id="chgprize" style="max-width:200px;margin-top:10px">Change prize</button>';
     h += '</div>';
   } else {
     h += '<div class="card"><div class="sec" style="margin-top:0">What did the family win?</div><div class="small">One spin per registration. Free Trial Class / Brain Test Report applies to every child.</div><div class="pz">' + (d.prizeList || []).map(function (p) {
@@ -250,12 +261,14 @@ document.addEventListener('click', function (e) {
     el.textContent = '…'; loadAll(function () { render(); });
   } else if (el.dataset.open) {
     var oc = S.all && S.all[el.dataset.open]; if (!oc) return;
+    S.changing = false;
     S.phone = el.dataset.open.replace(/^60/, '0'); S.msg = ''; S.err = ''; S.walk = false;
     var o2 = {}; for (var kk in oc) o2[kk] = oc[kk]; o2.stock = S.stock; o2.prizeList = S.prizeList || []; S.data = o2; render();
     var ph2 = el.dataset.open;
     api({ action: 'staff_lookup', phone: ph2 }, function (k) { if (k && k.ok && S.data && normPhone(S.phone) === ph2) { S.all[ph2] = k; S.data = k; render(); } });
     window.scrollTo(0, 0);
   } else if (el.id === 'find') {
+    S.changing = false;
     S.phone = document.getElementById('phone').value; S.msg = ''; S.err = '';
     if (!/^(\+?6?0)1\d[- ]?\d{7,8}$/.test(S.phone.replace(/\s/g, ''))) { S.err = 'Please enter a valid Malaysian mobile number.'; render(); return; }
     var hit = localHit(S.phone);
@@ -271,12 +284,16 @@ document.addEventListener('click', function (e) {
       if (j.found && j.children && j.children.length) { S.data = j; S.walk = false; } else { S.data = null; S.walk = true; S.kids = [{ name: '', gender: '', age: '' }]; S.parent = j.parent || ''; }
       render();
     });
+  } else if (el.id === 'chgprize') { S.changing = true; render();
+  } else if (el.id === 'cancelchg') { S.changing = false; render();
   } else if (el.dataset.spin !== undefined) {
     var key = el.dataset.prize;
     var pn = (S.data.prizeList.filter(function (p) { return p.key === key; })[0] || {}).name;
-    if (!confirm('Record "' + pn + '" for the whole family? Only one spin is allowed.')) return;
+    var chg = !!S.changing;
+    if (!confirm(chg ? 'Change the prize to "' + pn + '"? The old voucher codes will be cancelled.' : 'Record "' + pn + '" for the whole family? Only one spin is allowed.')) return;
     S.busy = true; S.msg = ''; render();
-    api({ action: 'staff_spin', phone: normPhone(S.phone), prize: key }, function (j) {
+    api({ action: 'staff_spin', phone: normPhone(S.phone), prize: key, change: chg }, function (j) {
+      if (j && j.ok) S.changing = false;
       if (!setData(j)) return;
       S.data = j; S.msg = 'Saved: ' + pn; render();
     });
