@@ -149,7 +149,7 @@ function walkView() {
   S.kids.forEach(function (c, i) {
     h += '<div class="card child"><h4>Child ' + (i + 1) + '</h4><label class="f">Name</label><input type="text" data-k="name" data-i="' + i + '" value="' + esc(c.name) + '">' +
       '<div class="grid2"><div><label class="f">Gender</label><select data-k="gender" data-i="' + i + '"><option value="">Choose…</option><option value="M"' + (c.gender === 'M' ? ' selected' : '') + '>Male</option><option value="F"' + (c.gender === 'F' ? ' selected' : '') + '>Female</option></select></div>' +
-      '<div><label class="f">Age</label><input type="number" min="1" max="18" data-k="age" data-i="' + i + '" value="' + esc(c.age) + '"></div></div></div>';
+      '<div><label class="f">Age</label><input type="number" min="3" max="17" data-k="age" data-i="' + i + '" value="' + esc(c.age) + '"></div></div></div>';
   });
   h += '<button class="add" id="addk">+ Add child</button><button class="btn pri" id="reg" style="margin-top:10px">' + (S.busy ? 'Saving…' : 'Save') + '</button></div>';
   return h;
@@ -212,7 +212,7 @@ document.addEventListener('click', function (e) {
   } else if (el.id === 'addk') { S.kids.push({ name: '', gender: '', age: '' }); render(); }
   else if (el.id === 'reg') {
     var kids = S.kids.filter(function (k) { return k.name.trim(); });
-    if (!S.parent.trim() || !kids.length || kids.some(function (k) { return !k.gender || !(+k.age >= 1 && +k.age <= 18); })) { S.err = 'Please fill in the parent name, and each child\'s name, gender and age.'; render(); return; }
+    if (!S.parent.trim() || !kids.length || kids.some(function (k) { return !k.gender || !(+k.age >= 3 && +k.age <= 17); })) { S.err = 'Please fill in the parent name, and each child\'s name, gender and age.'; render(); return; }
     S.busy = true; S.err = ''; render();
     api({ action: 'staff_register', phone: normPhone(S.phone), parent: S.parent, children: kids }, function (j) {
       if (!setData(j)) return;

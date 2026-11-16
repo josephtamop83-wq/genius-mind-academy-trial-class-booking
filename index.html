@@ -378,7 +378,7 @@ done_pay:'We will verify your payment slip and confirm by WhatsApp / phone.',don
 demo:'DEMO mode: this booking was saved only in this browser. Set SUBMIT_URL to send it to your system.',
 new_booking:'Make another booking',
 e_service:'Please choose a service.',e_req:'Please fill in all required fields.',e_phone:'Please enter a valid Malaysian mobile number.',e_email:'Please enter a valid email.',
-e_kids:'Please add {min}–{max} children and fill in each child\'s name, gender and age.',e_consent:'Please tick the consent box.',
+e_kids:'Please add {min}–{max} children and fill in each child\'s name, gender and age (age must be 3 to 17; 18 and above is the adult trial class).',e_consent:'Please tick the consent box.',
 e_slot:'Please choose a date and a time slot.',e_slip:'Please upload your bank slip.',e_taken:'Sorry, that slot was just taken. Please choose another.',e_send:'Could not send your booking. Please try again.'},
 zh:{sub:'预约试课与领取脑测报告',
 s_service:'服务',s_details:'资料',s_date:'日期时间',s_pay:'付款',s_confirm:'确认',
@@ -417,7 +417,7 @@ done_pay:'我们会核对您的银行单，并通过 WhatsApp / 电话确认。'
 demo:'演示模式：此预约只保存在这个浏览器里。请设置 SUBMIT_URL 以发送到您的系统。',
 new_booking:'再预约一次',
 e_service:'请选择服务。',e_req:'请填写所有必填项。',e_phone:'请输入有效的马来西亚手机号码。',e_email:'请输入有效的电邮。',
-e_kids:'请添加 {min}–{max} 位孩子，并填写每位孩子的姓名、性别和年龄。',e_consent:'请勾选同意框。',
+e_kids:'请添加 {min}–{max} 位孩子，并填写每位孩子的姓名、性别和年龄（年龄须为 3 至 17 岁，18 岁及以上属于成人试课）。',e_consent:'请勾选同意框。',
 e_slot:'请选择日期和时段。',e_slip:'请上传银行单。',e_taken:'抱歉，该时段刚被预约，请重新选择。',e_send:'提交失败，请重试。'}
 };
 var STATES=['Johor','Kedah','Kelantan','Melaka','Negeri Sembilan','Pahang','Penang','Perak','Perlis','Sabah','Sarawak','Selangor','Terengganu','Kuala Lumpur','Labuan','Putrajaya'];
@@ -523,7 +523,7 @@ d.children.forEach(function(c,i){
 h+='<div class="card child"><h4>'+t('child')+' '+(i+1)+'</h4>'+(d.children.length>mn?'<button class="rm" data-rm="'+i+'">'+t('remove')+'</button>':'')+
 '<label class="f">'+t('cname')+'</label><input type="text" data-c="'+i+'" data-k="name" value="'+esc(c.name)+'">'+
 '<div class="grid2"><div><label class="f">'+t('gender')+'</label><select data-c="'+i+'" data-k="gender"><option value="">'+t('choose')+'</option><option value="M"'+(c.gender==='M'?' selected':'')+'>'+t('male')+'</option><option value="F"'+(c.gender==='F'?' selected':'')+'>'+t('female')+'</option></select></div>'+
-'<div><label class="f">'+t('age')+'</label><input type="number" min="1" max="18" data-c="'+i+'" data-k="age" value="'+esc(c.age)+'"></div></div></div>';
+'<div><label class="f">'+t('age')+'</label><input type="number" min="3" max="17" data-c="'+i+'" data-k="age" value="'+esc(c.age)+'"></div></div></div>';
 });
 h+='<button class="add" id="addkid"'+(d.children.length>=max?' disabled':'')+'>'+t('add_child')+'</button>';
 h+='<label class="check"><input type="checkbox" data-f="consent"'+(d.consent?' checked':'')+'><span>'+t('consent')+'</span></label>';
@@ -656,7 +656,7 @@ if(cur==='phone'&&!/^(\+?6?0)1\d[- ]?\d{7,8}$/.test(d.phone.replace(/\s/g,'')))r
 if(cur==='service'&&!S.service)return t('e_service');
 if(cur==='details'){
 if(!d.parent.trim())return t('e_req');
-if(d.children.length<mn||d.children.length>mx||d.children.some(function(c){return !c.name.trim()||!c.gender||!(+c.age>=1&&+c.age<=18)}))return t('e_kids',{min:mn,max:mx});
+if(d.children.length<mn||d.children.length>mx||d.children.some(function(c){return !c.name.trim()||!c.gender||!(+c.age>=3&&+c.age<=17)}))return t('e_kids',{min:mn,max:mx});
 if(!d.consent)return t('e_consent');
 }
 if(cur==='date'&&(!S.date||!S.slot))return t('e_slot');
@@ -777,7 +777,7 @@ S.service=ex.service;
 if(S.mode==='edit-details'){
 var mn=minKids(),mx=CFG.MAX_CHILDREN;
 if(!d.parent.trim()){S.err=t('e_req');render();return}
-if(d.children.length<mn||d.children.length>mx||d.children.some(function(c){return !c.name.trim()||!c.gender||!(+c.age>=1&&+c.age<=18)})){S.err=t('e_kids',{min:mn,max:mx});render();return}
+if(d.children.length<mn||d.children.length>mx||d.children.some(function(c){return !c.name.trim()||!c.gender||!(+c.age>=3&&+c.age<=17)})){S.err=t('e_kids',{min:mn,max:mx});render();return}
 body={action:'update',phone:normPhone(d.phone),ref:ex.ref,parent:d.parent,children:d.children};
 }else{
 if(!S.date||!S.slot){S.err=t('e_slot');render();return}
