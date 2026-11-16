@@ -498,8 +498,9 @@ function viewPhone(){
 return '<div class="head"><h2>'+t('h_phone')+'</h2><p>'+t('p_phone')+'</p></div>'+
 '<div class="card"><label class="f">'+t('phone_lbl')+' *</label><input type="tel" data-f="phone" placeholder="'+t('phone_ph')+'" value="'+esc(S.d.phone)+'" autocomplete="tel"></div>';
 }
+function backBtn(k){return '<div style="max-width:640px;margin:0 auto 10px"><button type="button" class="btn sec2" data-back="'+k+'" style="max-width:140px">← '+t('back')+'</button></div>'}
 function homeView(){
-var h='<div class="head"><h2>'+t('exist_h')+'</h2><p>'+t('exist_p')+'</p></div>'+prizeCard();
+var h=backBtn('home')+'<div class="head"><h2>'+t('exist_h')+'</h2><p>'+t('exist_p')+'</p></div>'+prizeCard();
 S.bookings.forEach(function(b){
 var rows=[[t('ref_lbl'),b.ref],[t('svc'),t(b.service==='TCBT'?'tcbt':b.service==='TC'?'tc':'bt')]];
 if(b.service!=='BT'&&b.date)rows.push([t('tcd'),fmtDate(b.date)+' · '+b.slot]);
@@ -648,7 +649,7 @@ else if(CFG.WHATSAPP){var msg='Hi Genius Mind Academy, I have booked ('+svcName(
 wa='<a class="btn pri" style="max-width:300px;text-decoration:none;display:inline-block;margin:6px 0" target="_blank" rel="noopener" href="https://wa.me/'+CFG.WHATSAPP+'?text='+encodeURIComponent(msg)+'">'+t('wa_btn')+'</a>'}
 else wa='<p>'+t('wa_later')+'</p>';
 var pzs=(b.prizes&&b.prizes.length)?'<div class="note info">🎁 '+b.prizes.map(esc).join('<br>')+'</div>':'';
-return '<div class="card done-card"><div class="tick">✓</div><h2>'+t('done')+'</h2><div>'+t('done_p')+'</div><div class="ref">'+esc(b.ref)+'</div>'+pzs+'<div class="note info" style="text-align:left"><b>'+t('where_h')+'</b>'+contactRows()+'</div><a class="btn sec2" style="max-width:300px;text-decoration:none;display:inline-block;margin:6px 0" target="_blank" rel="noopener" href="'+CFG.MAPS+'">📍 '+t('maps_btn')+'</a>'+(CFG.SUBMIT_URL?payBlock(b):'<p>'+t('pay_centre')+'</p>')+wa+manageBtns()+
+return backBtn('done')+'<div class="card done-card"><div class="tick">✓</div><h2>'+t('done')+'</h2><div>'+t('done_p')+'</div><div class="ref">'+esc(b.ref)+'</div>'+pzs+'<div class="note info" style="text-align:left"><b>'+t('where_h')+'</b>'+contactRows()+'</div><a class="btn sec2" style="max-width:300px;text-decoration:none;display:inline-block;margin:6px 0" target="_blank" rel="noopener" href="'+CFG.MAPS+'">📍 '+t('maps_btn')+'</a>'+(CFG.SUBMIT_URL?payBlock(b):'<p>'+t('pay_centre')+'</p>')+wa+manageBtns()+
 (CFG.SUBMIT_URL?'':'<div class="note">'+t('demo')+'</div>')+'</div>';
 }
 function validate(cur){
@@ -807,9 +808,11 @@ function fresh(){if(!CFG.SUBMIT_URL)MEM=load()}
 function loadRemote(cb){if(!CFG.SUBMIT_URL){if(cb)cb();return}
 fetch(CFG.SUBMIT_URL+'?action=booked').then(function(r){return r.json()}).then(function(j){MEM={trial:j.trial||{},report:j.report||{},bookings:[]};if(cb)cb()}).catch(function(){if(cb)cb()})}
 document.addEventListener('click',function(e){
-var el=e.target.closest('[data-svc],[data-date],[data-slot],[data-nav],[data-rm],#addkid,#again,#chgnum,#newbk,#homebtn,[data-mg],[data-edate],[data-edet],[data-lang]');if(!el)return;
+var el=e.target.closest('[data-svc],[data-date],[data-slot],[data-nav],[data-rm],#addkid,#again,#chgnum,#newbk,#homebtn,[data-mg],[data-back],[data-edate],[data-edet],[data-lang]');if(!el)return;
 if(el.dataset.mg!==undefined){var mk=el.dataset.mg,rf=S.done&&S.done.ref;if(mk==='home')resetAll();else goHome(mk,rf);return}
 if(el.id==='homebtn'){resetAll();return}
+if(el.dataset.back==='done'){goHome();return}
+if(el.dataset.back==='home'){S.home=false;S.step=0;S.looked='';S.err='';S.welcome='';render();window.scrollTo(0,0);return}
 if(el.dataset.lang){S.lang=el.dataset.lang;render();return}
 if(el.dataset.svc){S.service=el.dataset.svc;
 var mn=minKids();while(S.d.children.length<mn)S.d.children.push({name:'',gender:'',age:''});
