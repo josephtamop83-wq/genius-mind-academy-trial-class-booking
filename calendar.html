@@ -120,7 +120,7 @@ function render() {
   var first = new Date(y, m - 1, 1).getDay(), n = new Date(y, m, 0).getDate();
   var h = '<div class="tb"><button class="ib" data-nav="-1">‹</button><h2>' + MONTHS[m - 1] + ' ' + y + '</h2><button class="ib" data-nav="1">›</button><button class="ib" id="today">Today</button><button class="ib ' + (S.view === 'today' ? 'on' : '') + '" id="todaylist">Today\'s list</button><button class="ib ' + (S.view === 'stats' ? 'on' : '') + '" id="stats">Stats</button><button class="ib" id="refresh">' + (S.busy ? '…' : 'Refresh') + '</button></div>';
   h += '<input class="s" id="q" placeholder="Search parent, child, phone or reference" value="' + esc(S.q) + '">';
-  h += '<div class="chips">' + [['all', 'All'], ['trial', 'Trial class'], ['report', 'Report collection']].map(function (f) { return '<button class="ib ' + (S.filter === f[0] ? 'on' : '') + '" data-f="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '<span class="small" style="align-self:center">Updated ' + esc(S.updated) + '</span></div>';
+  h += '<div class="chips">' + [['all', 'All'], ['trial', 'Trial class'], ['report', 'Brain Test']].map(function (f) { return '<button class="ib ' + (S.filter === f[0] ? 'on' : '') + '" data-f="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '<span class="small" style="align-self:center">Updated ' + esc(S.updated) + '</span></div>';
   if (S.err) h += '<div class="err">' + esc(S.err) + '</div>';
   if (!S.canMark) h += '<div class="small" style="margin-bottom:8px">View only. Log in with the teacher password to mark attendance.</div>';
   if (S.view === 'today') { h += todayView(); app.innerHTML = h; return; }
@@ -131,7 +131,7 @@ function render() {
   for (var d = 1; d <= n; d++) {
     var k = dkey(y, m, d), es = by[k] || [], t = es.filter(function (e) { return e.kind === 'trial'; }).length, r = es.length - t, flag = es.some(function (e) { return e.flag; });
     var heat = es.length >= 8 ? 'h3' : es.length >= 4 ? 'h2' : es.length ? 'h1' : '';
-    h += '<button class="cell ' + heat + (k === todayKey ? ' today' : '') + (k === S.sel ? ' sel' : '') + '" data-day="' + k + '"><span class="n">' + d + '</span>' + (t ? '<span class="b t">Trial ' + t + '</span>' : '') + (r ? '<span class="b r">Report ' + r + '</span>' : '') + (flag ? '<span class="b c">Call</span>' : '') + '</button>';
+    h += '<button class="cell ' + heat + (k === todayKey ? ' today' : '') + (k === S.sel ? ' sel' : '') + '" data-day="' + k + '"><span class="n">' + d + '</span>' + (t ? '<span class="b t">Trial ' + t + '</span>' : '') + (r ? '<span class="b r">Brain Test ' + r + '</span>' : '') + (flag ? '<span class="b c">Call</span>' : '') + '</button>';
   }
   h += '</div></div>';
   h += dayView(by[S.sel] || []);
@@ -171,7 +171,7 @@ function statsView() {
   var withReport = {}; S.bookings.forEach(function (b) { if (b.reportSlot || b.service === 'BT') withReport[b.phone] = true; });
   var nTrial = Object.keys(attendedTrialPhones).length, nConv = Object.keys(attendedTrialPhones).filter(function (p) { return withReport[p]; }).length;
   var h = '<div class="dayp"><h3>Statistics</h3><div class="stat"><div><b>' + S.bookings.length + '</b>total bookings</div><div><b>' + past.filter(function (e) { return !e.att; }).length + '</b>past, not marked</div></div>';
-  h += block('Trial classes', trials) + block('Report collections', reports);
+  h += block('Trial classes', trials) + block('Brain Test', reports);
   h += '<div class="sec" style="margin-top:14px">Trial class → brain test report</div><div class="stat"><div><b>' + nTrial + '</b>families attended a trial</div><div><b>' + nConv + '</b>of them have a report booking</div><div><b>' + (nTrial ? Math.round(100 * nConv / nTrial) + '%' : '-') + '</b>conversion</div></div>';
   h += '<div class="small">Attendance rate = attended ÷ (attended + no-show). Only classes you have marked are counted.</div></div>';
   return h;
@@ -180,11 +180,11 @@ function statsView() {
 function card(e, showDate) {
   var b = e.b, kids = (b.children || []).map(function (c) { return esc(c.name) + ' (' + (c.gender === 'M' ? 'Male' : 'Female') + ', ' + esc(c.age) + ')'; }).join(', ');
   var wa = 'https://wa.me/' + encodeURIComponent(b.phone) + '?text=' + encodeURIComponent('Hi ' + b.parent + ', this is Genius Mind Academy about your booking ' + b.ref + '.');
-  var h = '<div class="ev"><div class="tm">' + (showDate ? esc(e.date) + '<br>' : '') + esc(e.slot) + '<small><span class="tag ' + (e.kind === 'trial' ? 't' : 'r') + '">' + (e.kind === 'trial' ? 'Trial class' : 'Report') + '</span></small></div><div>';
+  var h = '<div class="ev"><div class="tm">' + (showDate ? esc(e.date) + '<br>' : '') + esc(e.slot) + '<small><span class="tag ' + (e.kind === 'trial' ? 't' : 'r') + '">' + (e.kind === 'trial' ? 'Trial class' : 'Brain Test') + '</span></small></div><div>';
   h += '<div class="who">' + esc(b.parent) + '</div><div class="kids">' + kids + '</div>';
   h += '<div>' + (b.prizes || []).map(function (p) { return '<span class="tag p">🎁 ' + esc(p) + '</span>'; }).join('');
-  if (b.clash) h += '<span class="tag c">Report time clash - call customer</span>';
-  else if (b.service === 'TCBT' && !b.reportSlot && e.kind === 'trial') h += '<span class="tag c">No report time - arrange with customer</span>';
+  if (b.clash) h += '<span class="tag c">Brain Test time clash - call customer</span>';
+  else if (b.service === 'TCBT' && !b.reportSlot && e.kind === 'trial') h += '<span class="tag c">No Brain Test time - arrange with customer</span>';
   h += '</div><div class="meta">' + esc(SVC[b.service] || '') + ' · ' + esc(b.ref) + '</div>';
   h += attHtml(e);
   h += '<div class="act noprint"><a class="wa" href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a><a href="tel:+' + esc(b.phone) + '">Call ' + esc(fmtPhone(b.phone)) + '</a></div>';
