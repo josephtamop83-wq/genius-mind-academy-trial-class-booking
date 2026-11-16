@@ -178,7 +178,7 @@ function statsView() {
 }
 
 function card(e, showDate) {
-  var b = e.b, kids = (b.children || []).map(function (c) { return esc(c.name) + ' (' + (c.gender === 'M' ? 'Boy' : 'Girl') + ', ' + esc(c.age) + ')'; }).join(', ');
+  var b = e.b, kids = (b.children || []).map(function (c) { return esc(c.name) + ' (' + (c.gender === 'M' ? 'Male' : 'Female') + ', ' + esc(c.age) + ')'; }).join(', ');
   var wa = 'https://wa.me/' + encodeURIComponent(b.phone) + '?text=' + encodeURIComponent('Hi ' + b.parent + ', this is Genius Mind Academy about your booking ' + b.ref + '.');
   var h = '<div class="ev"><div class="tm">' + (showDate ? esc(e.date) + '<br>' : '') + esc(e.slot) + '<small><span class="tag ' + (e.kind === 'trial' ? 't' : 'r') + '">' + (e.kind === 'trial' ? 'Trial class' : 'Report') + '</span></small></div><div>';
   h += '<div class="who">' + esc(b.parent) + '</div><div class="kids">' + kids + '</div>';

@@ -79,7 +79,7 @@ function custView() {
   var kids = d.children || [];
   kids.forEach(function (c, i) {
     var sp = (d.spins || []).filter(function (s) { return String(s.child) === String(c.name); })[0];
-    h += '<div class="card child"><h4>' + esc(c.name) + ' <span class="small">' + (c.gender === 'M' ? 'Boy' : 'Girl') + ', ' + esc(c.age) + '</span></h4>';
+    h += '<div class="card child"><h4>' + esc(c.name) + ' <span class="small">' + (c.gender === 'M' ? 'Male' : 'Female') + ', ' + esc(c.age) + '</span></h4>';
     if (sp) {
       h += '<div class="won">' + (sp.key === 'NONE' ? 'No prize' : '🎁 ' + esc(sp.name)) + '</div>' + (sp.code ? '<div class="small">Code <span class="code">' + esc(sp.code) + '</span> · ' + esc(sp.status) + '</div>' : '');
     } else if (left > 0) {
@@ -148,7 +148,7 @@ function walkView() {
     '<label class="f">Parent name *</label><input type="text" data-p="parent" value="' + esc(S.parent) + '">';
   S.kids.forEach(function (c, i) {
     h += '<div class="card child"><h4>Child ' + (i + 1) + '</h4><label class="f">Name</label><input type="text" data-k="name" data-i="' + i + '" value="' + esc(c.name) + '">' +
-      '<div class="grid2"><div><label class="f">Gender</label><select data-k="gender" data-i="' + i + '"><option value="">Choose…</option><option value="M"' + (c.gender === 'M' ? ' selected' : '') + '>Boy</option><option value="F"' + (c.gender === 'F' ? ' selected' : '') + '>Girl</option></select></div>' +
+      '<div class="grid2"><div><label class="f">Gender</label><select data-k="gender" data-i="' + i + '"><option value="">Choose…</option><option value="M"' + (c.gender === 'M' ? ' selected' : '') + '>Male</option><option value="F"' + (c.gender === 'F' ? ' selected' : '') + '>Female</option></select></div>' +
       '<div><label class="f">Age</label><input type="number" min="1" max="18" data-k="age" data-i="' + i + '" value="' + esc(c.age) + '"></div></div></div>';
   });
   h += '<button class="add" id="addk">+ Add child</button><button class="btn pri" id="reg" style="margin-top:10px">' + (S.busy ? 'Saving…' : 'Save') + '</button></div>';
