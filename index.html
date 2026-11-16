@@ -494,7 +494,7 @@ tick();
 }
 function viewService(){
 function free(names){return names.length?'<div class="badge g" style="margin-top:6px">'+t('free_for',{n:names.join(', ')})+'</div>':''}
-function o(key,name,desc,bd){return '<button class="card opt '+(S.service===key?'sel':'')+'" data-svc="'+key+'"><div class="row"><div><h3>'+t(name)+'</h3><p>'+t(desc)+'</p>'+bd+'</div></div></button>'}
+function o(key,name,desc,bd){return '<button class="card opt '+(S.service===key?'sel':'')+'" data-svc="'+key+'"><div class="row"><div><h3>'+({bt:'[A] ',tc:'[B] ',tcbt:'[C] '}[name]||'')+t(name)+'</h3><p>'+t(desc)+'</p>'+bd+'</div></div></button>'}
 var tcN=unusedPrize('TC').map(function(p){return p.child}),btN=unusedPrize('BT').map(function(p){return p.child});
 var spin=/[?&]from=spin/.test(location.search),hasP=tcN.length>0||btN.length>0,fr=spin||hasP;
 if(spin&&!hasP){var gift=S.prizes.some(function(p){return p.pk==='GIFT'||p.key==='GIFT'});
