@@ -351,7 +351,7 @@ tcbt:'Trial Class + Brain Test Report Collection',tcbt_d:'Book a trial class and
 tc:'Trial Class Only',tc_d:'A 90-minute trial class for your child.',
 bt:'Brain Test Report Collection Only',bt_d:'Collect your child\'s brain test analysis report.',
 free:'Free',per_booking:'per booking',per_child:'per child',
-h_details:'Your details',p_details:'Tell us about you and your children.',
+h_details:'[1] Trial Class Date Selection Registration',p_details:'Tell us about you and your children.',
 parent:'Parent',pname:'Parent name',phone:'Mobile number',email:'Email',opt:'(optional)',
 addr:'Address',street:'Street / unit',postcode:'Postcode',city:'City',state:'State',choose:'Choose…',
 children:'Children',child:'Child',cname:'Name',gender:'Gender',age:'Age',male:'Male',female:'Female',remove:'Remove',
@@ -390,7 +390,7 @@ tcbt:'试课 + 领取脑测报告',tcbt_d:'预约试课并领取脑测报告，�
 tc:'只试课',tc_d:'为孩子安排 90 分钟的试课。',
 bt:'只领取脑测报告',bt_d:'领取孩子的脑测分析报告。',
 free:'免费',per_booking:'每次预约',per_child:'每位孩子',
-h_details:'您的资料',p_details:'请填写家长与孩子的资料。',
+h_details:'[1] 试课日期选择登记',p_details:'请填写家长与孩子的资料。',
 parent:'家长',pname:'家长姓名',phone:'手机号码',email:'电邮',opt:'（选填）',
 addr:'地址',street:'街道 / 门牌',postcode:'邮编',city:'城市',state:'州属',choose:'请选择…',
 children:'孩子',child:'孩子',cname:'姓名',gender:'性别',age:'年龄',male:'男',female:'女',remove:'删除',
@@ -502,9 +502,9 @@ return '<div class="head"><h2>'+t('h_service')+'</h2></div>'+prizeCard()+'<div c
 var reb=S.prizes.some(function(p){return p.pk==='REBATE'&&p.status==='Won'});
 return '<div class="head"><h2>'+t('h_service')+'</h2><p class="promo">'+t(fr?'p_service_free':'p_service')+'</p></div>'+(reb?'<div class="note info">'+t('sp_rebate')+'</div>':'')+
 (S.welcome?'<div class="note info">'+esc(S.welcome)+'</div>':'')+prizeCard()+
-(allowedSvc('TCBT')&&!fr?o('TCBT','tcbt','tcbt_d','<span class="badge g">90 min</span>'+free(tcN.concat(btN))):'')+
+(allowedSvc('BT')&&(!hasP||btN.length>0)?o('BT','bt','bt_d','<span class="badge g">45 min</span>'+free(btN)):'')+
 (allowedSvc('TC')&&(!hasP||tcN.length>0)?o('TC','tc','tc_d','<span class="badge g">90 min</span>'+free(tcN)):'')+
-(allowedSvc('BT')&&(!hasP||btN.length>0)?o('BT','bt','bt_d','<span class="badge g">45 min</span>'+free(btN)):'');
+(allowedSvc('TCBT')&&!fr?o('TCBT','tcbt','tcbt_d','<span class="badge g">90 min</span>'+free(tcN.concat(btN))):'');
 }
 function linksHtml(){
 var h='<a class="lnk" href="'+CFG.WEBSITE+'" target="_blank" rel="noopener">🌐 '+t('visit_web')+'</a>';
