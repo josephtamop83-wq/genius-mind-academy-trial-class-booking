@@ -131,7 +131,7 @@ function render() {
   for (var d = 1; d <= n; d++) {
     var k = dkey(y, m, d), es = by[k] || [], t = es.filter(function (e) { return e.kind === 'trial'; }).length, r = es.length - t, flag = es.some(function (e) { return e.flag; });
     var heat = es.length >= 8 ? 'h3' : es.length >= 4 ? 'h2' : es.length ? 'h1' : '';
-    h += '<button class="cell ' + heat + (k === todayKey ? ' today' : '') + (k === S.sel ? ' sel' : '') + '" data-day="' + k + '"><span class="n">' + d + '</span>' + (t ? '<span class="b t">Trial ' + t + '</span>' : '') + (r ? '<span class="b r">Brain Test ' + r + '</span>' : '') + (flag ? '<span class="b c">Call</span>' : '') + '</button>';
+    h += '<button class="cell ' + heat + (k === todayKey ? ' today' : '') + (k === S.sel ? ' sel' : '') + '" data-day="' + k + '"><span class="n">' + d + '</span>' + (t ? '<span class="b t">Trial ' + t + '</span>' : '') + (r ? '<span class="b r">Brain Test ' + r + '</span>' : '') + '</button>';
   }
   h += '</div></div>';
   h += dayView(by[S.sel] || []);
