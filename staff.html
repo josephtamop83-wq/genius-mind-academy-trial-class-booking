@@ -80,7 +80,6 @@ function render() {
   if (S.err) h += '<div class="err">' + esc(S.err) + '</div>';
   if (S.walk) h += walkView(); else if (S.data) h += custView();
   h += '<div class="card" id="recentcard"><div class="sec" style="margin-top:0">Recent registrations</div>' + recentCtl() + '<div id="recent">' + recentHtml() + '</div></div>';
-  h += '<div class="card"><div class="sec" style="margin-top:0">Collect a prize (gift / voucher)</div><div class="row2"><input type="text" id="code" placeholder="Prize code e.g. FG-0002" autocapitalize="characters"><button class="btn sec2" id="redeem" style="flex:0 0 110px">Collect</button></div></div>';
   h += '<div style="text-align:center;margin-top:14px"><button class="btn sec2" id="logout" style="max-width:200px">Log out</button></div>';
   app.innerHTML = h;
 }

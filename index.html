@@ -357,7 +357,7 @@ addr:'Address',street:'Street / unit',postcode:'Postcode',city:'City',state:'Sta
 children:'Children',child:'Child',cname:'Name',gender:'Gender',age:'Age',male:'Male',female:'Female',remove:'Remove',
 add_child:'+ Add another child',children_hint:'You can add {min}–{max} children.',
 consent:'I agree that Genius Mind Academy may collect and use my details to arrange this booking (PDPA).',
-h_date:'Pick a date & time',p_date_tc:'Trial class · 90 minutes',p_date_bt:'Brain test report collection',
+h_date:'Pick a date & time',tt_TC:'Trial Class',tt_BT:'Brain Test Report Collection',tt_TCBT:'Trial Class + Brain Test',p_date_tc:'Trial class · 90 minutes',p_date_bt:'Brain test report collection',
 closed:'Closed / Past',avail:'Available',full:'Fully booked',slots:'Available time slots',pick_date:'Select a date to see time slots.',
 free_slot:'Available',taken:'Taken',hold:'Your slot is held for {t}',hold_end:'Your slot hold expired. Please choose again.',
 report_note:'We will reserve your brain test report collection time automatically: {t}',
@@ -396,7 +396,7 @@ addr:'地址',street:'街道 / 门牌',postcode:'邮编',city:'城市',state:'�
 children:'孩子',child:'孩子',cname:'姓名',gender:'性别',age:'年龄',male:'男',female:'女',remove:'删除',
 add_child:'+ 添加孩子',children_hint:'可添加 {min}–{max} 位孩子。',
 consent:'我同意 Genius Mind Academy 为办理此预约而收集及使用我的资料（PDPA）。',
-h_date:'选择日期与时间',p_date_tc:'试课 · 90 分钟',p_date_bt:'领取脑测报告',
+h_date:'选择日期与时间',tt_TC:'试课',tt_BT:'领取脑测报告',tt_TCBT:'试课 + 脑测',p_date_tc:'试课 · 90 分钟',p_date_bt:'领取脑测报告',
 closed:'休息 / 已过',avail:'可预约',full:'已满',slots:'可选时段',pick_date:'请先选择日期以查看时段。',
 free_slot:'可预约',taken:'已被预约',hold:'您的时段已为您保留 {t}',hold_end:'时段保留已过期，请重新选择。',
 report_note:'我们会自动为您保留脑测报告领取时间：{t}',
@@ -553,7 +553,7 @@ var y=S.month[0],m=S.month[1],tb=table(),k=kind(),first=new Date(y,m-1,1).getDay
 var names=S.lang==='zh'?['日','一','二','三','四','五','六']:['SUN','MON','TUE','WED','THU','FRI','SAT'];
 var mname=new Date(y,m-1,1).toLocaleDateString(S.lang==='zh'?'zh-CN':'en-GB',{month:'long',year:'numeric'});
 var today=new Date(),tk=dkey(today.getFullYear(),today.getMonth()+1,today.getDate());
-var h='<div class="head"><h2>'+t('h_date')+'</h2><p>'+t(S.service==='BT'?'p_date_bt':'p_date_tc')+'</p></div>';
+var h='<div class="head"><div style="display:inline-block;background:#fff3e0;color:#c2570a;border-radius:999px;padding:5px 16px;font-weight:800;font-size:14px;margin-bottom:8px">'+t('tt_'+S.service)+'</div><h2>'+t('h_date')+'</h2><p>'+t(S.service==='BT'?'p_date_bt':'p_date_tc')+'</p></div>';
 if(S.holdUntil)h+='<div class="hold">⏱ '+t('hold',{t:'<span id="holdtxt"></span>'})+'</div>';
 h+='<div class="card cal"><div class="calhead"><button class="nav" data-nav="-1"'+(m<=11?' disabled':'')+' aria-label="Previous month">‹</button><h3>'+esc(mname)+'</h3><button class="nav" data-nav="1"'+(m>=12?' disabled':'')+' aria-label="Next month">›</button></div>';
 h+='<div class="dow">'+names.map(function(x){return '<div>'+x+'</div>'}).join('')+'</div><div class="days">';
