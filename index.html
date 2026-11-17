@@ -504,7 +504,7 @@ return '<div class="head"><h2>'+t('h_service')+'</h2><p class="promo">'+t(fr?'p_
 (S.welcome?'<div class="note info">'+esc(S.welcome)+'</div>':'')+prizeCard()+
 (allowedSvc('BT')&&(!hasP||btN.length>0)?o('BT',fr?'bt_free':'bt','bt_d','<span class="badge g">45 min</span>'+free(btN)):'')+
 (allowedSvc('TC')&&(!hasP||tcN.length>0)?o('TC','tc','tc_d','<span class="badge g">90 min</span>'+free(tcN)):'')+
-(allowedSvc('TCBT')&&!fr?o('TCBT','tcbt','tcbt_d','<span class="badge g">90 min</span>'+free(tcN.concat(btN))):'');
+(allowedSvc('TCBT')&&(!fr||(tcN.length&&btN.length))?o('TCBT','tcbt','tcbt_d','<span class="badge g">90 min</span>'+free(tcN.concat(btN))):'');
 }
 function linksHtml(){
 var h='<a class="lnk" href="'+CFG.WEBSITE+'" target="_blank" rel="noopener">🌐 '+t('visit_web')+'</a>';
