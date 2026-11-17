@@ -361,8 +361,8 @@ h_date:'Pick a date & time',bt_free:'[B] Brain Test Booking',tt_TC:'Trial Class'
 closed:'Closed / Past',avail:'Available',full:'Fully booked',slots:'Available time slots',pick_date:'Select a date to see time slots.',
 free_slot:'Available',taken:'Taken',hold:'Your slot is held for {t}',hold_end:'Your slot hold expired. Please choose again.',
 report_note:'We will reserve your brain test report collection time automatically: {t}',
-report_dup:'The matching report-collection time is already taken. Please choose another report collection date and time below.',
-report_none:'There is no matching report-collection time on this day. Please choose your own report collection date and time below.',rp_h:'Choose your report collection',rp_date:'Report date',rp_pick:'Choose a date',rp_slot:'Report time',rp_nofree:'No free time on this date. Please pick another date.',e_rep:'Please choose your brain test report collection date and time.',
+report_dup:'The matching report-collection time is already taken. Our team will call you to arrange the report collection time.',
+report_none:'There is no matching report-collection time on this day. Our team will call you to arrange your report collection time.',rp_h:'Choose your report collection',rp_date:'Report date',rp_pick:'Choose a date',rp_slot:'Report time',rp_nofree:'No free time on this date. Please pick another date.',e_rep:'Please choose your brain test report collection date and time.',
 h_pay:'Payment',p_pay:'Transfer the trial class fee and upload your bank slip.',
 amount:'Amount to pay',bank_details:'Bank details',bank:'Bank',holder:'Account name',accno:'Account no.',
 slip:'Bank slip',slip_btn:'Upload bank slip',slip_hint:'JPG, PNG or PDF · max 5 MB',slip_bad:'Please upload a JPG, PNG or PDF under 5 MB.',
@@ -400,8 +400,8 @@ h_date:'选择日期与时间',bt_free:'[B] 脑测预约',tt_TC:'试课',tt_BT:'
 closed:'休息 / 已过',avail:'可预约',full:'已满',slots:'可选时段',pick_date:'请先选择日期以查看时段。',
 free_slot:'可预约',taken:'已被预约',hold:'您的时段已为您保留 {t}',hold_end:'时段保留已过期，请重新选择。',
 report_note:'我们会自动为您保留脑测报告领取时间：{t}',
-report_dup:'对应的报告领取时间已被预约，请在下面选择其他报告领取日期和时间。',
-report_none:'当天没有对应的报告领取时段，请在下面自己选择报告领取的日期和时间。',rp_h:'选择报告领取时间',rp_date:'报告日期',rp_pick:'请选择日期',rp_slot:'报告时间',rp_nofree:'此日期没有空位，请选择其他日期。',e_rep:'请选择脑测报告领取的日期和时间。',
+report_dup:'对应的报告领取时间已被预约，我们的团队会致电与您安排报告领取时间。',
+report_none:'当天没有对应的报告领取时段，我们的团队会致电与您安排报告领取时间。',rp_h:'选择报告领取时间',rp_date:'报告日期',rp_pick:'请选择日期',rp_slot:'报告时间',rp_nofree:'此日期没有空位，请选择其他日期。',e_rep:'请选择脑测报告领取的日期和时间。',
 h_pay:'付款',p_pay:'请转账试课费用并上传银行单。',
 amount:'应付金额',bank_details:'银行资料',bank:'银行',holder:'户口名称',accno:'户口号码',
 slip:'银行单',slip_btn:'上传银行单',slip_hint:'JPG、PNG 或 PDF · 最大 5MB',slip_bad:'请上传小于 5MB 的 JPG、PNG 或 PDF。',
@@ -573,7 +573,7 @@ h+='</div>';
 if(S.slot&&S.service==='TCBT'){
 var rf=reportFor(S.date,S.slot),rs=repSel();
 if(rs&&rs.auto)h+='<div class="note info">'+t('report_note',{t:'<b>'+rf+'</b>'})+'</div>';
-else{if(!rf)h+='<div class="note">'+t('report_none')+'</div>';else if(taken('report',S.date,rf))h+='<div class="note">'+t('report_dup')+'</div>';h+=repPicker()}
+else{if(!rf)h+='<div class="note">'+t('report_none')+'</div>';else if(taken('report',S.date,rf))h+='<div class="note">'+t('report_dup')+'</div>'}
 }
 }else h+='<div class="hint" style="text-align:center">'+t('pick_date')+'</div>';
 return h;
@@ -677,7 +677,6 @@ if(d.children.length<mn||d.children.length>mx||d.children.some(function(c){retur
 if(!d.consent)return t('e_consent');
 }
 if(cur==='date'&&(!S.date||!S.slot))return t('e_slot');
-if(cur==='date'&&S.service==='TCBT'&&!repSel())return t('e_rep');
 if(cur==='pay'&&payConfigured()&&!S.slip)return t('e_slip');
 return '';
 }
@@ -726,7 +725,7 @@ var K=kind(),m=store(),rf=null;
 fresh();
 if(taken(K,S.date,S.slot)){S.err=t('e_taken');S.step=steps().indexOf('date');S.slot=null;stopHold();render();return}
 var dup=false,rdt=null;
-if(S.service==='TCBT'){var rs0=repSel();if(!rs0){S.err=t('e_rep');S.step=steps().indexOf('date');render();return}rf=rs0.slot;rdt=rs0.date}
+if(S.service==='TCBT'){var rs0=repSel();rf=rs0?rs0.slot:(reportFor(S.date,S.slot)||null);rdt=rs0?rs0.date:S.date}
 var pf=S.service==='TCBT'?'TB':S.service==='TC'?'TC':'BR';
 var st=range(S.slot)[0],hhmm=pad(Math.floor(st/60))+pad(st%60);
 var ref0=pf+S.date.replace(/-/g,'')+'-'+hhmm+'-';
@@ -811,9 +810,8 @@ body={action:'update',phone:normPhone(d.phone),ref:ex.ref,parent:d.parent,childr
 }else{
 if(!S.date||!S.slot){S.err=t('e_slot');render();return}
 var rs1=ex.service==='TCBT'?repSel():null;
-if(ex.service==='TCBT'&&!rs1){S.err=t('e_rep');render();return}
-var rf=ex.service==='TCBT'?rs1.slot:(ex.service==='BT'?S.slot:null);
-body={action:'reschedule',phone:normPhone(d.phone),ref:ex.ref,date:S.date,slot:S.slot,reportSlot:rf,reportDate:ex.service==='TCBT'?rs1.date:null};
+var rf=ex.service==='TCBT'?(rs1?rs1.slot:(reportFor(S.date,S.slot)||null)):(ex.service==='BT'?S.slot:null);
+body={action:'reschedule',phone:normPhone(d.phone),ref:ex.ref,date:S.date,slot:S.slot,reportSlot:rf,reportDate:ex.service==='TCBT'?(rs1?rs1.date:S.date):null};
 }
 S.err='';S.busy=true;render();
 editApi(body,function(j){S.busy=false;
