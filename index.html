@@ -553,7 +553,7 @@ var y=S.month[0],m=S.month[1],tb=table(),k=kind(),first=new Date(y,m-1,1).getDay
 var names=S.lang==='zh'?['日','一','二','三','四','五','六']:['SUN','MON','TUE','WED','THU','FRI','SAT'];
 var mname=new Date(y,m-1,1).toLocaleDateString(S.lang==='zh'?'zh-CN':'en-GB',{month:'long',year:'numeric'});
 var today=new Date(),tk=dkey(today.getFullYear(),today.getMonth()+1,today.getDate());
-var h='<div class="head"><div style="display:inline-block;background:#fff3e0;color:#c2570a;border-radius:999px;padding:5px 16px;font-weight:800;font-size:14px;margin-bottom:8px">'+t('tt_'+S.service)+'</div><h2>'+t(S.service==='BT'?'h_date_bt':S.service==='TCBT'?'h_date_c':'h_date')+'</h2><p>'+t(S.service==='BT'?'p_date_bt':'p_date_tc')+'</p></div>';
+var h='<div class="head"><div style="display:inline-block;background:#fff3e0;color:#c2570a;border-radius:999px;padding:5px 16px;font-weight:800;font-size:14px;margin-bottom:8px">'+t('tt_'+S.service)+'</div><h2>'+t(S.service==='BT'?'h_date_bt':S.service==='TCBT'?'h_date_c':'h_date')+'</h2>'+(S.service==='BT'?'':'<p>'+t('p_date_tc')+'</p>')+'</div>';
 if(S.holdUntil)h+='<div class="hold">⏱ '+t('hold',{t:'<span id="holdtxt"></span>'})+'</div>';
 h+='<div class="card cal"><div class="calhead"><button class="nav" data-nav="-1"'+(m<=11?' disabled':'')+' aria-label="Previous month">‹</button><h3>'+esc(mname)+'</h3><button class="nav" data-nav="1"'+(m>=12?' disabled':'')+' aria-label="Next month">›</button></div>';
 h+='<div class="dow">'+names.map(function(x){return '<div>'+x+'</div>'}).join('')+'</div><div class="days">';
