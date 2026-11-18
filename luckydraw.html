@@ -29,12 +29,12 @@ var LOGO_URL = 'logo.png';
 var MAX_CHILDREN = 10;
 
 var T = {
- en: { h: 'Spin & Win Registration', s1: 'Step 1 of 2: Enter your mobile number, then tap Continue. If you have registered before, we will load your registration.', s1h: 'Search your registration', cont: 'Continue →', s2: 'Step 2 of 2: Fill in your details, then show the screen to our teacher.', p: 'Fill in your details, then show the screen to our teacher. Each registration gets one spin on the wheel. The prize can be used for every child.',
+ en: { h: 'Spin & Win Registration', s1: 'Step 1 of 6: Enter your mobile number, then tap Continue. If you have registered before, we will load your registration.', s1h: 'Search your registration', cont: 'Continue →', s2: 'Step 3 of 6: Fill in your details, then show the screen to our teacher.', s4: 'Step 4 of 6: After the teacher records your prize, tap the button below to choose your date & time.', stl: ['Login', 'Service', 'Details', 'Date & Time', 'Payment', 'Confirm'], p: 'Fill in your details, then show the screen to our teacher. Each registration gets one spin on the wheel. The prize can be used for every child.',
   parent: 'Parent name', phone: 'Mobile number', phone_h: 'e.g. 012-3456789', child: 'Child', cname: "Child's name", gender: 'Gender', male: 'Male', female: 'Female', age: 'Age (children aged 4–15)', choose: 'Choose…',
   add: '+ Add another child', remove: 'Remove', consent: 'I agree that Genius Mind Academy may collect and use my details for registration and to contact me about my prizes and bookings (PDPA).',
   submit: 'Register', busy: 'Please wait…', e_req: 'Please enter the parent name.', e_phone: 'Please enter a valid Malaysian mobile number.', e_kids: "Please fill in each child's name, gender and age (age 4–15).", e_consent: 'Please tick the consent box.', e_send: 'Could not send. Please check the internet and try again.',
   done: 'You are registered!', spins: 'Spin &amp; Win (one per registration)', show: 'Show this screen to our teacher, then let your child play Spin &amp; Win.', already: 'This number is already registered. Here are your details.', children: 'Children', book: 'Book your free Trial Class / Brain Test Report', another: 'Register another number' },
- zh: { h: 'Spin & Win 登记', s1: '第 1 步（共 2 步）：请输入手机号码，然后点击继续。如果您之前已登记，我们会调出您的登记资料。', s1h: '查询您的登记', cont: '继续 →', s2: '第 2 步（共 2 步）：请填写资料，然后把屏幕给老师看。', p: '请填写资料，然后把屏幕给老师看。每次登记可转一次转盘，奖品适用于每位孩子。',
+ zh: { h: 'Spin & Win 登记', s1: '第 1 步（共 6 步）：请输入手机号码，然后点击继续。如果您之前已登记，我们会调出您的登记资料。', s1h: '查询您的登记', cont: '继续 →', s2: '第 3 步（共 6 步）：请填写资料，然后把屏幕给老师看。', s4: '第 4 步（共 6 步）：老师记录奖品后，请点击下面的按钮选择日期和时间。', stl: ['登入', '服务', '资料', '日期与时间', '付款', '确认'], p: '请填写资料，然后把屏幕给老师看。每次登记可转一次转盘，奖品适用于每位孩子。',
   parent: '家长姓名', phone: '手机号码', phone_h: '例如 012-3456789', child: '孩子', cname: '孩子姓名', gender: '性别', male: '男', female: '女', age: '年龄（4 至 15 岁的孩子）', choose: '请选择…',
   add: '+ 添加孩子', remove: '删除', consent: '我同意 Genius Mind Academy 为本次登记及联系我领取奖品和预约而收集及使用我的资料（PDPA）。',
   submit: '登记', busy: '请稍候…', e_req: '请输入家长姓名。', e_phone: '请输入有效的马来西亚手机号码。', e_kids: '请填写每位孩子的姓名、性别和年龄（4–15 岁）。', e_consent: '请勾选同意。', e_send: '发送失败，请检查网络后重试。',
@@ -47,16 +47,19 @@ function t(k) { return T[S.lang][k]; }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 function normPhone(p) { var d = String(p || '').replace(/\D/g, ''); if (d.charAt(0) === '0') d = '6' + d; return d; }
 
+function stepBar(cur) {
+  return '<div class="steps">' + T[S.lang].stl.map(function (s, i) { return '<div class="st ' + (i < cur ? 'done' : i === cur ? 'cur' : '') + '"><div class="dot">' + (i < cur ? '✓' : i + 1) + '</div>' + s + '</div>'; }).join('') + '</div>';
+}
 function render() {
   document.documentElement.lang = S.lang;
   [].forEach.call(document.querySelectorAll('.lang button'), function (b) { b.classList.toggle('on', b.dataset.lang === S.lang); });
   if (S.done) { app.innerHTML = doneView(); return; }
   if (S.stage === 'search') {
-    app.innerHTML = '<div style="font-family:Fredoka,sans-serif;font-weight:700;font-size:34px;letter-spacing:1px;color:#f7941d;margin:0 0 6px">SPIN &amp; WIN</div><h2>' + t('h') + '</h2><p class="sub" style="color:#d4281c;font-weight:800">' + t('s1') + '</p><div class="card"><label class="f">' + t('phone') + ' *</label><input type="tel" id="phone" placeholder="' + t('phone_h') + '" value="' + esc(S.phone) + '" autocomplete="tel"></div>' +
+    app.innerHTML = stepBar(0) + '<div style="font-family:Fredoka,sans-serif;font-weight:700;font-size:34px;letter-spacing:1px;color:#f7941d;margin:0 0 6px">SPIN &amp; WIN</div><h2>' + t('h') + '</h2><p class="sub" style="color:#d4281c;font-weight:800">' + t('s1') + '</p><div class="card"><label class="f">' + t('phone') + ' *</label><input type="tel" id="phone" placeholder="' + t('phone_h') + '" value="' + esc(S.phone) + '" autocomplete="tel"></div>' +
       (S.err ? '<div class="msg">' + esc(S.err) + '</div>' : '') + '<button class="btn pri" id="search" style="width:100%;margin-top:10px"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? t('busy') : t('cont')) + '</button>';
     return;
   }
-  var h = '<div style="font-family:Fredoka,sans-serif;font-weight:700;font-size:34px;letter-spacing:1px;color:#f7941d;margin:0 0 6px">SPIN &amp; WIN</div><h2>' + t('h') + '</h2><p class="sub">' + t('s2') + ' ' + t('p').replace(/^[^.。]*[.。]\s*/, '') + '</p><div class="card">';
+  var h = stepBar(2) + '<div style="font-family:Fredoka,sans-serif;font-weight:700;font-size:34px;letter-spacing:1px;color:#f7941d;margin:0 0 6px">SPIN &amp; WIN</div><h2>' + t('h') + '</h2><p class="sub">' + t('s2') + ' ' + t('p').replace(/^[^.。]*[.。]\s*/, '') + '</p><div class="card">';
   h += '<label class="f">' + t('parent') + ' *</label><input type="text" id="parent" value="' + esc(S.parent) + '" autocomplete="name">';
   h += '<label class="f">' + t('phone') + ' *</label><input type="tel" id="phone" placeholder="' + t('phone_h') + '" value="' + esc(S.phone) + '" autocomplete="tel"></div>';
   S.kids.forEach(function (c, i) {
@@ -74,7 +77,7 @@ function render() {
 function doneView() {
   var d = S.done, kids = (d.children || []).map(function (c) { return '<div class="kidline">' + esc(c.name) + ' · ' + (c.gender === 'M' ? t('male') : t('female')) + ' · ' + esc(c.age) + '</div>'; }).join('');
   var left = d.spinsUsed ? 0 : 1;
-  return '<div class="card done-card" style="text-align:center"><div class="tick">✓</div><h2>' + t('done') + '</h2>' + (d.already ? '<p>' + t('already') + '</p>' : '') +
+  return stepBar(3) + '<p class="sub" style="color:#d4281c;font-weight:800">' + t('s4') + '</p><div class="card done-card" style="text-align:center"><div class="tick">✓</div><h2>' + t('done') + '</h2>' + (d.already ? '<p>' + t('already') + '</p>' : '') +
     '<div><b>' + esc(d.parent || S.parent) + '</b> · ' + esc(S.phone) + '</div><div class="big">' + left + '</div><div>' + t('spins') + '</div>' +
     '<p style="margin-top:12px"><b>' + t('show') + '</b></p><div style="text-align:left;margin-top:10px"><b>' + t('children') + '</b>' + kids + '</div></div>' +
     '<a class="btn pri" style="display:block;text-align:center;text-decoration:none;margin-bottom:10px" href="index.html?from=spin">' + t('book') + '</a>' +
