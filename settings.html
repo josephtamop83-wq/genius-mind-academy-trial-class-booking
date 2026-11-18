@@ -57,6 +57,7 @@ function api(body, cb) {
 var LOCK_UNTIL = 0, lockTimer = null;
 function lockMsg() { var s = Math.max(0, Math.ceil((LOCK_UNTIL - Date.now()) / 1000)); return 'Too many wrong passwords. Try again in ' + Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2) + '.'; }
 function startLock(sec) { LOCK_UNTIL = Date.now() + sec * 1000; clearInterval(lockTimer); lockTimer = setInterval(function () { if (Date.now() >= LOCK_UNTIL) { clearInterval(lockTimer); S.err = ''; render(); return; } var e = document.querySelector('.err'); if (e) e.textContent = lockMsg(); }, 1000); }
+document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('#login') && Date.now() < LOCK_UNTIL) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);   // while locked, extra tries do nothing and do not restart the timer
 function errText(j) { if (j && /^locked/.test(j.error || '')) { startLock(parseInt((j.error.split(':')[1] || 300), 10) || 300); return lockMsg(); } return !j ? 'Could not connect. Check the internet and try again (nothing was saved if this was a Save).' : (ERR[j.error] || ('Error: ' + j.error)); }
 function opts(from, to, cur, label) { var h = ''; for (var i = from; i <= to; i++) h += '<option value="' + i + '"' + (i === cur ? ' selected' : '') + '>' + i + (label ? ' ' + label : '') + '</option>'; return h; }
 function take(j) { S.caps = j.caps; S.maxChanges = j.maxChanges; S.lockHours = j.lockHours; S.over = j.over || []; S.teachers = j.teachers || []; }
