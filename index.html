@@ -652,6 +652,12 @@ if(!bk){S.done=null;S.home=S.bookings.length>0;if(!S.home)S.step=0;render();retu
 S.done=null;S.home=true;S.existing=bk;S.service=bk.service;S.err='';
 if(kind==='date'){S.mode='edit-date';S.date=null;S.slot=null;S.rdate=null;S.rslot=null;S.month=[2026,11];stopHold();render();window.scrollTo(0,0);loadRemote(render)}
 else{S.mode='edit-details';render();window.scrollTo(0,0)}}
+function myBookings(){   // from the Booking received page: show this parent's bookings (not a blank login)
+stopHold();S.mode=null;S.existing=null;S.done=null;S.err='';S.welcome='';S.slip=null;S.slipURL='';
+var ph=S.d.phone;
+lookup(ph,function(j){if(j&&j.ok){S.bookings=j.bookings||[];S.prizes=j.prizes||[];if(j.maxSpins!==undefined)S.maxSpins=j.maxSpins||10}
+if(S.bookings.length){S.home=true}else{S.home=false;S.step=1}
+render();window.scrollTo(0,0)})}
 function resetAll(){
 stopHold();S.mode=null;S.existing=null;S.done=null;S.home=false;S.bookings=[];S.prizes=[];S.looked='';S.welcome='';S.step=0;S.service=null;S.date=null;S.slot=null;S.rdate=null;S.rslot=null;S.slip=null;S.slipURL='';S.busy=false;S.err='';
 S.d={parent:'',phone:'',consent:false,children:[{name:'',gender:'',age:''}]};
@@ -867,7 +873,7 @@ function loadRemote(cb){if(!CFG.SUBMIT_URL){if(cb)cb();return}
 fetch(CFG.SUBMIT_URL+'?action=booked').then(function(r){return r.json()}).then(function(j){MEM={trial:j.trial||{},report:j.report||{},bookings:[]};if(cb)cb()}).catch(function(){if(cb)cb()})}
 document.addEventListener('click',function(e){
 var el=e.target.closest('[data-svc],[data-date],[data-slot],[data-rslot],[data-nav],[data-rm],#addkid,#again,#chgnum,#newbk,#homebtn,[data-refprize],[data-mg],[data-back],[data-edate],[data-edet],[data-lang]');if(!el)return;
-if(el.dataset.mg!==undefined){var mk=el.dataset.mg,rf=S.done&&S.done.ref;if(mk==='home')resetAll();else goHome(mk,rf);return}
+if(el.dataset.mg!==undefined){var mk=el.dataset.mg,rf=S.done&&S.done.ref;if(mk==='home')myBookings();else goHome(mk,rf);return}
 if(el.id==='homebtn'){resetAll();return}
 if(el.dataset.refprize){S.busy=true;lookup(S.d.phone,function(j){S.busy=false;if(j&&j.ok){S.prizes=j.prizes||[]}render()});render();return}
 if(el.dataset.back==='done'){goHome();return}
