@@ -362,7 +362,7 @@ closed:'Closed / Past',avail:'Available',full:'Fully booked',slots:'Available ti
 free_slot:'Available',taken:'Taken',hold:'Your slot is held for {t}',hold_end:'Your slot hold expired. Please choose again.',
 report_note:'We will reserve your brain test report collection time automatically: {t}',
 report_dup:'The matching report-collection time is already taken. Our team will call you to arrange the report collection time.',
-report_none:'There is no matching report-collection time on this day. Our team will call you to arrange your report collection time.',rp_h:'Choose your report collection',rp_date:'Report date',rp_pick:'Choose a date',rp_slot:'Report time',rp_nofree:'No free time on this date. Please pick another date.',e_rep:'Please choose your brain test report collection date and time.',
+rep_same:'Your Brain Test Report Collection will be done together with your Trial Class on this date.',report_none:'There is no matching report-collection time on this day. Our team will call you to arrange your report collection time.',rp_h:'Choose your report collection',rp_date:'Report date',rp_pick:'Choose a date',rp_slot:'Report time',rp_nofree:'No free time on this date. Please pick another date.',e_rep:'Please choose your brain test report collection date and time.',
 h_pay:'Payment',p_pay:'Transfer the trial class fee and upload your bank slip.',
 amount:'Amount to pay',bank_details:'Bank details',bank:'Bank',holder:'Account name',accno:'Account no.',
 slip:'Bank slip',slip_btn:'Upload bank slip',slip_hint:'JPG, PNG or PDF · max 5 MB',slip_bad:'Please upload a JPG, PNG or PDF under 5 MB.',
@@ -401,7 +401,7 @@ closed:'休息 / 已过',avail:'可预约',full:'已满',slots:'可选时段',pi
 free_slot:'可预约',taken:'已被预约',hold:'您的时段已为您保留 {t}',hold_end:'时段保留已过期，请重新选择。',
 report_note:'我们会自动为您保留脑测报告领取时间：{t}',
 report_dup:'对应的报告领取时间已被预约，我们的团队会致电与您安排报告领取时间。',
-report_none:'当天没有对应的报告领取时段，我们的团队会致电与您安排报告领取时间。',rp_h:'选择报告领取时间',rp_date:'报告日期',rp_pick:'请选择日期',rp_slot:'报告时间',rp_nofree:'此日期没有空位，请选择其他日期。',e_rep:'请选择脑测报告领取的日期和时间。',
+rep_same:'您的领取脑测报告将与试课在同一天、同一时段一起进行。',report_none:'当天没有对应的报告领取时段，我们的团队会致电与您安排报告领取时间。',rp_h:'选择报告领取时间',rp_date:'报告日期',rp_pick:'请选择日期',rp_slot:'报告时间',rp_nofree:'此日期没有空位，请选择其他日期。',e_rep:'请选择脑测报告领取的日期和时间。',
 h_pay:'付款',p_pay:'请转账试课费用并上传银行单。',
 amount:'应付金额',bank_details:'银行资料',bank:'银行',holder:'户口名称',accno:'户口号码',
 slip:'银行单',slip_btn:'上传银行单',slip_hint:'JPG、PNG 或 PDF · 最大 5MB',slip_bad:'请上传小于 5MB 的 JPG、PNG 或 PDF。',
@@ -445,7 +445,9 @@ var r=range(trialLabel),list=REPORT[date]||[];
 for(var i=0;i<list.length;i++){var s=mins(list[i]);if(s>=r[0]&&s<r[1])return list[i]}
 return null;
 }
-function repSel(){ // report time that goes with a trial class: the matching one if free, otherwise the one the parent picked
+function repSame(){return S.service==='TCBT'&&(unusedPrize('TC').length>0||!!upgRef())}
+function repSel(){
+if(repSame())return null; // report time that goes with a trial class: the matching one if free, otherwise the one the parent picked
 var rf=reportFor(S.date,S.slot);
 if(rf&&!taken('report',S.date,rf))return {date:S.date,slot:rf,auto:1};
 if(S.rdate&&S.rslot&&repFree(S.rdate).indexOf(S.rslot)>-1)return {date:S.rdate,slot:S.rslot};
@@ -574,7 +576,7 @@ h+='<button class="slot'+(S.slot===l?' sel':'')+(tk2?' taken':'')+'" data-slot="
 h+='</div>';
 if(S.slot&&S.service==='TCBT'){
 var rf=reportFor(S.date,S.slot),rs=repSel();
-if(rs&&rs.auto)h+='<div class="note info">'+t('report_note',{t:'<b>'+rf+'</b>'})+'</div>';
+if(repSame())h+='<div class="note info">'+t('rep_same')+'</div>';else if(rs&&rs.auto)h+='<div class="note info">'+t('report_note',{t:'<b>'+rf+'</b>'})+'</div>';
 else{if(!rf)h+='<div class="note">'+t('report_none')+'</div>';else if(taken('report',S.date,rf))h+='<div class="note">'+t('report_dup')+'</div>'}
 }
 }else h+='<div class="hint" style="text-align:center">'+t('pick_date')+'</div>';
@@ -585,7 +587,7 @@ function viewConfirm(){
 var d=S.d,rows=[[t('svc'),svcName()],[t('who'),d.parent],[t('ph'),d.phone]];
 rows.push([t('kids'),d.children.map(function(c){return c.name+' ('+(c.gender==='M'?t('male'):t('female'))+', '+c.age+')'}).join('; ')]);
 if(S.service!=='BT')rows.push([t('tcd'),fmtDate(S.date)+' · '+S.slot]);
-if(S.service==='TCBT'){var rs=repSel();rows.push([t('btd'),rs?(fmtDate(rs.date)+' · '+rs.slot):t('report_none')])}
+if(S.service==='TCBT'&&!repSame()){var rs=repSel();rows.push([t('btd'),rs?(fmtDate(rs.date)+' · '+rs.slot):t('report_none')])}
 if(S.service==='BT')rows.push([t('btd'),fmtDate(S.date)+' · '+S.slot]);
 if(needsPay())rows.push([t('pay_h'),S.slip?t('slip_att'):t('slip_none')]);
 var h='<div class="head"><h2>'+t('h_confirm')+'</h2><p>'+t('p_confirm')+'</p></div>'+(S.holdUntil?'<div class="hold">⏱ '+t('hold',{t:'<span id="holdtxt"></span>'})+'</div>':'');
@@ -754,7 +756,7 @@ var K=kind(),m=store(),rf=null;
 fresh();
 if(taken(K,S.date,S.slot)){S.err=t('e_taken');S.step=steps().indexOf('date');S.slot=null;stopHold();render();return}
 var dup=false,rdt=null;
-if(S.service==='TCBT'){var rs0=repSel();rf=rs0?rs0.slot:(reportFor(S.date,S.slot)||null);rdt=rs0?rs0.date:S.date}
+if(S.service==='TCBT'){var rs0=repSel();rf=rs0?rs0.slot:(repSame()?null:(reportFor(S.date,S.slot)||null));rdt=rs0?rs0.date:S.date}
 var pf=S.service==='TCBT'?'TB':S.service==='TC'?'TC':'BR';
 var st=range(S.slot)[0],hhmm=pad(Math.floor(st/60))+pad(st%60);
 var ref0=pf+S.date.replace(/-/g,'')+'-'+hhmm+'-';
