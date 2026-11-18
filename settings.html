@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>GMA Teacher - Slot Settings</title>
+<title>GMA Teacher - Settings</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <style>
@@ -13,7 +13,7 @@
 .okm{background:#e8f5d4;color:#3d6b10;border-radius:12px;padding:10px 12px;margin:10px 0;font-weight:700}
 .row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
 .row:last-child{border-bottom:0}.row small{display:block;color:var(--muted);font-weight:600}
-select,input[type=date]{padding:9px;border-radius:10px;border:1.5px solid var(--line);font:inherit;background:#fff}
+select,input[type=date],input[type=text],input[type=tel]{padding:9px;border-radius:10px;border:1.5px solid var(--line);font:inherit;background:#fff}
 .ov{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line)}
 .ov select{flex:1;min-width:90px}.x{border:0;background:#fde8ea;color:var(--bad);border-radius:999px;width:32px;height:32px;font-weight:800;cursor:pointer}
 .btn{cursor:pointer}
@@ -22,7 +22,7 @@ select,input[type=date]{padding:9px;border-radius:10px;border:1.5px solid var(--
 <body>
 <header class="top">
 <div class="logo" id="logo"></div>
-<div><div class="t1">Genius Mind <b>Academy</b></div><div class="t2">Teacher &middot; Slot settings</div></div>
+<div><div class="t1">Genius Mind <b>Academy</b></div><div class="t2">Teacher &middot; Settings</div></div>
 </header>
 <div style="max-width:640px;margin:10px auto 0;padding:0 16px"><a href="teachers.html" style="display:inline-block;padding:9px 16px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;text-decoration:none;font-weight:800;font-size:14px">&larr; Teacher menu</a> <a style="display:none" href="https://docs.google.com/spreadsheets/d/1innYlrTnOavDg_Db0zRkqg0m8mY-N9DBTKJ0-TNFRrw/edit" target="_blank" rel="noopener" style="display:inline-block;padding:9px 16px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;text-decoration:none;font-weight:800;font-size:14px">📊 Google Sheet</a> <button id="navlogout" type="button" style="float:right;padding:9px 16px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;font:inherit;font-weight:800;font-size:14px;cursor:pointer" onclick="try{sessionStorage.removeItem('gma_pin');sessionStorage.removeItem('gma_view_pin')}catch(e){}location.reload()">Log out</button></div>
 <main class="wrap" id="app"></main>
@@ -31,7 +31,7 @@ var SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbwvukSXQHKhnbMndouaYUC
 var LOGO_URL = 'logo.png';
 var PIN = ''; try { PIN = sessionStorage.getItem('gma_pin') || ''; } catch (e) {}
 var app = document.getElementById('app');
-var S = { authed: false, busy: false, err: '', msg: '', caps: { BT: 1, TC: 2, TCBT: 2 }, maxChanges: 2, lockHours: 24, over: [] };
+var S = { authed: false, busy: false, err: '', msg: '', caps: { BT: 1, TC: 2, TCBT: 2 }, maxChanges: 2, lockHours: 24, over: [], teachers: [] };
 var NAMES = { BT: 'Brain Test Report Collection', TC: 'Trial Class', TCBT: 'Trial Class + Brain Test' };
 var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 10 minutes.', disabled: 'Teacher password is not turned on yet.' };
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -45,7 +45,7 @@ function api(body, cb) {
 }
 function errText(j) { return !j ? 'Could not connect. Check the internet and try again (nothing was saved if this was a Save).' : (ERR[j.error] || ('Error: ' + j.error)); }
 function opts(from, to, cur, label) { var h = ''; for (var i = from; i <= to; i++) h += '<option value="' + i + '"' + (i === cur ? ' selected' : '') + '>' + i + (label ? ' ' + label : '') + '</option>'; return h; }
-function take(j) { S.caps = j.caps; S.maxChanges = j.maxChanges; S.lockHours = j.lockHours; S.over = j.over || []; }
+function take(j) { S.caps = j.caps; S.maxChanges = j.maxChanges; S.lockHours = j.lockHours; S.over = j.over || []; S.teachers = j.teachers || []; }
 function render() {
   var h = '';
   if (!S.authed) {
@@ -66,6 +66,9 @@ function render() {
     h += '</select><select data-oc="' + i + '">' + opts(1, 3, o.cap) + '</select><button class="x" data-del="' + i + '" type="button">&times;</button></div>';
   });
   h += '<button class="btn sec2" id="addov" type="button" style="margin-top:10px">+ Add a special date</button></div>';
+  h += '<div class="card"><h2>Follow-up teachers (up to 10)</h2><p class="small" style="color:var(--muted)">Name and WhatsApp number of each teacher / sales person. Teachers pick themselves for each parent on the Spin &amp; Win teacher page.</p>';
+  for (var t = 0; t < 10; t++) { var T = S.teachers[t] || {}; h += '<div class="ov"><b style="width:74px">Teacher ' + (t + 1) + '</b><input type="text" data-tn="' + t + '" placeholder="Name" value="' + esc(T.name || '') + '" style="flex:1;min-width:110px"><input type="tel" data-tp="' + t + '" placeholder="Phone e.g. 012-3456789" value="' + esc(T.phone || '') + '" style="flex:1;min-width:130px"></div>'; }
+  h += '</div>';
   if (S.err) h += '<div class="err">' + esc(S.err) + '</div>';
   if (S.msg) h += '<div class="okm">' + esc(S.msg) + '</div>';
   h += '<button class="btn" id="save"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Saving...' : 'Save settings') + '</button>';
@@ -74,6 +77,7 @@ function render() {
 function readForm() {
   document.querySelectorAll('[data-cap]').forEach(function (e) { S.caps[e.dataset.cap] = parseInt(e.value, 10); });
   S.maxChanges = parseInt(document.getElementById('mc').value, 10); S.lockHours = parseInt(document.getElementById('lh').value, 10);
+  S.teachers = []; for (var t = 0; t < 10; t++) S.teachers.push({ n: t + 1, name: document.querySelector('[data-tn="' + t + '"]').value.trim(), phone: document.querySelector('[data-tp="' + t + '"]').value.trim() });
   S.over.forEach(function (o, i) {
     o.date = document.querySelector('[data-od="' + i + '"]').value; o.svc = document.querySelector('[data-os="' + i + '"]').value; o.cap = parseInt(document.querySelector('[data-oc="' + i + '"]').value, 10);
   });
@@ -95,7 +99,7 @@ document.addEventListener('click', function (e) {
     readForm();
     for (var i = 0; i < S.over.length; i++) if (!S.over[i].date) { S.err = 'Please choose a date for every special date (or remove it).'; S.msg = ''; render(); return; }
     S.busy = true; S.err = ''; S.msg = ''; render();
-    api({ action: 'staff_settings_save', caps: S.caps, maxChanges: S.maxChanges, lockHours: S.lockHours, over: S.over }, function (j) {
+    api({ action: 'staff_settings_save', caps: S.caps, maxChanges: S.maxChanges, lockHours: S.lockHours, over: S.over, teachers: S.teachers }, function (j) {
       S.busy = false;
       if (j && j.ok) { take(j); S.msg = 'Saved. New settings are live now.'; } else S.err = errText(j);
       render(); window.scrollTo(0, document.body.scrollHeight);

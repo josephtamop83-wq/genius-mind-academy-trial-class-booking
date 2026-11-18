@@ -110,7 +110,12 @@ function load(cb) {
     render();
   });
 }
-function visible() { return S.events.filter(function (e) { return S.filter === 'all' || e.kind === S.filter; }); }
+function tname(e) { return e.b && e.b.teacher ? e.b.teacher.name : ''; }
+function visible() { return S.events.filter(function (e) { return (S.filter === 'all' || e.kind === S.filter) && (!S.tf || (S.tf === '__none' ? !tname(e) : tname(e) === S.tf)); }); }
+function teacherSel() {
+  var seen = {}, names = []; S.events.forEach(function (e) { var n = tname(e); if (n && !seen[n]) { seen[n] = 1; names.push(n); } }); names.sort();
+  return '<div style="margin:6px 0"><select id="tf" class="s" style="width:auto;max-width:100%"><option value="">All follow-up teachers</option>' + names.map(function (n) { return '<option' + (S.tf === n ? ' selected' : '') + ' value="' + esc(n) + '">' + esc(n) + '</option>'; }).join('') + '<option value="__none"' + (S.tf === '__none' ? ' selected' : '') + '>Not assigned</option></select></div>';
+}
 
 function render() {
   if (!S.authed) {
@@ -123,6 +128,7 @@ function render() {
   var h = '<div class="tb"><button class="ib" data-nav="-1">‹</button><h2>' + MONTHS[m - 1] + ' ' + y + '</h2><button class="ib" data-nav="1">›</button><button class="ib" id="today">Today</button><button class="ib ' + (S.view === 'today' ? 'on' : '') + '" id="todaylist">Today\'s list</button><button class="ib ' + (S.view === 'stats' ? 'on' : '') + '" id="stats">Stats</button><button class="ib" id="refresh">' + (S.busy ? '…' : 'Refresh') + '</button></div>';
   h += '<input class="s" id="q" placeholder="Search parent, child, phone or reference" value="' + esc(S.q) + '">';
   h += '<div class="chips">' + [['all', 'All'], ['trial', 'Trial class'], ['report', 'Report collection']].map(function (f) { return '<button class="ib ' + (S.filter === f[0] ? 'on' : '') + '" data-f="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '<span class="small" style="align-self:center">Updated ' + esc(S.updated) + '</span></div>';
+  h += teacherSel();
   if (S.err) h += '<div class="err">' + esc(S.err) + '</div>';
   if (!S.canMark) h += '<div class="small" style="margin-bottom:8px">View only. Log in with the teacher password to mark attendance.</div>';
   if (S.view === 'today') { h += todayView(); app.innerHTML = h; return; }
@@ -187,7 +193,7 @@ function card(e, showDate) {
   h += '<div>' + (b.prizes || []).map(function (p) { return '<span class="tag p">🎁 ' + esc(p) + '</span>'; }).join('');
   if (b.clash) h += '<span class="tag c">Report time clash - call customer</span>';
   else if (b.service === 'TCBT' && !b.reportSlot && !b.sameTrial && e.kind === 'trial') h += '<span class="tag c">No report time - arrange with customer</span>';
-  h += '</div><div class="meta">' + esc(SVC[b.service] || '') + ' · ' + esc(b.ref) + '</div>' + (b.made ? '<div class="meta"><b>Transaction Date:</b> ' + esc(fmtMade(b.made)) + '</div>' : '');
+  h += '</div><div class="meta">' + esc(SVC[b.service] || '') + ' · ' + esc(b.ref) + '</div>' + (b.made ? '<div class="meta"><b>Transaction Date:</b> ' + esc(fmtMade(b.made)) + '</div>' : '') + '<div class="meta"><b>Follow-up:</b> ' + (b.teacher ? esc(b.teacher.name) + (b.teacher.phone ? ' · ' + esc(fmtPhone(b.teacher.phone)) : '') + (b.teacher.status ? ' · ' + esc(b.teacher.status) : '') : '<span style="color:#b45309">not assigned</span>') + '</div>';
   h += attHtml(e);
   h += '<div class="act noprint"><a class="wa" href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a><a href="tel:+' + esc(b.phone) + '">Call ' + esc(fmtPhone(b.phone)) + '</a></div>';
   return h + '</div></div>';
@@ -235,6 +241,7 @@ document.addEventListener('click', function (e) {
   if (el.id === 'refresh') { load(); return; }
   if (el.id === 'print') { window.print(); return; }
 });
+document.addEventListener('change', function (e) { if (e.target.id === 'tf') { S.tf = e.target.value; render(); } });
 document.addEventListener('input', function (e) {
   if (e.target.id === 'q') { S.q = e.target.value; if (S.q) S.view = 'cal'; var pos = e.target.selectionStart; render(); var q = document.getElementById('q'); if (q) { q.focus(); q.setSelectionRange(pos, pos); } }
 });
