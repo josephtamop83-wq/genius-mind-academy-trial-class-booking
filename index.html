@@ -357,7 +357,7 @@ addr:'Address',street:'Street / unit',postcode:'Postcode',city:'City',state:'Sta
 children:'Children',child:'Child',cname:'Name',gender:'Gender',age:'Age (children aged 4–15)',male:'Male',female:'Female',remove:'Remove',
 add_child:'+ Add another child',children_hint:'You can add {min}–{max} children.',
 consent:'I agree that Genius Mind Academy may collect and use my details to arrange this booking (PDPA).',
-h_date:'Pick a date & time',bt_free:'[B] Brain Test Booking',newbk_btn:'Make another booking',upg_note:'Your current Brain Test Report Collection booking: <b>{d}</b>. To add your Trial Class, choose [C] Trial Class + Brain Test Report Collection and pick a new date - it will replace your current booking.',tt_TC:'Trial Class',tt_BT:'Brain Test Report Collection',tt_TCBT:'Trial Class + Brain Test',p_date_tc:'Trial class · 90 minutes',p_date_bt:'Brain test report collection',
+h_date:'Pick a date & time',bt_free:'[B] Brain Test Booking',newbk_btn:'Make another booking',dr_TC:'Trial Class Date Selection',dr_BT:'Brain Test Date Selection',dr_TCBT:'Trial Class + Brain Test Date Selection',upg_date:'Your current Brain Test Report Collection booking: <b>{d}</b>. Choose a date below - your Trial Class and Brain Test Report Collection will be booked together and will replace it. No payment needed (free Trial Class prize).',upg_note:'Your current Brain Test Report Collection booking: <b>{d}</b>. To add your Trial Class, choose [C] Trial Class + Brain Test Report Collection and pick a new date - it will replace your current booking.',tt_TC:'Trial Class',tt_BT:'Brain Test Report Collection',tt_TCBT:'Trial Class + Brain Test',p_date_tc:'Trial class · 90 minutes',p_date_bt:'Brain test report collection',
 closed:'Closed / Past',avail:'Available',full:'Fully booked',slots:'Available time slots',pick_date:'Select a date to see time slots.',
 free_slot:'Available',taken:'Taken',hold:'Your slot is held for {t}',hold_end:'Your slot hold expired. Please choose again.',
 report_note:'We will reserve your brain test report collection time automatically: {t}',
@@ -396,7 +396,7 @@ addr:'地址',street:'街道 / 门牌',postcode:'邮编',city:'城市',state:'�
 children:'孩子',child:'孩子',cname:'姓名',gender:'性别',age:'年龄（4 至 15 岁的孩子）',male:'男',female:'女',remove:'删除',
 add_child:'+ 添加孩子',children_hint:'可添加 {min}–{max} 位孩子。',
 consent:'我同意 Genius Mind Academy 为办理此预约而收集及使用我的资料（PDPA）。',
-h_date:'选择日期与时间',bt_free:'[B] 脑测预约',newbk_btn:'再预约另一项服务',upg_note:'您目前的领取脑测报告预约：<b>{d}</b>。如要加上试课，请选择 [C] 试课 + 领取脑测报告并选择新日期，它将取代您目前的预约。',tt_TC:'试课',tt_BT:'领取脑测报告',tt_TCBT:'试课 + 脑测',p_date_tc:'试课 · 90 分钟',p_date_bt:'领取脑测报告',
+h_date:'选择日期与时间',bt_free:'[B] 脑测预约',newbk_btn:'再预约另一项服务',dr_TC:'试课日期选择',dr_BT:'脑测日期选择',dr_TCBT:'试课 + 脑测日期选择',upg_date:'您目前的领取脑测报告预约：<b>{d}</b>。请在下面选择日期，试课和领取脑测报告将一起预约并取代它。免付款（免费试课奖品）。',upg_note:'您目前的领取脑测报告预约：<b>{d}</b>。如要加上试课，请选择 [C] 试课 + 领取脑测报告并选择新日期，它将取代您目前的预约。',tt_TC:'试课',tt_BT:'领取脑测报告',tt_TCBT:'试课 + 脑测',p_date_tc:'试课 · 90 分钟',p_date_bt:'领取脑测报告',
 closed:'休息 / 已过',avail:'可预约',full:'已满',slots:'可选时段',pick_date:'请先选择日期以查看时段。',
 free_slot:'可预约',taken:'已被预约',hold:'您的时段已为您保留 {t}',hold_end:'时段保留已过期，请重新选择。',
 report_note:'我们会自动为您保留脑测报告领取时间：{t}',
@@ -555,7 +555,7 @@ var y=S.month[0],m=S.month[1],tb=table(),k=kind(),first=new Date(y,m-1,1).getDay
 var names=S.lang==='zh'?['日','一','二','三','四','五','六']:['SUN','MON','TUE','WED','THU','FRI','SAT'];
 var mname=new Date(y,m-1,1).toLocaleDateString(S.lang==='zh'?'zh-CN':'en-GB',{month:'long',year:'numeric'});
 var today=new Date(),tk=dkey(today.getFullYear(),today.getMonth()+1,today.getDate());
-var h='<div class="head"><div style="display:inline-block;background:#fff3e0;color:#c2570a;border-radius:999px;padding:5px 16px;font-weight:800;font-size:14px;margin-bottom:8px">'+t('tt_'+S.service)+'</div><h2>'+t(S.service==='BT'?'h_date_bt':S.service==='TCBT'?'h_date_c':'h_date')+'</h2>'+(S.service==='BT'?'':'<p>'+t('p_date_tc')+'</p>')+'</div>';
+var h='<div class="head"><div style="display:inline-block;background:#fff3e0;color:#c2570a;border-radius:999px;padding:5px 16px;font-weight:800;font-size:14px;margin-bottom:8px">'+t('tt_'+S.service)+'</div><h2>'+(S.routeSvc&&S.routeSvc===S.service?t('dr_'+S.service):t(S.service==='BT'?'h_date_bt':S.service==='TCBT'?'h_date_c':'h_date'))+'</h2>'+(upgRef()&&S.routeSvc===S.service?'<div class="note info" style="text-align:left">'+t('upg_date',{d:upgText()})+'</div>':'')+''+(S.service==='BT'?'':'<p>'+t('p_date_tc')+'</p>')+'</div>';
 if(S.holdUntil)h+='<div class="hold">⏱ '+t('hold',{t:'<span id="holdtxt"></span>'})+'</div>';
 h+='<div class="card cal"><div class="calhead"><button class="nav" data-nav="-1"'+(m<=11?' disabled':'')+' aria-label="Previous month">‹</button><h3>'+esc(mname)+'</h3><button class="nav" data-nav="1"'+(m>=12?' disabled':'')+' aria-label="Next month">›</button></div>';
 h+='<div class="dow">'+names.map(function(x){return '<div>'+x+'</div>'}).join('')+'</div><div class="days">';
@@ -688,6 +688,17 @@ if(!CFG.SUBMIT_URL)return;
 fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify({action:'register',phone:normPhone(S.d.phone),parent:S.d.parent,children:S.d.children})}).catch(function(){});
 }
 function haveComps(){var h={};S.bookings.forEach(function(b){(b.service==='TCBT'?['T','R']:b.service==='TC'?['T']:['R']).forEach(function(c){h[c]=1})});return h}
+function autoRoute(){   // parent who won a free prize goes straight to the matching date-selection page
+var tc=unusedPrize('TC'),bt=unusedPrize('BT');
+if(!tc.length&&!bt.length)return '';
+var ks=S.d.children||[];
+if(!(S.d.parent||'').trim()||!ks.length||ks.some(function(c){return !(c.name||'').trim()||!c.gender||!(+c.age>=4&&+c.age<=15)}))return '';
+var combo=tc.some(function(p){return p.pk==='TCBT'})&&bt.some(function(p){return p.pk==='TCBT'});
+var hasBT=S.bookings.some(function(x){return x.service==='BT'}),hasT=S.bookings.some(function(x){return x.service!=='BT'});
+if(combo)return allowedSvc('TCBT')?'TCBT':'';
+if(tc.length){if(hasT)return '';return hasBT?'TCBT':'TC'}
+if(bt.length)return allowedSvc('BT')?'BT':'';
+return ''}
 function upgText(){var o=S.bookings.filter(function(x){return x.service==='BT'})[0];return o?(fmtDate(o.reportDate||o.date)+' · '+(o.reportSlot||o.slot)):''}
 function upgRef(){if(S.service!=='TCBT')return '';var o=S.bookings.filter(function(x){return x.service==='BT'})[0];return o&&!haveComps().T?o.ref:''}
 function canUpgrade(){var h=haveComps();return !h.T&&S.bookings.some(function(x){return x.service==='BT'})}
@@ -718,6 +729,8 @@ if(!j||!j.ok){S.err=t('e_lookup');render();return}
 S.looked=n;S.welcome='';
 if(j.found&&j.parent){S.d.parent=j.parent;if(j.children&&j.children.length)S.d.children=j.children.map(function(c){return {name:c.name||'',gender:c.gender||'',age:c.age||''}})}
 S.bookings=j.bookings||[];S.prizes=j.prizes||[];if(j.maxSpins!==undefined)S.maxSpins=j.maxSpins||10;
+var rt=autoRoute();
+if(rt){S.home=false;S.service=rt;S.routeSvc=rt;S.d.consent=true;S.date=null;S.slot=null;S.rdate=null;S.rslot=null;S.welcome='';S.err='';S.step=steps().indexOf('date');render();window.scrollTo(0,0);return}
 if(S.bookings.length){S.home=true}
 else{S.home=false;S.welcome=j.found&&j.parent?t('welcome_back',{n:j.parent}):t('new_here');S.step=1;S.err=''}
 render();window.scrollTo(0,0)});
