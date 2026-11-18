@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>GMA Teacher - Slot Settings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.wrap{max-width:640px;margin:0 auto;padding:16px 16px 60px}
+.err{background:#fde8ea;color:var(--bad);border-radius:12px;padding:10px 12px;margin:10px 0;font-weight:700}
+.okm{background:#e8f5d4;color:#3d6b10;border-radius:12px;padding:10px 12px;margin:10px 0;font-weight:700}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}.row small{display:block;color:var(--muted);font-weight:600}
+select,input[type=date]{padding:9px;border-radius:10px;border:1.5px solid var(--line);font:inherit;background:#fff}
+.ov{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line)}
+.ov select{flex:1;min-width:90px}.x{border:0;background:#fde8ea;color:var(--bad);border-radius:999px;width:32px;height:32px;font-weight:800;cursor:pointer}
+.btn{cursor:pointer}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="logo" id="logo"></div>
+<div><div class="t1">Genius Mind <b>Academy</b></div><div class="t2">Teacher &middot; Slot settings</div></div>
+</header>
+<div style="max-width:640px;margin:10px auto 0;padding:0 16px"><a href="teachers.html" style="display:inline-block;padding:9px 16px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;text-decoration:none;font-weight:800;font-size:14px">&larr; Teacher menu</a> <a style="display:none" href="https://docs.google.com/spreadsheets/d/1innYlrTnOavDg_Db0zRkqg0m8mY-N9DBTKJ0-TNFRrw/edit" target="_blank" rel="noopener" style="display:inline-block;padding:9px 16px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;text-decoration:none;font-weight:800;font-size:14px">📊 Google Sheet</a> <button id="navlogout" type="button" style="float:right;padding:9px 16px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;font:inherit;font-weight:800;font-size:14px;cursor:pointer" onclick="try{sessionStorage.removeItem('gma_pin');sessionStorage.removeItem('gma_view_pin')}catch(e){}location.reload()">Log out</button></div>
+<main class="wrap" id="app"></main>
+<script>
+var SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbwvukSXQHKhnbMndouaYUC07qpx_2tXQWkbUTIYsrCB8gSbByjQ7u0zqkKu4RiY66E7/exec';
+var LOGO_URL = 'logo.png';
+var PIN = ''; try { PIN = sessionStorage.getItem('gma_pin') || ''; } catch (e) {}
+var app = document.getElementById('app');
+var S = { authed: false, busy: false, err: '', msg: '', caps: { BT: 1, TC: 2, TCBT: 2 }, maxChanges: 2, lockHours: 24, over: [] };
+var NAMES = { BT: 'Brain Test Report Collection', TC: 'Trial Class', TCBT: 'Trial Class + Brain Test' };
+var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 10 minutes.', disabled: 'Teacher password is not turned on yet.' };
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function api(body, cb) {
+  body.pin = PIN; var tries = 0;
+  (function go() {
+    tries++;
+    var ac = window.AbortController ? new AbortController() : null, to = setTimeout(function () { if (ac) ac.abort(); }, 25000);
+    fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify(body), signal: ac ? ac.signal : undefined }).then(function (r) { return r.json(); }).then(function (j) { clearTimeout(to); cb(j); }).catch(function () { clearTimeout(to); if (tries < 2 && body.action === 'staff_settings') go(); else cb(null); });
+  })();
+}
+function errText(j) { return !j ? 'Could not connect. Check the internet and try again (nothing was saved if this was a Save).' : (ERR[j.error] || ('Error: ' + j.error)); }
+function opts(from, to, cur, label) { var h = ''; for (var i = from; i <= to; i++) h += '<option value="' + i + '"' + (i === cur ? ' selected' : '') + '>' + i + (label ? ' ' + label : '') + '</option>'; return h; }
+function take(j) { S.caps = j.caps; S.maxChanges = j.maxChanges; S.lockHours = j.lockHours; S.over = j.over || []; }
+function render() {
+  var h = '';
+  if (!S.authed) {
+    h += '<div class="card"><h2>Teacher login</h2><label>Password</label><input type="password" id="pin" autocomplete="current-password" value="' + esc(PIN) + '">';
+    if (S.err) h += '<div class="err">' + esc(S.err) + '</div>';
+    h += '<button class="btn" id="login"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Please wait...' : 'Log in') + '</button></div>';
+    app.innerHTML = h; return;
+  }
+  h += '<div class="card"><h2>Parents per time slot</h2><p class="small" style="color:var(--muted)">How many parents may book the same date &amp; time. Applies to new bookings and changes.</p>';
+  ['BT', 'TC', 'TCBT'].forEach(function (k) { h += '<div class="row"><div><b>' + NAMES[k] + '</b></div><select data-cap="' + k + '">' + opts(1, 3, S.caps[k], 'parent' + '(s)') + '</select></div>'; });
+  h += '</div><div class="card"><h2>Date changes</h2>';
+  h += '<div class="row"><div><b>Changes allowed per booking</b><small>0 = parents cannot change</small></div><select id="mc">' + opts(0, 10, S.maxChanges) + '</select></div>';
+  h += '<div class="row"><div><b>Lock before appointment</b><small>Hours before the booking when changes stop</small></div><select id="lh">' + opts(0, 240, S.lockHours).replace(/>(\d+)</g, '>$1 h<') + '</select></div></div>';
+  h += '<div class="card"><h2>Special dates (optional)</h2><p class="small" style="color:var(--muted)">Use a different number for one date only, e.g. a busy Saturday.</p>';
+  S.over.forEach(function (o, i) {
+    h += '<div class="ov"><input type="date" data-od="' + i + '" value="' + esc(o.date) + '"><select data-os="' + i + '">';
+    ['BT', 'TC', 'TCBT'].forEach(function (k) { h += '<option value="' + k + '"' + (o.svc === k ? ' selected' : '') + '>' + NAMES[k] + '</option>'; });
+    h += '</select><select data-oc="' + i + '">' + opts(1, 3, o.cap) + '</select><button class="x" data-del="' + i + '" type="button">&times;</button></div>';
+  });
+  h += '<button class="btn sec2" id="addov" type="button" style="margin-top:10px">+ Add a special date</button></div>';
+  if (S.err) h += '<div class="err">' + esc(S.err) + '</div>';
+  if (S.msg) h += '<div class="okm">' + esc(S.msg) + '</div>';
+  h += '<button class="btn" id="save"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Saving...' : 'Save settings') + '</button>';
+  app.innerHTML = h;
+}
+function readForm() {
+  document.querySelectorAll('[data-cap]').forEach(function (e) { S.caps[e.dataset.cap] = parseInt(e.value, 10); });
+  S.maxChanges = parseInt(document.getElementById('mc').value, 10); S.lockHours = parseInt(document.getElementById('lh').value, 10);
+  S.over.forEach(function (o, i) {
+    o.date = document.querySelector('[data-od="' + i + '"]').value; o.svc = document.querySelector('[data-os="' + i + '"]').value; o.cap = parseInt(document.querySelector('[data-oc="' + i + '"]').value, 10);
+  });
+}
+function load() {
+  S.busy = true; S.err = ''; render();
+  api({ action: 'staff_settings' }, function (j) {
+    S.busy = false;
+    if (j && j.ok) { S.authed = true; take(j); try { sessionStorage.setItem('gma_pin', PIN); } catch (x) {} } else { S.authed = false; S.err = PIN || j ? errText(j) : ''; }
+    render();
+  });
+}
+document.addEventListener('click', function (e) {
+  var el = e.target.closest('button'); if (!el) return;
+  if (el.id === 'login') { PIN = document.getElementById('pin').value; load(); }
+  else if (el.id === 'addov') { readForm(); S.over.push({ date: '', svc: 'BT', cap: 2 }); S.msg = ''; render(); }
+  else if (el.dataset.del !== undefined) { readForm(); S.over.splice(parseInt(el.dataset.del, 10), 1); S.msg = ''; render(); }
+  else if (el.id === 'save') {
+    readForm();
+    for (var i = 0; i < S.over.length; i++) if (!S.over[i].date) { S.err = 'Please choose a date for every special date (or remove it).'; S.msg = ''; render(); return; }
+    S.busy = true; S.err = ''; S.msg = ''; render();
+    api({ action: 'staff_settings_save', caps: S.caps, maxChanges: S.maxChanges, lockHours: S.lockHours, over: S.over }, function (j) {
+      S.busy = false;
+      if (j && j.ok) { take(j); S.msg = 'Saved. New settings are live now.'; } else S.err = errText(j);
+      render(); window.scrollTo(0, document.body.scrollHeight);
+    });
+  }
+});
+document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.id === 'pin') document.getElementById('login').click(); });
+if (LOGO_URL) { var lg = document.getElementById('logo'), im = new Image(); im.className = 'brandlogo'; im.alt = ''; im.src = LOGO_URL; im.onload = function () { lg.replaceWith(im); }; }
+if (PIN) load(); else render();
+</script>
+</body>
+</html>

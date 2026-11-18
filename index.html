@@ -441,11 +441,12 @@ var SLOT_CAP=2,REPORT_CAP=1;   // parents per Trial Class slot / per Brain Test 
 function refCount(v){return v?String(v).split(',').filter(Boolean).length:0}
 function addRef(m,k,r){m[k]=m[k]?m[k]+','+r:r}
 function delRef(m,k,r){var a=String(m[k]||'').split(',').filter(function(x){return x&&x!==r});if(a.length)m[k]=a.join(',');else delete m[k]}
+function capFor(code,date){var c=(MEM&&MEM.caps)||{},d={BT:1,TC:2,TCBT:2},o=(c.over||[]).filter(function(x){return x.date===date&&x.svc===code})[0];return o?o.cap:(c[code]||d[code])}   // parents per slot: set by teachers in the Google Sheet "Settings" tab
 function taken(kind,date,label){
 var refs=String(store()[kind][date+'|'+label]||'').split(',').filter(Boolean);
-if(kind==='report'&&S.service==='BT')return refs.length>=REPORT_CAP;   // Brain Test Report Collection: 1 parent per slot
-if(kind==='report')return refs.length>=SLOT_CAP||refs.some(function(r){return /^BR/.test(r)});   // report part of a Trial Class + Brain Test
-return refs.length>=SLOT_CAP}   // Trial Class / Trial Class + Brain Test: 2 parents per slot
+if(kind==='report'&&S.service==='BT')return refs.length>=capFor('BT',date);   // Brain Test Report Collection
+if(kind==='report')return refs.length>=capFor('TCBT',date)||refs.some(function(r){return /^BR/.test(r)});   // report part of Trial Class + Brain Test
+return refs.length>=capFor(S.service==='TCBT'?'TCBT':'TC',date)}   // Trial Class / Trial Class + Brain Test   // Trial Class / Trial Class + Brain Test: 2 parents per slot
 function mins(l){var m=l.match(/(\d+):(\d+)(am|pm)/);return (parseInt(m[1],10)%12+(m[3]==='pm'?12:0))*60+parseInt(m[2],10)}
 function range(l){var p=l.split('–');return [mins(p[0]+(/am|pm/.test(p[0])?'':p[1].slice(-2))),mins(p[1])]}
 function reportFor(date,trialLabel){ // the report slot that starts inside the trial window (first one)
@@ -733,7 +734,7 @@ var combo=tc.some(function(p){return p.pk==='TCBT'})&&bt.some(function(p){return
 var hasBT=S.bookings.some(function(x){return x.service==='BT'}),hasT=S.bookings.some(function(x){return x.service!=='BT'});
 if(combo)return allowedSvc('TCBT')?'TCBT':'';
 if(tc.length){if(hasT)return '';return hasBT?'TCBT':'TC'}
-if(bt.length)return allowedSvc('BT')?'BT':'';
+if(bt.length){if(hasBT)return 'BTEDIT';return allowedSvc('BT')?'BT':''}
 return ''}
 function upgText(){var o=S.bookings.filter(function(x){return x.service==='BT'})[0];return o?(fmtDate(o.reportDate||o.date)+' · '+(o.reportSlot||o.slot)):''}
 function upgRef(){if(S.service!=='TCBT')return '';var o=S.bookings.filter(function(x){return x.service==='BT'})[0];return o&&!haveComps().T?o.ref:''}
@@ -767,6 +768,7 @@ if(j.found&&j.parent){S.d.parent=j.parent;if(j.children&&j.children.length)S.d.c
 S.bookings=j.bookings||[];S.prizes=j.prizes||[];if(j.maxSpins!==undefined)S.maxSpins=j.maxSpins||10;
 if(/[?&]from=spin/.test(location.search)&&!j.found&&!S.bookings.length){location.href='luckydraw.html?phone='+encodeURIComponent(S.d.phone);return}
 var rt=autoRoute();
+if(rt==='BTEDIT'){var ob=S.bookings.filter(function(x){return x.service==='BT'})[0];S.usePrize=true;S.home=true;S.d.consent=true;openEdit(ob.ref,'date');return}
 if(rt){S.home=false;S.service=rt;S.routeSvc=rt;S.routeKey=routeKey();S.d.consent=true;S.date=null;S.slot=null;S.rdate=null;S.rslot=null;S.welcome='';S.err='';S.step=steps().indexOf('date');render();window.scrollTo(0,0);return}
 if(S.bookings.length){S.home=true}
 else{S.home=false;S.welcome=j.found&&j.parent?t('welcome_back',{n:j.parent}):t('new_here');S.step=1;S.err=''}
@@ -867,18 +869,18 @@ body={action:'update',phone:normPhone(d.phone),ref:ex.ref,parent:d.parent,childr
 if(!S.date||!S.slot){S.err=t('e_slot');render();return}
 var rs1=ex.service==='TCBT'?repSel():null;
 var rf=ex.service==='TCBT'?(rs1?rs1.slot:(reportFor(S.date,S.slot)||null)):(ex.service==='BT'?S.slot:null);
-body={action:'reschedule',phone:normPhone(d.phone),ref:ex.ref,date:S.date,slot:S.slot,reportSlot:rf,reportDate:ex.service==='TCBT'?(rs1?rs1.date:S.date):null};
+body={action:'reschedule',phone:normPhone(d.phone),ref:ex.ref,date:S.date,slot:S.slot,reportSlot:rf,reportDate:ex.service==='TCBT'?(rs1?rs1.date:S.date):null,usePrize:ex.service==='BT'&&!!S.usePrize};
 }
 S.err='';S.busy=true;render();
 editApi(body,function(j){S.busy=false;
-if(j&&j.ok){S.bookings=S.bookings.map(function(x){return x.ref===j.booking.ref?j.booking:x});S.existing=j.booking;S.mode=null;stopHold();S.date=null;S.slot=null;S.rdate=null;S.rslot=null;render();toast(t('saved'));window.scrollTo(0,0);loadRemote(render);return}
+if(j&&j.ok){if(S.usePrize){S.usePrize=false;S.prizes=S.prizes.map(function(p){return p.key==='BT'&&p.status==='Won'&&!p.ref?Object.assign({},p,{ref:j.booking.ref}):p})}S.bookings=S.bookings.map(function(x){return x.ref===j.booking.ref?j.booking:x});S.existing=j.booking;S.mode=null;stopHold();S.date=null;S.slot=null;S.rdate=null;S.rslot=null;render();toast(t('saved'));window.scrollTo(0,0);loadRemote(render);return}
 if(j&&j.error==='taken'){S.err=t('e_taken');S.slot=null;stopHold();loadRemote(render);return}
 if(j&&(j.error==='limit'||j.error==='toolate')){S.mode=null;S.err='';stopHold();S.existing.changesLeft=j.error==='limit'?0:S.existing.changesLeft;S.existing.tooLate=j.error==='toolate';S.bookings=S.bookings.map(function(x){return x.ref===S.existing.ref?S.existing:x});render();return}
 S.err=t('e_send');render()});
 }
 function fresh(){if(!CFG.SUBMIT_URL)MEM=load()}
 function loadRemote(cb){if(!CFG.SUBMIT_URL){if(cb)cb();return}
-fetch(CFG.SUBMIT_URL+'?action=booked').then(function(r){return r.json()}).then(function(j){MEM={trial:j.trial||{},report:j.report||{},bookings:[]};if(cb)cb()}).catch(function(){if(cb)cb()})}
+fetch(CFG.SUBMIT_URL+'?action=booked').then(function(r){return r.json()}).then(function(j){MEM={trial:j.trial||{},report:j.report||{},caps:j.caps||null,bookings:[]};if(cb)cb()}).catch(function(){if(cb)cb()})}
 document.addEventListener('click',function(e){
 var el=e.target.closest('[data-svc],[data-date],[data-slot],[data-rslot],[data-nav],[data-rm],#addkid,#again,#chgnum,#newbk,#homebtn,[data-refprize],[data-mg],[data-back],[data-edate],[data-edet],[data-lang]');if(!el)return;
 if(el.dataset.mg!==undefined){var mk=el.dataset.mg,rf=S.done&&S.done.ref;if(mk==='home')myBookings();else goHome(mk,rf);return}
