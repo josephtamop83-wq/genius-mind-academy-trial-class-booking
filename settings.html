@@ -33,7 +33,7 @@ var PIN = ''; try { PIN = sessionStorage.getItem('gma_pin') || ''; } catch (e) {
 var app = document.getElementById('app');
 var S = { authed: false, busy: false, err: '', msg: '', caps: { BT: 1, TC: 2, TCBT: 2 }, maxChanges: 2, lockHours: 24, over: [], teachers: [] };
 var NAMES = { BT: 'Brain Test Report Collection', TC: 'Trial Class', TCBT: 'Trial Class + Brain Test' };
-var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 10 minutes.', disabled: 'Teacher password is not turned on yet.' };
+var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 5 minutes.', disabled: 'Teacher password is not turned on yet.' };
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 function api(body, cb) {
   body.pin = PIN; var tries = 0;
@@ -43,7 +43,10 @@ function api(body, cb) {
     fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify(body), signal: ac ? ac.signal : undefined }).then(function (r) { return r.json(); }).then(function (j) { clearTimeout(to); cb(j); }).catch(function () { clearTimeout(to); if (tries < 2 && body.action === 'staff_settings') go(); else cb(null); });
   })();
 }
-function errText(j) { return !j ? 'Could not connect. Check the internet and try again (nothing was saved if this was a Save).' : (ERR[j.error] || ('Error: ' + j.error)); }
+var LOCK_UNTIL = 0, lockTimer = null;
+function lockMsg() { var s = Math.max(0, Math.ceil((LOCK_UNTIL - Date.now()) / 1000)); return 'Too many wrong passwords. Try again in ' + Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2) + '.'; }
+function startLock(sec) { LOCK_UNTIL = Date.now() + sec * 1000; clearInterval(lockTimer); lockTimer = setInterval(function () { if (Date.now() >= LOCK_UNTIL) { clearInterval(lockTimer); S.err = ''; render(); return; } var e = document.querySelector('.err'); if (e) e.textContent = lockMsg(); }, 1000); }
+function errText(j) { if (j && /^locked/.test(j.error || '')) { startLock(parseInt((j.error.split(':')[1] || 300), 10) || 300); return lockMsg(); } return !j ? 'Could not connect. Check the internet and try again (nothing was saved if this was a Save).' : (ERR[j.error] || ('Error: ' + j.error)); }
 function opts(from, to, cur, label) { var h = ''; for (var i = from; i <= to; i++) h += '<option value="' + i + '"' + (i === cur ? ' selected' : '') + '>' + i + (label ? ' ' + label : '') + '</option>'; return h; }
 function take(j) { S.caps = j.caps; S.maxChanges = j.maxChanges; S.lockHours = j.lockHours; S.over = j.over || []; S.teachers = j.teachers || []; }
 function render() {

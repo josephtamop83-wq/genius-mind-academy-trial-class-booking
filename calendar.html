@@ -69,7 +69,7 @@ var app = document.getElementById('app');
 var today = new Date();
 var todayKey = today.getFullYear() + '-' + ('0' + (today.getMonth() + 1)).slice(-2) + '-' + ('0' + today.getDate()).slice(-2);
 var S = { authed: false, busy: false, err: '', events: [], bookings: [], month: [today.getFullYear(), today.getMonth() + 1], sel: todayKey, view: 'cal', canMark: false, filter: 'all', q: '', updated: '' };
-var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 10 minutes.', disabled: 'The calendar is not turned on yet (set VIEW_PIN or STAFF_PIN in the Google script).', nourl: 'SUBMIT_URL is not set in calendar.html yet.' };
+var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 5 minutes.', disabled: 'The calendar is not turned on yet (set VIEW_PIN or STAFF_PIN in the Google script).', nourl: 'SUBMIT_URL is not set in calendar.html yet.' };
 var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 function fmtMade(s) { var m = String(s).match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2})/); if (!m) return s; var mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return parseInt(m[3], 10) + ' ' + mn[parseInt(m[2], 10) - 1] + ' ' + m[1] + ' · ' + m[4]; }
@@ -86,7 +86,10 @@ function api(body, cb) {
   body.pin = PIN;
   fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify(body) }).then(function (r) { return r.json(); }).then(cb).catch(function () { cb(null); });
 }
-function errText(j) { return !j ? 'Could not connect. Check the internet and try again.' : (ERR[j.error] || ('Error: ' + j.error)); }
+var LOCK_UNTIL = 0, lockTimer = null;
+function lockMsg() { var s = Math.max(0, Math.ceil((LOCK_UNTIL - Date.now()) / 1000)); return 'Too many wrong passwords. Try again in ' + Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2) + '.'; }
+function startLock(sec) { LOCK_UNTIL = Date.now() + sec * 1000; clearInterval(lockTimer); lockTimer = setInterval(function () { if (Date.now() >= LOCK_UNTIL) { clearInterval(lockTimer); S.err = ''; render(); return; } var e = document.querySelector('.err'); if (e) e.textContent = lockMsg(); }, 1000); }
+function errText(j) { if (j && /^locked/.test(j.error || '')) { startLock(parseInt((j.error.split(':')[1] || 300), 10) || 300); return lockMsg(); } return !j ? 'Could not connect. Check the internet and try again.' : (ERR[j.error] || ('Error: ' + j.error)); }
 
 function build(bookings) {
   S.bookings = bookings; var ev = [];

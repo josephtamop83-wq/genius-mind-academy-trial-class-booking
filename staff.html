@@ -45,7 +45,7 @@ try { PIN = sessionStorage.getItem('gma_pin') || ''; } catch (e) {}
 var app = document.getElementById('app');
 var S = { authed: false, msg: '', err: '', phone: '', data: null, stock: [], prizes: [], busy: false, walk: false, kids: [{ name: '', gender: '', age: '' }], parent: '' };
 
-var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 10 minutes.', disabled: 'Staff page is not turned on yet (set STAFF_PIN in the Google script).',
+var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 5 minutes.', disabled: 'Staff page is not turned on yet (set STAFF_PIN in the Google script).',
   nospins: 'No spins left for this number.', used: 'This prize has already been used or collected, so it cannot be changed.', same: 'That is already the recorded prize.', childdone: 'This child already spun.', outofstock: 'This prize is out of stock.', notfound: 'Not found.',
   already: 'This prize was already collected.', cancelled: 'This prize was cancelled.', missing: 'Please fill in the parent name and at least one child.', badprize: 'Unknown prize.' };
 
@@ -63,7 +63,10 @@ function api(body, cb) {
     });
   })();
 }
-function errText(j) { return !j ? 'Could not connect. Check the internet and try again.' : j.error === 'nourl' ? 'SUBMIT_URL is not set in staff.html yet.' : (ERR[j.error] || ('Error: ' + j.error)); }
+var LOCK_UNTIL = 0, lockTimer = null;
+function lockMsg() { var s = Math.max(0, Math.ceil((LOCK_UNTIL - Date.now()) / 1000)); return 'Too many wrong passwords. Try again in ' + Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2) + '.'; }
+function startLock(sec) { LOCK_UNTIL = Date.now() + sec * 1000; clearInterval(lockTimer); lockTimer = setInterval(function () { if (Date.now() >= LOCK_UNTIL) { clearInterval(lockTimer); S.err = ''; render(); return; } var e = document.querySelector('.err'); if (e) e.textContent = lockMsg(); }, 1000); }
+function errText(j) { if (j && /^locked/.test(j.error || '')) { startLock(parseInt((j.error.split(':')[1] || 300), 10) || 300); return lockMsg(); } return !j ? 'Could not connect. Check the internet and try again.' : j.error === 'nourl' ? 'SUBMIT_URL is not set in staff.html yet.' : (ERR[j.error] || ('Error: ' + j.error)); }
 
 function render() {
   var h = '';
@@ -233,7 +236,7 @@ function normPhone(p) { var d = String(p || '').replace(/\D/g, ''); if (d.charAt
 function loadAll(cb) {
   api({ action: 'staff_all' }, function (j) {
     if (j && j.ok && j.customers) { S.all = j.customers; S.stock = j.stock; S.prizeList = j.prizeList; S.teachers = j.teachers || S.teachers; S.statuses = j.statuses || S.statuses; cb(j); return; }
-    if (j && !j.ok && /^(auth|locked|disabled|nourl)$/.test(j.error || '')) { cb(j); return; }
+    if (j && !j.ok && /^(auth|locked|disabled|nourl)/.test(j.error || '')) { cb(j); return; }
     api({ action: 'staff_stats' }, function (k) { if (k && k.ok) S.all = null; cb(k); });   // older script: fall back to live lookups
   });
 }
