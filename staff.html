@@ -27,6 +27,12 @@
 .row2{display:flex;gap:8px}.row2>*{flex:1}
 .small{font-size:12px;color:var(--muted)}
 .btn{cursor:pointer}
+.navrow{max-width:640px;margin:8px auto 0;padding:0 14px;display:flex;gap:8px;align-items:center}
+.navrow a,.navrow button{padding:8px 13px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;font:inherit;font-weight:800;font-size:13.5px;text-decoration:none;cursor:pointer;white-space:nowrap}
+.navrow button{margin-left:auto}
+.stock{gap:6px;margin:8px 0}.stock span{font-size:12px;padding:4px 9px}
+#fsave,#login,#find{min-height:44px}#fsave{width:100%}
+@media(max-width:520px){.wrap{padding:10px 12px 40px}.card{padding:14px}.rc{padding:10px}}
 </style>
 </head>
 <body>
@@ -34,7 +40,7 @@
 <div class="logo" id="logo"></div>
 <div><div class="t1">Genius Mind <b>Academy</b></div><div class="t2">Staff · Lucky draw</div></div>
 </header>
-<div style="max-width:640px;margin:10px auto 0;padding:0 16px"><a href="teachers.html" style="display:inline-block;padding:9px 16px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;text-decoration:none;font-weight:800;font-size:14px">&larr; Teacher menu</a> <a href="https://docs.google.com/spreadsheets/d/1innYlrTnOavDg_Db0zRkqg0m8mY-N9DBTKJ0-TNFRrw/edit" target="_blank" rel="noopener" style="display:inline-block;padding:9px 16px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;text-decoration:none;font-weight:800;font-size:14px">📊 Google Sheet</a> <button id="navlogout" type="button" style="float:right;padding:9px 16px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;font:inherit;font-weight:800;font-size:14px;cursor:pointer" onclick="try{sessionStorage.removeItem('gma_pin');sessionStorage.removeItem('gma_view_pin')}catch(e){}location.reload()">Log out</button></div>
+<div class="navrow"><a href="teachers.html">&larr; Teacher menu</a><a href="https://docs.google.com/spreadsheets/d/1innYlrTnOavDg_Db0zRkqg0m8mY-N9DBTKJ0-TNFRrw/edit" target="_blank" rel="noopener">📊 Sheet</a><button id="navlogout" type="button" onclick="try{sessionStorage.removeItem('gma_pin');sessionStorage.removeItem('gma_view_pin')}catch(e){}location.reload()">Log out</button></div>
 <main class="wrap" id="app"></main>
 <script>
 var SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbwvukSXQHKhnbMndouaYUC07qpx_2tXQWkbUTIYsrCB8gSbByjQ7u0zqkKu4RiY66E7/exec';   // same Google Apps Script web app URL as index.html

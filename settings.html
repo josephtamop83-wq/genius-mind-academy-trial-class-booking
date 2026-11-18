@@ -17,6 +17,17 @@ select,input[type=date],input[type=text],input[type=tel]{padding:9px;border-radi
 .ov{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line)}
 .ov select{flex:1;min-width:90px}.x{border:0;background:#fde8ea;color:var(--bad);border-radius:999px;width:32px;height:32px;font-weight:800;cursor:pointer}
 .btn{cursor:pointer}
+.navrow{max-width:640px;margin:8px auto 0;padding:0 14px;display:flex;gap:8px;align-items:center}
+.navrow a,.navrow button{padding:8px 13px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;font:inherit;font-weight:800;font-size:13.5px;text-decoration:none;cursor:pointer;white-space:nowrap}
+.navrow button{margin-left:auto}
+#save,#login{width:100%;min-height:46px;margin-top:6px}
+@media(max-width:520px){
+.wrap{padding:10px 12px 40px}.card{padding:14px}
+.row{flex-direction:column;align-items:stretch;gap:6px}.row select{width:100%}
+.ov{gap:6px}.ov input[type=date],.ov select[data-os]{flex:1 1 100%}.ov select[data-oc]{flex:1 1 auto}
+.ov.tr{display:grid;grid-template-columns:1fr 1fr}.ov.tr b{grid-column:1/-1;width:auto!important}
+.ov.tr input{width:100%;min-width:0!important}
+}
 </style>
 </head>
 <body>
@@ -24,7 +35,7 @@ select,input[type=date],input[type=text],input[type=tel]{padding:9px;border-radi
 <div class="logo" id="logo"></div>
 <div><div class="t1">Genius Mind <b>Academy</b></div><div class="t2">Teacher &middot; Settings</div></div>
 </header>
-<div style="max-width:640px;margin:10px auto 0;padding:0 16px"><a href="teachers.html" style="display:inline-block;padding:9px 16px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;text-decoration:none;font-weight:800;font-size:14px">&larr; Teacher menu</a> <a style="display:none" href="https://docs.google.com/spreadsheets/d/1innYlrTnOavDg_Db0zRkqg0m8mY-N9DBTKJ0-TNFRrw/edit" target="_blank" rel="noopener" style="display:inline-block;padding:9px 16px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;text-decoration:none;font-weight:800;font-size:14px">📊 Google Sheet</a> <button id="navlogout" type="button" style="float:right;padding:9px 16px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;font:inherit;font-weight:800;font-size:14px;cursor:pointer" onclick="try{sessionStorage.removeItem('gma_pin');sessionStorage.removeItem('gma_view_pin')}catch(e){}location.reload()">Log out</button></div>
+<div class="navrow"><a href="teachers.html">&larr; Teacher menu</a><button id="navlogout" type="button" onclick="try{sessionStorage.removeItem('gma_pin');sessionStorage.removeItem('gma_view_pin')}catch(e){}location.reload()">Log out</button></div>
 <main class="wrap" id="app"></main>
 <script>
 var SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbwvukSXQHKhnbMndouaYUC07qpx_2tXQWkbUTIYsrCB8gSbByjQ7u0zqkKu4RiY66E7/exec';
@@ -54,7 +65,7 @@ function render() {
   if (!S.authed) {
     h += '<div class="card"><h2>Teacher login</h2><label>Password</label><input type="password" id="pin" autocomplete="current-password" value="' + esc(PIN) + '">';
     if (S.err) h += '<div class="err">' + esc(S.err) + '</div>';
-    h += '<button class="btn" id="login"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Please wait...' : 'Log in') + '</button></div>';
+    h += '<button class="btn pri" id="login"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Please wait...' : 'Log in') + '</button></div>';
     app.innerHTML = h; return;
   }
   h += '<div class="card"><h2>Parents per time slot</h2><p class="small" style="color:var(--muted)">How many parents may book the same date &amp; time. Applies to new bookings and changes.</p>';
@@ -66,15 +77,15 @@ function render() {
   S.over.forEach(function (o, i) {
     h += '<div class="ov"><input type="date" data-od="' + i + '" value="' + esc(o.date) + '"><select data-os="' + i + '">';
     ['BT', 'TC', 'TCBT'].forEach(function (k) { h += '<option value="' + k + '"' + (o.svc === k ? ' selected' : '') + '>' + NAMES[k] + '</option>'; });
-    h += '</select><select data-oc="' + i + '">' + opts(1, 3, o.cap) + '</select><button class="x" data-del="' + i + '" type="button">&times;</button></div>';
+    h += '</select><select data-oc="' + i + '">' + opts(1, 3, o.cap, 'parent(s) per slot') + '</select><button class="x" data-del="' + i + '" type="button">&times;</button></div>';
   });
   h += '<button class="btn sec2" id="addov" type="button" style="margin-top:10px">+ Add a special date</button></div>';
   h += '<div class="card"><h2>Follow-up teachers (up to 10)</h2><p class="small" style="color:var(--muted)">Name and WhatsApp number of each teacher / sales person. Teachers pick themselves for each parent on the Spin &amp; Win teacher page.</p>';
-  for (var t = 0; t < 10; t++) { var T = S.teachers[t] || {}; h += '<div class="ov"><b style="width:74px">Teacher ' + (t + 1) + '</b><input type="text" data-tn="' + t + '" placeholder="Name" value="' + esc(T.name || '') + '" style="flex:1;min-width:110px"><input type="tel" data-tp="' + t + '" placeholder="Phone e.g. 012-3456789" value="' + esc(T.phone || '') + '" style="flex:1;min-width:130px"></div>'; }
+  for (var t = 0; t < 10; t++) { var T = S.teachers[t] || {}; h += '<div class="ov tr"><b style="width:74px">Teacher ' + (t + 1) + '</b><input type="text" data-tn="' + t + '" placeholder="Name" value="' + esc(T.name || '') + '" style="flex:1;min-width:110px"><input type="tel" data-tp="' + t + '" placeholder="Phone" value="' + esc(T.phone || '') + '" style="flex:1;min-width:130px"></div>'; }
   h += '</div>';
   if (S.err) h += '<div class="err">' + esc(S.err) + '</div>';
   if (S.msg) h += '<div class="okm">' + esc(S.msg) + '</div>';
-  h += '<button class="btn" id="save"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Saving...' : 'Save settings') + '</button>';
+  h += '<button class="btn pri" id="save"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Saving...' : 'Save settings') + '</button>';
   app.innerHTML = h;
 }
 function readForm() {
