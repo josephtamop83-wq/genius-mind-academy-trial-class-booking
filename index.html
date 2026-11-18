@@ -437,11 +437,15 @@ function toast(m){var e=document.createElement('div');e.className='toast';e.text
 function load(){try{return JSON.parse(localStorage.getItem('gma_booked_v1'))||{trial:{},report:{},bookings:[]}}catch(e){return {trial:{},report:{},bookings:[]}}}
 function save(o){if(CFG.SUBMIT_URL)return;try{localStorage.setItem('gma_booked_v1',JSON.stringify(o))}catch(e){}}
 var MEM=null; function store(){if(!MEM)MEM=CFG.SUBMIT_URL?{trial:{},report:{},bookings:[]}:load();return MEM}
-var SLOT_CAP=2;   // parents allowed per date & time slot (must match the Google Apps Script)
+var SLOT_CAP=2,REPORT_CAP=1;   // parents per Trial Class slot / per Brain Test Report Collection slot (match the Google Apps Script)
 function refCount(v){return v?String(v).split(',').filter(Boolean).length:0}
 function addRef(m,k,r){m[k]=m[k]?m[k]+','+r:r}
 function delRef(m,k,r){var a=String(m[k]||'').split(',').filter(function(x){return x&&x!==r});if(a.length)m[k]=a.join(',');else delete m[k]}
-function taken(kind,date,label){return refCount(store()[kind][date+'|'+label])>=SLOT_CAP}
+function taken(kind,date,label){
+var refs=String(store()[kind][date+'|'+label]||'').split(',').filter(Boolean);
+if(kind==='report'&&S.service==='BT')return refs.length>=REPORT_CAP;   // Brain Test Report Collection: 1 parent per slot
+if(kind==='report')return refs.length>=SLOT_CAP||refs.some(function(r){return /^BR/.test(r)});   // report part of a Trial Class + Brain Test
+return refs.length>=SLOT_CAP}   // Trial Class / Trial Class + Brain Test: 2 parents per slot
 function mins(l){var m=l.match(/(\d+):(\d+)(am|pm)/);return (parseInt(m[1],10)%12+(m[3]==='pm'?12:0))*60+parseInt(m[2],10)}
 function range(l){var p=l.split('–');return [mins(p[0]+(/am|pm/.test(p[0])?'':p[1].slice(-2))),mins(p[1])]}
 function reportFor(date,trialLabel){ // the report slot that starts inside the trial window (first one)
@@ -838,7 +842,7 @@ if(!bk){cb({ok:false,error:'notfound'});return}
 if(body.action==='update'){bk.parent=body.parent;bk.children=body.children;save(mm);cb({ok:true,booking:bkView(bk)});return}
 var K=bk.service==='BT'?'report':'trial',oldMain=bk.date+'|'+bk.slot,oldRep=bk.service==='TCBT'&&bk.reportSlot?bk.date+'|'+bk.reportSlot:null;
 delRef(mm[K],oldMain,bk.ref);if(oldRep)delRef(mm.report,oldRep,bk.ref);
-if(refCount(mm[K][body.date+'|'+body.slot])>=SLOT_CAP){addRef(mm[K],oldMain,bk.ref);if(oldRep)addRef(mm.report,oldRep,bk.ref);cb({ok:false,error:'taken'});return}
+if(refCount(mm[K][body.date+'|'+body.slot])>=(K==='report'&&bk.service==='BT'?REPORT_CAP:SLOT_CAP)){addRef(mm[K],oldMain,bk.ref);if(oldRep)addRef(mm.report,oldRep,bk.ref);cb({ok:false,error:'taken'});return}
 var dup=!!(body.reportSlot&&bk.service==='TCBT'&&refCount(mm.report[body.date+'|'+body.reportSlot])>=SLOT_CAP);
 addRef(mm[K],body.date+'|'+body.slot,bk.ref);if(bk.service==='TCBT'&&body.reportSlot&&!dup)addRef(mm.report,body.date+'|'+body.reportSlot,bk.ref);
 bk.date=body.date;bk.slot=body.slot;bk.reportSlot=body.reportSlot;bk.duplicateReport=dup;save(mm);cb({ok:true,booking:bkView(bk)});
