@@ -437,7 +437,11 @@ function toast(m){var e=document.createElement('div');e.className='toast';e.text
 function load(){try{return JSON.parse(localStorage.getItem('gma_booked_v1'))||{trial:{},report:{},bookings:[]}}catch(e){return {trial:{},report:{},bookings:[]}}}
 function save(o){if(CFG.SUBMIT_URL)return;try{localStorage.setItem('gma_booked_v1',JSON.stringify(o))}catch(e){}}
 var MEM=null; function store(){if(!MEM)MEM=CFG.SUBMIT_URL?{trial:{},report:{},bookings:[]}:load();return MEM}
-function taken(kind,date,label){return !!store()[kind][date+'|'+label]}
+var SLOT_CAP=2;   // parents allowed per date & time slot (must match the Google Apps Script)
+function refCount(v){return v?String(v).split(',').filter(Boolean).length:0}
+function addRef(m,k,r){m[k]=m[k]?m[k]+','+r:r}
+function delRef(m,k,r){var a=String(m[k]||'').split(',').filter(function(x){return x&&x!==r});if(a.length)m[k]=a.join(',');else delete m[k]}
+function taken(kind,date,label){return refCount(store()[kind][date+'|'+label])>=SLOT_CAP}
 function mins(l){var m=l.match(/(\d+):(\d+)(am|pm)/);return (parseInt(m[1],10)%12+(m[3]==='pm'?12:0))*60+parseInt(m[2],10)}
 function range(l){var p=l.split('–');return [mins(p[0]+(/am|pm/.test(p[0])?'':p[1].slice(-2))),mins(p[1])]}
 function reportFor(date,trialLabel){ // the report slot that starts inside the trial window (first one)
@@ -783,8 +787,8 @@ var b={ref:ref,upgradeRef:upgRef(),reportSame:repSame(),service:S.service,date:S
 parent:S.d.parent,phone:normPhone(S.d.phone),children:S.d.children,created:new Date().toISOString()};
 S.busy=true;render();
 var finish=function(){
-var mm=store();mm[K][S.date+'|'+S.slot]=b.ref;
-if(S.service==='TCBT'&&rf&&!dup)mm.report[rdt+'|'+rf]=b.ref;
+var mm=store();addRef(mm[K],S.date+'|'+S.slot,b.ref);
+if(S.service==='TCBT'&&rf&&!dup)addRef(mm.report,rdt+'|'+rf,b.ref);
 mm.bookings.push(b);save(mm);
 S.busy=false;S.done=b;stopHold();render();window.scrollTo(0,0);
 };
@@ -833,10 +837,10 @@ MEM=load();var mm=MEM,bk=mm.bookings.filter(function(x){return x.ref===body.ref&
 if(!bk){cb({ok:false,error:'notfound'});return}
 if(body.action==='update'){bk.parent=body.parent;bk.children=body.children;save(mm);cb({ok:true,booking:bkView(bk)});return}
 var K=bk.service==='BT'?'report':'trial',oldMain=bk.date+'|'+bk.slot,oldRep=bk.service==='TCBT'&&bk.reportSlot?bk.date+'|'+bk.reportSlot:null;
-delete mm[K][oldMain];if(oldRep)delete mm.report[oldRep];
-if(mm[K][body.date+'|'+body.slot]){mm[K][oldMain]=bk.ref;if(oldRep)mm.report[oldRep]=bk.ref;cb({ok:false,error:'taken'});return}
-var dup=!!(body.reportSlot&&bk.service==='TCBT'&&mm.report[body.date+'|'+body.reportSlot]);
-mm[K][body.date+'|'+body.slot]=bk.ref;if(bk.service==='TCBT'&&body.reportSlot&&!dup)mm.report[body.date+'|'+body.reportSlot]=bk.ref;
+delRef(mm[K],oldMain,bk.ref);if(oldRep)delRef(mm.report,oldRep,bk.ref);
+if(refCount(mm[K][body.date+'|'+body.slot])>=SLOT_CAP){addRef(mm[K],oldMain,bk.ref);if(oldRep)addRef(mm.report,oldRep,bk.ref);cb({ok:false,error:'taken'});return}
+var dup=!!(body.reportSlot&&bk.service==='TCBT'&&refCount(mm.report[body.date+'|'+body.reportSlot])>=SLOT_CAP);
+addRef(mm[K],body.date+'|'+body.slot,bk.ref);if(bk.service==='TCBT'&&body.reportSlot&&!dup)addRef(mm.report,body.date+'|'+body.reportSlot,bk.ref);
 bk.date=body.date;bk.slot=body.slot;bk.reportSlot=body.reportSlot;bk.duplicateReport=dup;save(mm);cb({ok:true,booking:bkView(bk)});
 },300)
 }
