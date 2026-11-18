@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>GMA Staff - Booking Calendar</title>
+<title>Teacher Booking Overview</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <style>
@@ -54,9 +54,10 @@ input.s{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(-
 <body>
 <header class="top">
 <div class="logo" id="logo"></div>
-<div><div class="t1">Genius Mind <b>Academy</b></div><div class="t2">Booking calendar · staff only</div></div>
+<div><div class="t1">Genius Mind <b>Academy</b></div><div class="t2">Teacher Booking Overview · staff only</div></div>
 </header>
 <div style="max-width:640px;margin:10px auto 0;padding:0 16px"><a href="teachers.html" style="display:inline-block;padding:9px 16px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;text-decoration:none;font-weight:800;font-size:14px">&larr; Teacher menu</a> <a href="https://docs.google.com/spreadsheets/d/1innYlrTnOavDg_Db0zRkqg0m8mY-N9DBTKJ0-TNFRrw/edit" target="_blank" rel="noopener" style="display:inline-block;padding:9px 16px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;text-decoration:none;font-weight:800;font-size:14px">📊 Google Sheet</a> <button id="navlogout" type="button" style="float:right;padding:9px 16px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;font:inherit;font-weight:800;font-size:14px;cursor:pointer" onclick="try{sessionStorage.removeItem('gma_pin');sessionStorage.removeItem('gma_view_pin')}catch(e){}location.reload()">Log out</button></div>
+<h1 style="max-width:640px;margin:14px auto 0;padding:0 16px;text-align:center;font-size:26px;color:#d94a1e;font-weight:800">Teacher Booking Overview</h1>
 <main class="wrap" id="app"></main>
 <script>
 var SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbwvukSXQHKhnbMndouaYUC07qpx_2tXQWkbUTIYsrCB8gSbByjQ7u0zqkKu4RiY66E7/exec';   // same Google Apps Script web app URL as index.html
@@ -71,6 +72,7 @@ var S = { authed: false, busy: false, err: '', events: [], bookings: [], month: 
 var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 10 minutes.', disabled: 'The calendar is not turned on yet (set VIEW_PIN or STAFF_PIN in the Google script).', nourl: 'SUBMIT_URL is not set in calendar.html yet.' };
 var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
+function fmtMade(s) { var m = String(s).match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}:\d{2})/); if (!m) return s; var mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return parseInt(m[3], 10) + ' ' + mn[parseInt(m[2], 10) - 1] + ' ' + m[1] + ' · ' + m[4]; }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 function pad(n) { return (n < 10 ? '0' : '') + n; }
 function dkey(y, m, d) { return y + '-' + pad(m) + '-' + pad(d); }
@@ -184,8 +186,8 @@ function card(e, showDate) {
   h += '<div class="who">' + esc(b.parent) + '</div><div class="kids">' + kids + '</div>';
   h += '<div>' + (b.prizes || []).map(function (p) { return '<span class="tag p">🎁 ' + esc(p) + '</span>'; }).join('');
   if (b.clash) h += '<span class="tag c">Report time clash - call customer</span>';
-  else if (b.service === 'TCBT' && !b.reportSlot && e.kind === 'trial') h += '<span class="tag c">No report time - arrange with customer</span>';
-  h += '</div><div class="meta">' + esc(SVC[b.service] || '') + ' · ' + esc(b.ref) + '</div>';
+  else if (b.service === 'TCBT' && !b.reportSlot && !b.sameTrial && e.kind === 'trial') h += '<span class="tag c">No report time - arrange with customer</span>';
+  h += '</div><div class="meta">' + esc(SVC[b.service] || '') + ' · ' + esc(b.ref) + '</div>' + (b.made ? '<div class="meta"><b>Transaction Date:</b> ' + esc(fmtMade(b.made)) + '</div>' : '');
   h += attHtml(e);
   h += '<div class="act noprint"><a class="wa" href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a><a href="tel:+' + esc(b.phone) + '">Call ' + esc(fmtPhone(b.phone)) + '</a></div>';
   return h + '</div></div>';

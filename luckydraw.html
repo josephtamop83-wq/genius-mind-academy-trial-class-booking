@@ -29,18 +29,19 @@ var LOGO_URL = 'logo.png';
 var MAX_CHILDREN = 10;
 
 var T = {
- en: { h: 'Genius Mind Registration', p: 'Fill in your details, then show the screen to our teacher. Each registration gets one spin on the wheel. The prize can be used for every child.',
+ en: { h: 'Spin & Win Registration', s1: 'Step 1 of 2: Enter your mobile number, then tap Continue. If you have registered before, we will load your registration.', s1h: 'Search your registration', cont: 'Continue →', s2: 'Step 2 of 2: Fill in your details, then show the screen to our teacher.', p: 'Fill in your details, then show the screen to our teacher. Each registration gets one spin on the wheel. The prize can be used for every child.',
   parent: 'Parent name', phone: 'Mobile number', phone_h: 'e.g. 012-3456789', child: 'Child', cname: "Child's name", gender: 'Gender', male: 'Male', female: 'Female', age: 'Age (children aged 4–15)', choose: 'Choose…',
   add: '+ Add another child', remove: 'Remove', consent: 'I agree that Genius Mind Academy may collect and use my details for registration and to contact me about my prizes and bookings (PDPA).',
   submit: 'Register', busy: 'Please wait…', e_req: 'Please enter the parent name.', e_phone: 'Please enter a valid Malaysian mobile number.', e_kids: "Please fill in each child's name, gender and age (age 4–15).", e_consent: 'Please tick the consent box.', e_send: 'Could not send. Please check the internet and try again.',
   done: 'You are registered!', spins: 'Spin &amp; Win (one per registration)', show: 'Show this screen to our teacher, then let your child play Spin &amp; Win.', already: 'This number is already registered. Here are your details.', children: 'Children', book: 'Book your free Trial Class / Brain Test Report', another: 'Register another number' },
- zh: { h: 'Genius Mind 登记', p: '请填写资料，然后把屏幕给老师看。每次登记可转一次转盘，奖品适用于每位孩子。',
+ zh: { h: 'Spin & Win 登记', s1: '第 1 步（共 2 步）：请输入手机号码，然后点击继续。如果您之前已登记，我们会调出您的登记资料。', s1h: '查询您的登记', cont: '继续 →', s2: '第 2 步（共 2 步）：请填写资料，然后把屏幕给老师看。', p: '请填写资料，然后把屏幕给老师看。每次登记可转一次转盘，奖品适用于每位孩子。',
   parent: '家长姓名', phone: '手机号码', phone_h: '例如 012-3456789', child: '孩子', cname: '孩子姓名', gender: '性别', male: '男', female: '女', age: '年龄（4 至 15 岁的孩子）', choose: '请选择…',
   add: '+ 添加孩子', remove: '删除', consent: '我同意 Genius Mind Academy 为本次登记及联系我领取奖品和预约而收集及使用我的资料（PDPA）。',
   submit: '登记', busy: '请稍候…', e_req: '请输入家长姓名。', e_phone: '请输入有效的马来西亚手机号码。', e_kids: '请填写每位孩子的姓名、性别和年龄（4–15 岁）。', e_consent: '请勾选同意。', e_send: '发送失败，请检查网络后重试。',
   done: '登记成功！', spins: '次 Spin &amp; Win 机会（每次登记一次）', show: '请把此屏幕给老师看，然后让孩子玩 Spin &amp; Win。', already: '此号码已登记过，以下是您的资料。', children: '孩子', book: '预约您的免费试课 / 脑测报告', another: '登记另一个号码' }
 };
-var S = { lang: 'en', parent: '', phone: '', kids: [{ name: '', gender: '', age: '' }], consent: false, err: '', busy: false, done: null };
+var S = { lang: 'en', parent: '', phone: (function () { try { var m = location.search.match(/[?&]phone=([^&]+)/); return m ? decodeURIComponent(m[1]) : ''; } catch (x) { return ''; } })(), kids: [{ name: '', gender: '', age: '' }], consent: false, err: '', busy: false, done: null, stage: 'search' };
+S.stage = S.phone ? 'form' : 'search';
 var app = document.getElementById('app');
 function t(k) { return T[S.lang][k]; }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -50,7 +51,12 @@ function render() {
   document.documentElement.lang = S.lang;
   [].forEach.call(document.querySelectorAll('.lang button'), function (b) { b.classList.toggle('on', b.dataset.lang === S.lang); });
   if (S.done) { app.innerHTML = doneView(); return; }
-  var h = '<div style="font-family:Fredoka,sans-serif;font-weight:700;font-size:34px;letter-spacing:1px;color:#f7941d;margin:0 0 6px">SPIN &amp; WIN</div><h2>' + t('h') + '</h2><p class="sub">' + t('p') + '</p><div class="card">';
+  if (S.stage === 'search') {
+    app.innerHTML = '<div style="font-family:Fredoka,sans-serif;font-weight:700;font-size:34px;letter-spacing:1px;color:#f7941d;margin:0 0 6px">SPIN &amp; WIN</div><h2>' + t('h') + '</h2><p class="sub" style="color:#d4281c;font-weight:800">' + t('s1') + '</p><div class="card"><label class="f">' + t('phone') + ' *</label><input type="tel" id="phone" placeholder="' + t('phone_h') + '" value="' + esc(S.phone) + '" autocomplete="tel"></div>' +
+      (S.err ? '<div class="msg">' + esc(S.err) + '</div>' : '') + '<button class="btn pri" id="search" style="width:100%;margin-top:10px"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? t('busy') : t('cont')) + '</button>';
+    return;
+  }
+  var h = '<div style="font-family:Fredoka,sans-serif;font-weight:700;font-size:34px;letter-spacing:1px;color:#f7941d;margin:0 0 6px">SPIN &amp; WIN</div><h2>' + t('h') + '</h2><p class="sub">' + t('s2') + ' ' + t('p').replace(/^[^.。]*[.。]\s*/, '') + '</p><div class="card">';
   h += '<label class="f">' + t('parent') + ' *</label><input type="text" id="parent" value="' + esc(S.parent) + '" autocomplete="name">';
   h += '<label class="f">' + t('phone') + ' *</label><input type="tel" id="phone" placeholder="' + t('phone_h') + '" value="' + esc(S.phone) + '" autocomplete="tel"></div>';
   S.kids.forEach(function (c, i) {
@@ -81,7 +87,19 @@ document.addEventListener('click', function (e) {
   if (el.dataset.lang) { S.lang = el.dataset.lang; render(); return; }
   if (el.id === 'addkid') { S.kids.push({ name: '', gender: '', age: '' }); render(); return; }
   if (el.dataset.rm !== undefined) { S.kids.splice(+el.dataset.rm, 1); render(); return; }
-  if (el.id === 'again') { S = { lang: S.lang, parent: '', phone: '', kids: [{ name: '', gender: '', age: '' }], consent: false, err: '', busy: false, done: null }; render(); return; }
+  if (el.id === 'again') { S = { lang: S.lang, parent: '', phone: '', kids: [{ name: '', gender: '', age: '' }], consent: false, err: '', busy: false, done: null, stage: 'search' }; render(); return; }
+  if (el.id === 'search') {
+    if (!/^(\+?6?0)1\d[- ]?\d{7,8}$/.test(S.phone.replace(/\s/g, ''))) { S.err = t('e_phone'); render(); return; }
+    S.err = ''; S.busy = true; render();
+    api({ action: 'lookup', phone: normPhone(S.phone) }, function (j) {
+      S.busy = false;
+      if (j && j.ok && j.found && j.children && j.children.length) { j.already = true; S.done = j; }
+      else if (j && j.ok) { S.stage = 'form'; }
+      else S.err = t('e_send');
+      render(); window.scrollTo(0, 0);
+    });
+    return;
+  }
   if (el.id === 'submit') {
     if (!S.parent.trim()) { S.err = t('e_req'); render(); return; }
     if (!/^(\+?6?0)1\d[- ]?\d{7,8}$/.test(S.phone.replace(/\s/g, ''))) { S.err = t('e_phone'); render(); return; }

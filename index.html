@@ -362,7 +362,7 @@ closed:'Closed / Past',avail:'Available',full:'Fully booked',slots:'Available ti
 free_slot:'Available',taken:'Taken',hold:'Your slot is held for {t}',hold_end:'Your slot hold expired. Please choose again.',
 report_note:'We will reserve your brain test report collection time automatically: {t}',
 report_dup:'The matching report-collection time is already taken. Our team will call you to arrange the report collection time.',
-rep_same:'Your Brain Test Report Collection will be done together with your Trial Class on this date.',report_none:'There is no matching report-collection time on this day. Our team will call you to arrange your report collection time.',rp_h:'Choose your report collection',rp_date:'Report date',rp_pick:'Choose a date',rp_slot:'Report time',rp_nofree:'No free time on this date. Please pick another date.',e_rep:'Please choose your brain test report collection date and time.',
+txn:'Transaction date',rep_with:'With your Trial Class (same date & time)',h_phone_sp:'Spin & Win Registration',rep_same:'Your Brain Test Report Collection will be done together with your Trial Class on this date.',report_none:'There is no matching report-collection time on this day. Our team will call you to arrange your report collection time.',rp_h:'Choose your report collection',rp_date:'Report date',rp_pick:'Choose a date',rp_slot:'Report time',rp_nofree:'No free time on this date. Please pick another date.',e_rep:'Please choose your brain test report collection date and time.',
 h_pay:'Payment',p_pay:'Transfer the trial class fee and upload your bank slip.',
 amount:'Amount to pay',bank_details:'Bank details',bank:'Bank',holder:'Account name',accno:'Account no.',
 slip:'Bank slip',slip_btn:'Upload bank slip',slip_hint:'JPG, PNG or PDF · max 5 MB',slip_bad:'Please upload a JPG, PNG or PDF under 5 MB.',
@@ -401,7 +401,7 @@ closed:'休息 / 已过',avail:'可预约',full:'已满',slots:'可选时段',pi
 free_slot:'可预约',taken:'已被预约',hold:'您的时段已为您保留 {t}',hold_end:'时段保留已过期，请重新选择。',
 report_note:'我们会自动为您保留脑测报告领取时间：{t}',
 report_dup:'对应的报告领取时间已被预约，我们的团队会致电与您安排报告领取时间。',
-rep_same:'您的领取脑测报告将与试课在同一天、同一时段一起进行。',report_none:'当天没有对应的报告领取时段，我们的团队会致电与您安排报告领取时间。',rp_h:'选择报告领取时间',rp_date:'报告日期',rp_pick:'请选择日期',rp_slot:'报告时间',rp_nofree:'此日期没有空位，请选择其他日期。',e_rep:'请选择脑测报告领取的日期和时间。',
+txn:'预约时间',rep_with:'与试课同一天、同一时段',h_phone_sp:'Spin & Win 登记',rep_same:'您的领取脑测报告将与试课在同一天、同一时段一起进行。',report_none:'当天没有对应的报告领取时段，我们的团队会致电与您安排报告领取时间。',rp_h:'选择报告领取时间',rp_date:'报告日期',rp_pick:'请选择日期',rp_slot:'报告时间',rp_nofree:'此日期没有空位，请选择其他日期。',e_rep:'请选择脑测报告领取的日期和时间。',
 h_pay:'付款',p_pay:'请转账试课费用并上传银行单。',
 amount:'应付金额',bank_details:'银行资料',bank:'银行',holder:'户口名称',accno:'户口号码',
 slip:'银行单',slip_btn:'上传银行单',slip_hint:'JPG、PNG 或 PDF · 最大 5MB',slip_bad:'请上传小于 5MB 的 JPG、PNG 或 PDF。',
@@ -515,7 +515,7 @@ if(CFG.FACEBOOK)h+='<a class="lnk fb" href="'+CFG.FACEBOOK+'" target="_blank" re
 return '<div class="links"><div class="lt">'+t('follow')+'</div>'+h+'</div>';
 }
 function viewPhone(){
-return '<div class="head"><h2>'+t('h_phone')+'</h2><p>'+t('p_phone')+'</p></div>'+
+return '<div class="head"><h2>'+t(/[?&]from=spin/.test(location.search)?'h_phone_sp':'h_phone')+'</h2><p>'+t('p_phone')+'</p></div>'+
 '<div class="card"><label class="f">'+t('phone_lbl')+' *</label><input type="tel" data-f="phone" placeholder="'+t('phone_ph')+'" value="'+esc(S.d.phone)+'" autocomplete="tel"></div>';
 }
 function backBtn(k){return '<div style="max-width:640px;margin:0 auto 10px"><button type="button" class="btn sec2" data-back="'+k+'" style="max-width:140px">← '+t('back')+'</button></div>'}
@@ -668,6 +668,16 @@ render();window.scrollTo(0,0)}
 if((wasDone||S.bookings.length)&&/^(\+?6?0)1\d[- ]?\d{7,8}$/.test(phone.replace(/\s/g,''))){
 lookup(phone,function(j){if(j&&j.ok){S.bookings=j.bookings||[];S.prizes=j.prizes||[];if(j.maxSpins!==undefined)S.maxSpins=j.maxSpins||10}finish()})}
 else finish()}
+function doneDetails(b){
+var sv=t(b.service==='TCBT'?'tcbt':b.service==='TC'?'tc':'bt');
+var kids=(b.children||[]).map(function(c){return c.name+' ('+(c.gender==='M'?t('male'):t('female'))+', '+c.age+')'}).join('; ');
+var rows=[[t('who'),b.parent],[t('ph'),b.phone],[t('kids'),kids],[t('svc'),sv]];
+if(b.service!=='BT'&&b.date)rows.push([t('tcd'),fmtDate(b.date)+' · '+b.slot]);
+if(b.service==='BT')rows.push([t('btd'),fmtDate(b.date)+' · '+b.slot]);
+else if(b.service==='TCBT')rows.push([t('btd'),b.reportSlot?(fmtDate(b.reportDate||b.date)+' · '+b.reportSlot):t('rep_with')]);
+var when='';try{when=new Date(b.created||Date.now()).toLocaleString('en-GB',{timeZone:'Asia/Kuala_Lumpur',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).replace(',',' ·')}catch(x){}
+if(when)rows.push([t('txn'),when]);
+return '<div class="card sum" style="text-align:left;margin:12px 0"><dl>'+rows.map(function(r){return '<dt>'+esc(r[0])+'</dt><dd>'+esc(r[1])+'</dd>'}).join('')+'</dl></div>'}
 function doneView(){
 var b=S.done,wa='';
 if(b.waSent)wa='<div class="note info">'+t('wa_ok')+'</div>';
@@ -675,7 +685,7 @@ else if(CFG.WHATSAPP){var msg='Hi Genius Mind Academy, I have booked ('+svcName(
 wa='<a class="btn pri" style="max-width:300px;text-decoration:none;display:inline-block;margin:6px 0" target="_blank" rel="noopener" href="https://wa.me/'+CFG.WHATSAPP+'?text='+encodeURIComponent(msg)+'">'+t('wa_btn')+'</a>'}
 else wa='<p>'+t('wa_later')+'</p>';
 var pzs=(b.prizes&&b.prizes.length)?'<div class="note info">🎁 '+b.prizes.map(esc).join('<br>')+'</div>':'';
-return backBtn('done')+'<div class="card done-card"><div class="tick">✓</div><h2>'+t('done')+'</h2><div>'+t('done_p')+'</div><div class="ref">'+esc(b.ref)+'</div>'+pzs+'<div class="note info" style="text-align:left"><b>'+t('where_h')+'</b>'+contactRows()+'</div>'+(CFG.SUBMIT_URL?payBlock(b):'<p>'+t('pay_centre')+'</p>')+actsBlock(wa)+
+return backBtn('done')+'<div class="card done-card"><div class="tick">✓</div><h2>'+t('done')+'</h2><div>'+t('done_p')+'</div><div class="ref">'+esc(b.ref)+'</div>'+doneDetails(b)+pzs+'<div class="note info" style="text-align:left"><b>'+t('where_h')+'</b>'+contactRows()+'</div>'+(CFG.SUBMIT_URL?payBlock(b):'<p>'+t('pay_centre')+'</p>')+actsBlock(wa)+
 (CFG.SUBMIT_URL?'':'<div class="note">'+t('demo')+'</div>')+'</div>';
 }
 function validate(cur){
@@ -741,6 +751,7 @@ if(!j||!j.ok){S.err=t('e_lookup');render();return}
 S.looked=n;S.welcome='';
 if(j.found&&j.parent){S.d.parent=j.parent;if(j.children&&j.children.length)S.d.children=j.children.map(function(c){return {name:c.name||'',gender:c.gender||'',age:c.age||''}})}
 S.bookings=j.bookings||[];S.prizes=j.prizes||[];if(j.maxSpins!==undefined)S.maxSpins=j.maxSpins||10;
+if(/[?&]from=spin/.test(location.search)&&!j.found&&!S.bookings.length){location.href='luckydraw.html?phone='+encodeURIComponent(S.d.phone);return}
 var rt=autoRoute();
 if(rt){S.home=false;S.service=rt;S.routeSvc=rt;S.routeKey=routeKey();S.d.consent=true;S.date=null;S.slot=null;S.rdate=null;S.rslot=null;S.welcome='';S.err='';S.step=steps().indexOf('date');render();window.scrollTo(0,0);return}
 if(S.bookings.length){S.home=true}
@@ -762,7 +773,7 @@ var st=range(S.slot)[0],hhmm=pad(Math.floor(st/60))+pad(st%60);
 var ref0=pf+S.date.replace(/-/g,'')+'-'+hhmm+'-';
 var seq=store().bookings.filter(function(x){return x.ref.indexOf(pf)===0&&/^[A-Z]{2}\d{8}-/.test(x.ref)}).length+1;
 var ref=ref0+('00'+seq).slice(-3);
-var b={ref:ref,upgradeRef:upgRef(),service:S.service,date:S.date,slot:S.slot,reportSlot:S.service==='TCBT'?rf:(S.service==='BT'?S.slot:null),reportDate:S.service==='TCBT'?rdt:null,duplicateReport:dup,
+var b={ref:ref,upgradeRef:upgRef(),reportSame:repSame(),service:S.service,date:S.date,slot:S.slot,reportSlot:S.service==='TCBT'?rf:(S.service==='BT'?S.slot:null),reportDate:S.service==='TCBT'?rdt:null,duplicateReport:dup,
 parent:S.d.parent,phone:normPhone(S.d.phone),children:S.d.children,created:new Date().toISOString()};
 S.busy=true;render();
 var finish=function(){
