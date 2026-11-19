@@ -50,24 +50,25 @@ function api(body, cb) {
   body.pin = PIN; var tries = 0;
   (function go() {
     tries++;
-    var ac = window.AbortController ? new AbortController() : null, to = setTimeout(function () { if (ac) ac.abort(); }, 25000);
-    fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify(body), signal: ac ? ac.signal : undefined }).then(function (r) { return r.json(); }).then(function (j) { clearTimeout(to); cb(j); }).catch(function () { clearTimeout(to); if (tries < 2 && body.action === 'staff_settings') go(); else cb(null); });
+    var ac = window.AbortController ? new AbortController() : null, to = setTimeout(function () { if (ac) ac.abort(); }, 15000);
+    fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify(body), signal: ac ? ac.signal : undefined }).then(function (r) { return r.json(); }).then(function (j) { clearTimeout(to); cb(j); }).catch(function () { clearTimeout(to); cb(null); });
   })();
 }
 var LOCK_UNTIL = 0, lockTimer = null;
 function lockMsg() { var s = Math.max(0, Math.ceil((LOCK_UNTIL - Date.now()) / 1000)); return 'Too many wrong passwords. Try again in ' + Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2) + '.'; }
 function startLock(sec) { LOCK_UNTIL = Date.now() + sec * 1000; clearInterval(lockTimer); lockTimer = setInterval(function () { if (Date.now() >= LOCK_UNTIL) { clearInterval(lockTimer); S.err = ''; render(); return; } var e = document.querySelector('.err'); if (e) e.textContent = lockMsg(); }, 1000); }
 document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('#login') && Date.now() < LOCK_UNTIL) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);   // while locked, extra tries do nothing and do not restart the timer
-function errText(j) { if (j && /^locked/.test(j.error || '')) { startLock(parseInt((j.error.split(':')[1] || 300), 10) || 300); return lockMsg(); } return !j ? 'Could not connect. Check the internet and try again (nothing was saved if this was a Save).' : (ERR[j.error] || ('Error: ' + j.error)); }
+function errText(j) { if (!j && S.slow) return 'The server is slow right now. Please tap Log in again.'; if (j && /^locked/.test(j.error || '')) { startLock(parseInt((j.error.split(':')[1] || 300), 10) || 300); return lockMsg(); } return !j ? 'Could not connect. Check the internet and try again (nothing was saved if this was a Save).' : (ERR[j.error] || ('Error: ' + j.error)); }
 function opts(from, to, cur, label) { var h = ''; for (var i = from; i <= to; i++) h += '<option value="' + i + '"' + (i === cur ? ' selected' : '') + '>' + i + (label ? ' ' + label : '') + '</option>'; return h; }
 function take(j) { S.caps = j.caps; S.maxChanges = j.maxChanges; S.lockHours = j.lockHours; S.over = j.over || []; S.teachers = j.teachers || []; }
 function render() {
   var h = '';
   if (!S.authed) {
-    h += '<div class="card"><h2>Teacher login</h2><label>Password</label><input type="password" id="pin" autocomplete="current-password" value="' + esc(PIN) + '">';
+    var cur = document.getElementById('pin'), had = cur && document.activeElement === cur, val = cur ? cur.value : PIN;
+    h += '<div class="card"><h2>Teacher login</h2><label>Password</label><input type="password" id="pin" autocomplete="current-password" value="' + esc(val) + '">';
     if (S.err) h += '<div class="err">' + esc(S.err) + '</div>';
     h += '<button class="btn pri" id="login"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Please wait...' : 'Log in') + '</button></div>';
-    app.innerHTML = h; return;
+    app.innerHTML = h; if (had) { var ni = document.getElementById('pin'); ni.focus(); try { ni.setSelectionRange(val.length, val.length); } catch (x) {} } return;
   }
   h += '<div class="card"><h2>Parents per time slot</h2><p class="small" style="color:var(--muted)">How many parents may book the same date &amp; time. Applies to new bookings and changes.</p>';
   ['BT', 'TC', 'TCBT'].forEach(function (k) { h += '<div class="row"><div><b>' + NAMES[k] + '</b></div><select data-cap="' + k + '">' + opts(1, 3, S.caps[k], 'parent' + '(s)') + '</select></div>'; });
@@ -100,7 +101,7 @@ function readForm() {
 function load() {
   S.busy = true; S.err = ''; render();
   api({ action: 'staff_settings' }, function (j) {
-    S.busy = false;
+    S.busy = false; S.slow = !j;
     if (j && j.ok) { S.authed = true; take(j); try { sessionStorage.setItem('gma_pin', PIN); } catch (x) {} } else { S.authed = false; S.err = PIN || j ? errText(j) : ''; }
     render();
   });
@@ -123,7 +124,7 @@ document.addEventListener('click', function (e) {
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.id === 'pin') document.getElementById('login').click(); });
 if (LOGO_URL) { var lg = document.getElementById('logo'), im = new Image(); im.className = 'brandlogo'; im.alt = ''; im.src = LOGO_URL; im.onload = function () { lg.replaceWith(im); }; }
-if (PIN) load(); else render();
+if (PIN) { S.busy = true; render(); api({ action: 'staff_settings' }, function (j) { S.busy = false; if (j && j.ok) { S.authed = true; take(j); } else { try { sessionStorage.removeItem('gma_pin'); } catch (x) {} PIN = ''; S.err = j ? errText(j) : ''; } render(); }); } else render();
 </script>
 </body>
 </html>
