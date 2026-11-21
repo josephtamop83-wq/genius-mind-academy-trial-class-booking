@@ -382,7 +382,7 @@ demo:'DEMO mode: this booking was saved only in this browser. Set SUBMIT_URL to 
 new_booking:'Make another booking',
 e_service:'Please choose a service.',e_req:'Please fill in all required fields.',e_phone:'Please enter a valid Malaysian mobile number.',e_email:'Please enter a valid email.',
 e_kids:'Please add {min}–{max} children and fill in each child\'s name, gender and age (age must be 4 to 15).',e_consent:'Please tick the consent box.',
-e_slot:'Please choose a date and a time slot.',e_slip:'Please upload your bank slip.',e_taken:'Sorry, that slot was just taken. Please choose another.',e_send:'Could not send your booking. Please try again.',e_busy:'Many parents are booking right now. Your details are still here: please tap Submit again.'},
+e_slot:'Please choose a date and a time slot.',e_slip:'Please upload your bank slip.',e_taken:'Sorry, that slot was just taken. Please choose another.',e_send:'Could not send your booking. Please try again.'},
 zh:{sub:'预约试课与领取脑测报告',
 s_service:'服务',s_details:'资料',s_date:'日期时间',s_pay:'付款',s_confirm:'确认',
 h_service:'选择服务',p_service_free:'Spin &amp; Win：请为您的免费试课或脑测预约日期',p_service:'试课优惠，只需 <span class="rm39">RM39</span>！',
@@ -421,7 +421,7 @@ demo:'演示模式：此预约只保存在这个浏览器里。请设置 SUBMIT_
 new_booking:'再预约一次',
 e_service:'请选择服务。',e_req:'请填写所有必填项。',e_phone:'请输入有效的马来西亚手机号码。',e_email:'请输入有效的电邮。',
 e_kids:'请添加 {min}–{max} 位孩子，并填写每位孩子的姓名、性别和年龄（年龄须为 4 至 15 岁）。',e_consent:'请勾选同意框。',
-e_slot:'请选择日期和时段。',e_slip:'请上传银行单。',e_taken:'抱歉，该时段刚被预约，请重新选择。',e_send:'提交失败，请重试。',e_busy:'现在很多家长同时预约，系统繁忙。您填的资料还在，请再按一次「提交预约」。'}
+e_slot:'请选择日期和时段。',e_slip:'请上传银行单。',e_taken:'抱歉，该时段刚被预约，请重新选择。',e_send:'提交失败，请重试。'}
 };
 var STATES=['Johor','Kedah','Kelantan','Melaka','Negeri Sembilan','Pahang','Penang','Perak','Perlis','Sabah','Sarawak','Selangor','Terengganu','Kuala Lumpur','Labuan','Putrajaya'];
 var S = {lang:'en',service:null,step:0,looked:'',welcome:'',existing:null,home:false,bookings:[],prizes:[],maxSpins:3,
@@ -514,9 +514,9 @@ return '<div class="head"><h2>'+t('h_service')+'</h2></div>'+prizeCard()+'<div c
 var reb=S.prizes.some(function(p){return p.pk==='REBATE'&&p.status==='Won'});
 return '<div class="head"><h2>'+t('h_service')+'</h2><p class="promo">'+t(fr?'p_service_free':'p_service')+'</p></div>'+(reb?'<div class="note info">'+t('sp_rebate')+'</div>':'')+
 (S.welcome?'<div class="note info">'+esc(S.welcome)+'</div>':'')+prizeCard()+(canUpgrade()?'<div class="note info">'+t('upg_note',{d:upgText()})+'</div>':'')+
-(allowedSvc('BT')&&!cOnly&&(!hasP||btN.length>0)?o('BT',fr?'bt_free':'bt','bt_d','<span class="badge g">45 min</span>'+(fr?'':'<span class="pr"><s>RM388</s> <b>FREE</b></span>')+free(btN)):'')+
+(allowedSvc('BT')&&!cOnly?o('BT',fr&&(!hasP||btN.length>0)?'bt_free':'bt','bt_d','<span class="badge g">45 min</span>'+(fr?'':'<span class="pr"><s>RM388</s> <b>FREE</b></span>')+free(btN)):'')+
 (allowedSvc('TC')&&!cOnly&&(!hasP||tcN.length>0)?o('TC','tc','tc_d','<span class="badge g">90 min</span>'+(fr?'':'<span class="pr"><s>RM100</s> <b>RM39 only</b></span>')+free(tcN)):'')+
-(allowedSvc('TCBT')&&(!fr||(tcN.length&&btN.length)||canUpgrade())?o('TCBT','tcbt','tcbt_d','<span class="badge g">90 min</span>'+(fr?'':'<span class="pr"><s>RM100</s> <b>RM39 only</b></span>')+free(tcN.concat(btN))):'');
+(allowedSvc('TCBT')&&(!fr||tcN.length>0||(tcN.length&&btN.length)||canUpgrade())?o('TCBT','tcbt','tcbt_d','<span class="badge g">90 min</span>'+(fr?'':'<span class="pr"><s>RM100</s> <b>RM39 only</b></span>')+free(tcN.concat(btN))):'');
 }
 function linksHtml(){
 var h='<a class="lnk" href="'+CFG.WEBSITE+'" target="_blank" rel="noopener">🌐 '+t('visit_web')+'</a>';
@@ -736,7 +736,7 @@ if(!(S.d.parent||'').trim()||!ks.length||ks.some(function(c){return !(c.name||''
 var combo=tc.some(function(p){return p.pk==='TCBT'})&&bt.some(function(p){return p.pk==='TCBT'});
 var hasBT=S.bookings.some(function(x){return x.service==='BT'}),hasT=S.bookings.some(function(x){return x.service!=='BT'});
 if(combo)return allowedSvc('TCBT')?'TCBT':'';
-if(tc.length){if(hasT)return '';return hasBT?'TCBT':'TC'}
+if(tc.length){if(hasT)return '';return hasBT?'TCBT':''}   // Trial Class prize without a Brain Test booking: let the parent choose (Trial Class, or Trial Class + Brain Test Report Collection)
 if(bt.length){if(hasBT)return 'BTEDIT';return allowedSvc('BT')?'BT':''}
 return ''}
 function upgText(){var o=S.bookings.filter(function(x){return x.service==='BT'})[0];return o?(fmtDate(o.reportDate||o.date)+' · '+(o.reportSlot||o.slot)):''}
@@ -810,7 +810,6 @@ throw (j&&j.error)||'err';
 }).catch(function(e){S.busy=false;
 if(e==='taken'){S.err=t('e_taken');S.step=steps().indexOf('date');S.slot=null;stopHold();loadRemote(render);return}
 if(e==='phone_used'){S.err=t('e_used');render();return}
-if(e==='busy'){S.err=t('e_busy');render();return}
 S.err=t('e_send');render()});
 }
 function contactRows(){
