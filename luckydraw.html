@@ -50,6 +50,7 @@ function normPhone(p) { var d = String(p || '').replace(/\D/g, ''); if (d.charAt
 function stepBar(cur) {
   return '<div class="steps">' + T[S.lang].stl.map(function (s, i) { return '<div class="st ' + (i < cur ? 'done' : i === cur ? 'cur' : '') + '"><div class="dot">' + (i < cur ? '✓' : i + 1) + '</div>' + s + '</div>'; }).join('') + '</div>';
 }
+function bad(isBad) { return S.showBad && isBad ? ' style="border-color:#d4281c;background:#fff1f0"' : ''; }
 function render() {
   document.documentElement.lang = S.lang;
   [].forEach.call(document.querySelectorAll('.lang button'), function (b) { b.classList.toggle('on', b.dataset.lang === S.lang); });
@@ -70,9 +71,9 @@ function render() {
   h += '<label class="f">' + t('phone') + ' *</label><input type="tel" id="phone" placeholder="' + t('phone_h') + '" value="' + esc(S.phone) + '" autocomplete="tel"></div>';
   S.kids.forEach(function (c, i) {
     h += '<div class="card child"><h4>' + t('child') + ' ' + (i + 1) + '</h4>' + (S.kids.length > 1 ? '<button class="rm" data-rm="' + i + '">' + t('remove') + '</button>' : '') +
-      '<label class="f">' + t('cname') + '</label><input type="text" data-c="' + i + '" data-k="name" value="' + esc(c.name) + '">' +
-      '<div class="grid2"><div><label class="f">' + t('gender') + '</label><select data-c="' + i + '" data-k="gender"><option value="">' + t('choose') + '</option><option value="M"' + (c.gender === 'M' ? ' selected' : '') + '>' + t('male') + '</option><option value="F"' + (c.gender === 'F' ? ' selected' : '') + '>' + t('female') + '</option></select></div>' +
-      '<div><label class="f">' + t('age') + '</label><input type="number" min="4" max="15" data-c="' + i + '" data-k="age" value="' + esc(c.age) + '"></div></div></div>';
+      '<label class="f">' + t('cname') + ' *</label><input type="text" data-c="' + i + '" data-k="name" value="' + esc(c.name) + '"' + bad(!c.name.trim()) + '>' +
+      '<div class="grid2"><div><label class="f">' + t('gender') + ' *</label><select data-c="' + i + '" data-k="gender"' + bad(!c.gender) + '><option value="">' + t('choose') + '</option><option value="M"' + (c.gender === 'M' ? ' selected' : '') + '>' + t('male') + '</option><option value="F"' + (c.gender === 'F' ? ' selected' : '') + '>' + t('female') + '</option></select></div>' +
+      '<div><label class="f">' + t('age') + ' *</label><input type="number" min="4" max="15" data-c="' + i + '" data-k="age" value="' + esc(c.age) + '"' + bad(!(+c.age >= 4 && +c.age <= 15)) + '></div></div></div>';
   });
   h += '<button class="add" id="addkid"' + (S.kids.length >= MAX_CHILDREN ? ' disabled' : '') + '>' + t('add') + '</button>';
   h += '<label class="check" style="margin-top:12px"><input type="checkbox" id="consent"' + (S.consent ? ' checked' : '') + '><span>' + t('consent') + '</span></label>';
@@ -114,7 +115,8 @@ document.addEventListener('click', function (e) {
   if (el.id === 'submit') {
     if (!S.parent.trim()) { S.err = t('e_req'); render(); return; }
     if (!/^(\+?6?0)1\d[- ]?\d{7,8}$/.test(S.phone.replace(/\s/g, ''))) { S.err = t('e_phone'); render(); return; }
-    if (S.kids.some(function (c) { return !c.name.trim() || !c.gender || !(+c.age >= 4 && +c.age <= 15); })) { S.err = t('e_kids'); render(); return; }
+    if (S.kids.some(function (c) { return !c.name.trim() || !c.gender || !(+c.age >= 4 && +c.age <= 15); })) { S.err = t('e_kids'); S.showBad = true; render(); return; }
+    S.showBad = false;
     if (!S.consent) { S.err = t('e_consent'); render(); return; }
     S.err = ''; S.busy = true; render();
     var ph = normPhone(S.phone);
