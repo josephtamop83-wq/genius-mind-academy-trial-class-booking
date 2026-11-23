@@ -149,11 +149,21 @@ function countDirty() {
   S.dirty = n; return n;
 }
 function locked(svc, k, l) { return bkd(svc, k, l) > 0; }
+S.refs = { TCBT: {}, TC: {}, BT: {} };
+function loadRefs(cb) {   // which bookings sit in each time, so the same family's own trial + report are not treated as a clash
+  fetch(SUBMIT_URL + '?action=booked').then(function (r) { return r.json(); }).then(function (j) {
+    var R = { TCBT: {}, TC: {}, BT: {} };
+    for (var k in (j.trial || {})) String(j.trial[k]).split(',').filter(Boolean).forEach(function (r) { (R[/^TB/.test(r) ? 'TCBT' : 'TC'][k] = R[/^TB/.test(r) ? 'TCBT' : 'TC'][k] || []).push(r); });
+    for (var k2 in (j.report || {})) String(j.report[k2]).split(',').filter(Boolean).forEach(function (r) { (R.BT[k2] = R.BT[k2] || []).push(r); });
+    S.refs = R; cb();
+  }).catch(function () { cb(); });
+}
+function sameFam(a, k, la, b, lb) { var x = S.refs[a][key(k, la)] || [], y = S.refs[b][key(k, lb)] || []; return x.some(function (r) { return y.indexOf(r) > -1; }); }
 function clashes() {   // red: more parents than allowed, or a booked time overlapping another booked time (old bookings)
   var red = {}, n = 0;
   DAYS.forEach(function (dy) {
     var L = []; T3.forEach(function (svc) { ROWS[svc].forEach(function (l) { var b = bkd(svc, dy.k, l); if (b > 0) { L.push([svc, l, win(svc, l)]); if (b > Math.max(1, capOf(svc, dy.k, l))) { red[svc + '|' + key(dy.k, l)] = 1; } } }); });
-    for (var i = 0; i < L.length; i++) for (var j = i + 1; j < L.length; j++) if (overlap(L[i][2], L[j][2])) { red[L[i][0] + '|' + key(dy.k, L[i][1])] = 1; red[L[j][0] + '|' + key(dy.k, L[j][1])] = 1; }
+    for (var i = 0; i < L.length; i++) for (var j = i + 1; j < L.length; j++) if (overlap(L[i][2], L[j][2]) && !sameFam(L[i][0], dy.k, L[i][1], L[j][0], L[j][1])) { red[L[i][0] + '|' + key(dy.k, L[i][1])] = 1; red[L[j][0] + '|' + key(dy.k, L[j][1])] = 1; }
   });
   for (var q in red) n++; S.clashN = n; return red;
 }
@@ -242,7 +252,7 @@ function setBooked(j) { if (j && j.booked) S.booked = { TCBT: j.booked.TCBT || {
 function load() {
   S.busy = true; S.err = ''; render();
   api({ action: 'staff_avail' }, function (j) {
-    if (j && j.ok) { S.authed = true; try { sessionStorage.setItem('gma_pin', PIN); } catch (x) {} setBooked(j); buildRows(); take(j); S.busy = false; S.loaded = true; render(); }
+    if (j && j.ok) { S.authed = true; try { sessionStorage.setItem('gma_pin', PIN); } catch (x) {} setBooked(j); buildRows(); take(j); loadRefs(function () { S.busy = false; S.loaded = true; render(); }); }
     else { S.busy = false; S.authed = false; try { sessionStorage.removeItem('gma_pin'); } catch (x) {} S.err = (PIN || j) ? errText(j) : ''; render(); }
   });
 }
