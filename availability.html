@@ -59,7 +59,7 @@ var app = document.getElementById('app');
 var NAMES = { TCBT: 'Trial Class + Brain Test Report 试课+领取报告', TC: 'Trial Class only 只试课', BT: 'Brain Test Report only 只领取报告' };
 var T3 = ['TCBT', 'TC', 'BT'];
 var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 5 minutes.', disabled: 'Teacher password is not turned on yet.' };
-var S = { authed: false, busy: false, err: '', msg: '', svc: 'TCBT', on: false, st: { TCBT: {}, TC: {}, BT: {} }, sv: { TCBT: {}, TC: {}, BT: {} }, extra: [], booked: { TCBT: {}, TC: {}, BT: {} }, cap: 1, dirty: 0, loaded: false };
+var S = { authed: false, busy: false, err: '', msg: '', svc: 'TCBT', on: false, st: { TCBT: {}, TC: {}, BT: {} }, sv: { TCBT: {}, TC: {}, BT: {} }, extra: [], booked: { TCBT: {}, TC: {}, BT: {} }, cap: 1, month: '', dirty: 0, loaded: false };
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 function api(body, cb) {
   body.pin = PIN;
@@ -83,9 +83,9 @@ function mn(l) { var m = String(l).match(/^(\d+):(\d+)\s*(am|pm)/i); if (!m) ret
 function win(svc, l) { var m = String(l).match(/(\d+):(\d+)\s*(am|pm)\s*[–-]\s*(\d+):(\d+)\s*(am|pm)/i); if (!m) return null; var s = mn(m[1] + ':' + m[2] + m[3]), e = mn(m[4] + ':' + m[5] + m[6]); return [s, svc === 'BT' ? s + 60 : e]; }
 (function () {
   var t = new Date(Date.now() + 8 * 3600000), y = t.getUTCFullYear(), mo = t.getUTCMonth(), dd = t.getUTCDate();
-  for (var i = 0; i < 60; i++) {
+  for (var i = 0; i < 400; i++) {
     var d = new Date(Date.UTC(y, mo, dd + i)), w = d.getUTCDay(), k = d.toISOString().slice(0, 10);
-    DAYS.push({ k: k, w: w, d: d.getUTCDate(), m: d.getUTCMonth() + 1 });
+    DAYS.push({ k: k, w: w, d: d.getUTCDate(), m: d.getUTCMonth() + 1, mk: k.slice(0, 7), i: i });
     if ((k >= '2026-11-27' && k <= '2026-11-29') || k >= '2026-12-04') DEF.TC[k] = TR[w];
     if (k <= '2026-12-24') DEF.BT[k] = w === 0 ? HOURLY.slice(2) : w === 6 ? HOURLY.slice(0, 1) : w === 5 ? HOURLY.slice(0, 8) : HOURLY;
   }
@@ -126,6 +126,7 @@ function seed() {
   T3.forEach(function (svc) { S.st[svc] = {}; });
   DAYS.forEach(function (dy) {
     T3.forEach(function (svc) { ROWS[svc].forEach(function (l) { var b = bkd(svc, dy.k, l); if (b > 0) S.st[svc][key(dy.k, l)] = (svc === 'TC' ? b : 1); }); });
+    if (dy.i >= 60) return;   // first-time suggestion covers the next 60 days only
     (DEF.TC[dy.k] || []).forEach(function (l) { if (!(capOf('TCBT', dy.k, l) > 0) && !(capOf('TC', dy.k, l) > 0)) applyOpen('TC', dy.k, l, 1); });
     (DEF.BT[dy.k] || []).forEach(function (l) { if (!(capOf('BT', dy.k, l) > 0)) applyOpen('BT', dy.k, l, 1); });
   });
@@ -174,12 +175,17 @@ function render() {
   h += '<div class="hint" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">Parents per time when opening 开放时每个时段可接几位家长（1-5）: <select id="capsel">' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (S.cap === n ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select> (tap a closed box to open it; tap an open box with a different number to change it, with the same number to close it 点空格=开放；点已开放且数字不同的格子=改人数；数字相同=关闭)</div>';
   if (S.err) h += '<div class="err">' + esc(S.err) + '</div>';
   if (S.msg) h += '<div class="okm">' + esc(S.msg) + '</div>';
+  var MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], months = [];
+  DAYS.forEach(function (dy) { if (months.indexOf(dy.mk) < 0) months.push(dy.mk); });
+  if (months.indexOf(S.month) < 0) S.month = months[0];
+  h += '<div class="tabs" style="margin-top:0">' + months.map(function (m) { return '<button data-mon="' + m + '" class="' + (S.month === m ? 'on' : '') + '" style="padding:6px 12px">' + MN[+m.slice(5) - 1] + ' ' + m.slice(0, 4) + '</button>'; }).join('') + '</div>';
+  var VD = DAYS.filter(function (dy) { return dy.mk === S.month; });
   h += '<div class="gridbox"><table class="g"><thead><tr><th class="corner">Time 时段</th>';
-  DAYS.forEach(function (dy) { h += '<th data-day="' + dy.k + '" class="' + (dy.w === 0 || dy.w === 6 ? 'we' : '') + '">' + WD[dy.w] + '<small>' + dy.d + '/' + dy.m + '</small></th>'; });
+  VD.forEach(function (dy) { h += '<th data-day="' + dy.k + '" class="' + (dy.w === 0 || dy.w === 6 ? 'we' : '') + '">' + WD[dy.w] + '<small>' + dy.d + '/' + dy.m + '</small></th>'; });
   h += '</tr></thead><tbody>';
   ROWS[svc].forEach(function (l, ri) {
     h += '<tr><th>' + (ri + 1) + '&nbsp;&nbsp;' + esc(l) + '</th>';
-    DAYS.forEach(function (dy) {
+    VD.forEach(function (dy) {
       var c = capOf(svc, dy.k, l), b = bkd(svc, dy.k, l), diff = c !== (S.sv[svc][key(dy.k, l)] || 0), rd = red[svc + '|' + key(dy.k, l)];
       var bl = (c === 0) ? blockedBy(svc, dy.k, l) : null;
       var cls = 'c ' + (rd ? 'bad' : b > 0 ? 'lock' : c > 0 ? 'open' : bl ? 'blk' : 'closed') + (diff ? ' chg' : '');
@@ -243,6 +249,7 @@ document.addEventListener('click', function (e) {
   var th = t.closest && t.closest('th[data-day]'); if (th && S.authed) { toggleDay(S.svc, th.dataset.day); render(); return; }
   var el = t.closest && t.closest('button'); if (!el) return;
   if (el.id === 'login') { PIN = document.getElementById('pin').value; load(); }
+  else if (el.dataset.mon) { S.month = el.dataset.mon; S.err = ''; S.msg = ''; render(); }
   else if (el.dataset.svc) { S.svc = el.dataset.svc; S.err = ''; S.msg = ''; render(); }
   else if (el.id === 'reset') { T3.forEach(function (svc) { S.st[svc] = {}; for (var kk in S.sv[svc]) S.st[svc][kk] = S.sv[svc][kk]; }); S.err = ''; S.msg = ''; render(); }
   else if (el.id === 'save') {
