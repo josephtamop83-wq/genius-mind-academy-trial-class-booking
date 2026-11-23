@@ -343,6 +343,9 @@ if((k>='2026-11-27'&&k<='2026-11-29')||k>='2026-12-04')T[k]=tr[w];
 if(k<='2026-12-24'){R[k]=w===0?S.slice(2):w===6?S.slice(0,1):w===5?S.slice(0,8):S}}
 return {TRIAL:T,REPORT:R}})();
 var TRIAL = DATA.TRIAL, REPORT = DATA.REPORT;
+var BASE_T=JSON.parse(JSON.stringify(TRIAL)),BASE_R=JSON.parse(JSON.stringify(REPORT));
+function mergeAvail(base,ov){var out={},k;for(k in base)out[k]=base[k].slice();for(k in (ov||{})){var cur=(out[k]||[]).slice(),m=ov[k];for(var l in m){var i=cur.indexOf(l);if(m[l]){if(i<0)cur.push(l)}else if(i>-1)cur.splice(i,1)}cur.sort(function(x,y){return range(x)[0]-range(y)[0]});if(cur.length)out[k]=cur;else delete out[k]}return out}
+function applyAvail(a){a=a||{};TRIAL=mergeAvail(BASE_T,a.TC);REPORT=mergeAvail(BASE_R,a.BT)}   // open / closed dates & times set by the teachers (Google Sheet tab "Availability")
 var I = {
 en:{sub:'Book your trial class & brain test report',
 s_service:'Service',s_details:'Details',s_date:'Date & Time',s_pay:'Payment',s_confirm:'Confirm',
@@ -883,7 +886,7 @@ S.err=t('e_send');render()});
 }
 function fresh(){if(!CFG.SUBMIT_URL)MEM=load()}
 function loadRemote(cb){if(!CFG.SUBMIT_URL){if(cb)cb();return}
-fetch(CFG.SUBMIT_URL+'?action=booked').then(function(r){return r.json()}).then(function(j){MEM={trial:j.trial||{},report:j.report||{},caps:j.caps||null,bookings:[]};if(cb)cb()}).catch(function(){if(cb)cb()})}
+fetch(CFG.SUBMIT_URL+'?action=booked').then(function(r){return r.json()}).then(function(j){MEM={trial:j.trial||{},report:j.report||{},caps:j.caps||null,bookings:[]};try{applyAvail(j.avail)}catch(e){}if(cb)cb()}).catch(function(){if(cb)cb()})}
 document.addEventListener('click',function(e){
 var el=e.target.closest('[data-svc],[data-date],[data-slot],[data-rslot],[data-nav],[data-rm],#addkid,#again,#chgnum,#newbk,#homebtn,[data-refprize],[data-mg],[data-back],[data-edate],[data-edet],[data-lang]');if(!el)return;
 if(el.dataset.mg!==undefined){var mk=el.dataset.mg,rf=S.done&&S.done.ref;if(mk==='home')myBookings();else goHome(mk,rf);return}

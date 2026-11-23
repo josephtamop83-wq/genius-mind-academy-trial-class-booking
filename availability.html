@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>GMA Teacher - Open Dates</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.wrap{max-width:1200px;margin:0 auto;padding:16px 12px 70px}
+.err{background:#fde8ea;color:var(--bad);border-radius:12px;padding:10px 12px;margin:10px 0;font-weight:700}
+.okm{background:#e8f5d4;color:#3d6b10;border-radius:12px;padding:10px 12px;margin:10px 0;font-weight:700}
+.navrow{max-width:1200px;margin:8px auto 0;padding:0 12px;display:flex;gap:8px;align-items:center}
+.navrow a,.navrow button{padding:8px 13px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;font:inherit;font-weight:800;font-size:13.5px;text-decoration:none;cursor:pointer;white-space:nowrap}
+.navrow button{margin-left:auto}
+#login{width:100%;min-height:46px;margin-top:6px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+.tabs button{padding:10px 16px;border-radius:999px;border:2px solid #ddd;background:#fff;font:inherit;font-weight:800;cursor:pointer}
+.tabs button.on{background:#fb5f3b;border-color:#fb5f3b;color:#fff}
+.legend{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:6px 0 10px;font-weight:700;font-size:14px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.lg{font-style:normal;display:inline-flex;flex:none;width:26px;height:22px;border:1px solid #bbb;align-items:center;justify-content:center;font-size:13px;font-weight:800}
+.gridbox{overflow:auto;border:1px solid #ccc;border-radius:10px;background:#fff;max-height:70vh}
+table.g{border-collapse:separate;border-spacing:0;font-size:13px}
+table.g th,table.g td{border-right:1px solid #e3e3e3;border-bottom:1px solid #e3e3e3;text-align:center;padding:0}
+table.g thead th{position:sticky;top:0;background:#c8c8c8;z-index:2;min-width:46px;padding:5px 2px;cursor:pointer;font-weight:800;line-height:1.25}
+table.g thead th small{display:block;font-weight:700;font-size:11px}
+table.g thead th.we{background:#b4b4b4}
+table.g thead th.corner{left:0;z-index:4;min-width:150px;cursor:default;background:#c8c8c8}
+table.g tbody th{position:sticky;left:0;background:#c8c8c8;z-index:1;text-align:left;padding:7px 8px;white-space:nowrap;font-weight:800}
+td.c{height:34px;min-width:46px;cursor:pointer;font-weight:800;user-select:none}
+td.c.open{background:#fff;color:#222}
+td.c.closed{background:#d9f2d4;color:transparent}
+td.c.lock{background:#fff4d6;color:#8a5a00;cursor:not-allowed;outline:2px solid #f0b429;outline-offset:-2px}
+td.c.chg{box-shadow:inset 0 0 0 3px #fb5f3b}
+td.c:hover{filter:brightness(.94)}
+.bar{position:sticky;bottom:0;background:#fffffff2;border-top:1px solid #ddd;padding:10px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px;border-radius:12px 12px 0 0}
+.bar .grow{flex:1;font-weight:700}
+.btn{cursor:pointer}
+.bar button{min-height:44px;padding:0 22px}
+.hint{color:var(--muted);font-weight:600;font-size:13.5px;margin:4px 0 8px}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="logo" id="logo"></div>
+<div><div class="t1">Genius Mind <b>Academy</b></div><div class="t2">Teacher &middot; Open Dates / 开放日期</div></div>
+</header>
+<div class="navrow"><a href="teachers.html">&larr; Teacher menu</a><button id="navlogout" type="button" onclick="try{sessionStorage.removeItem('gma_pin');sessionStorage.removeItem('gma_view_pin')}catch(e){}location.reload()">Log out</button></div>
+<main class="wrap" id="app"></main>
+<script>
+var SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbwvukSXQHKhnbMndouaYUC07qpx_2tXQWkbUTIYsrCB8gSbByjQ7u0zqkKu4RiY66E7/exec';
+var LOGO_URL = 'logo.png';
+var PIN = ''; try { PIN = sessionStorage.getItem('gma_pin') || ''; } catch (e) {}
+var app = document.getElementById('app');
+var NAMES = { BT: 'Brain Test Report Collection 领取报告', TC: 'Trial Class 试课' };
+var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 5 minutes.', disabled: 'Teacher password is not turned on yet.' };
+var S = { authed: false, busy: false, err: '', msg: '', svc: 'BT', ov: { BT: {}, TC: {} }, st: { BT: {}, TC: {} }, booked: { BT: {}, TC: {} }, dirty: 0, loaded: false };
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function api(body, cb) {
+  body.pin = PIN;
+  var ac = window.AbortController ? new AbortController() : null, to = setTimeout(function () { if (ac) ac.abort(); }, 25000);
+  fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify(body), signal: ac ? ac.signal : undefined }).then(function (r) { return r.json(); }).then(function (j) { clearTimeout(to); cb(j); }).catch(function () { clearTimeout(to); cb(null); });
+}
+function errText(j) { if (!j) return 'Could not connect. Check the internet and try again (nothing was saved).'; if (/^locked/.test(j.error || '')) return ERR.locked; if (j.error === 'booked') return 'Some slots you closed already have parent bookings. They are marked in yellow. Please keep them open (or change those bookings first).'; return ERR[j.error] || ('Error: ' + (j.error || 'unknown')); }
+
+/* ---- default dates & times (same rules as the parents' booking page) ---- */
+var EV = ['6:45pm–8:15pm', '8:30pm–10:00pm'], DAY = ['11:00am–12:30pm', '1:30pm–3:00pm', '3:30pm–5:00pm'];
+var TR = { 0: ['10:15am–11:45am', '1:30pm–3:00pm', '3:30pm–5:00pm'], 1: EV, 2: DAY, 3: EV, 4: DAY, 5: EV, 6: ['11:00am–12:30pm', '1:30pm–3:00pm', '3:30pm–5:00pm', '5:15pm–6:45pm'] };
+var HOURLY = []; for (var h = 10; h < 22; h++) { var a = h < 12 ? 'am' : 'pm', x = h % 12 || 12; HOURLY.push(x + ':00' + a + '–' + x + ':45' + a); }
+var DAYS = [], DEF = { BT: {}, TC: {} }, ROWS = { BT: HOURLY.slice(), TC: [] };
+(function () {
+  for (var i = 0; i < 60; i++) {
+    var d = new Date(Date.UTC(2026, 10, 23 + i)), w = d.getUTCDay(), k = d.toISOString().slice(0, 10);
+    DAYS.push({ k: k, w: w, d: d.getUTCDate(), m: d.getUTCMonth() + 1 });
+    if ((k >= '2026-11-27' && k <= '2026-11-29') || k >= '2026-12-04') DEF.TC[k] = TR[w];
+    if (k <= '2026-12-24') DEF.BT[k] = w === 0 ? HOURLY.slice(2) : w === 6 ? HOURLY.slice(0, 1) : w === 5 ? HOURLY.slice(0, 8) : HOURLY;
+  }
+  var seen = {}; for (var w2 in TR) TR[w2].forEach(function (l) { seen[l] = 1; });
+  function mn(l) { var m = l.match(/^(\d+):(\d+)(am|pm)/); if (!m) return 0; return ((+m[1] % 12) + (m[3] === 'pm' ? 12 : 0)) * 60 + (+m[2]); }
+  ROWS.TC = Object.keys(seen).sort(function (a, b) { return mn(a) - mn(b); });
+})();
+var WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+function isDefOpen(svc, k, l) { var L = DEF[svc][k]; return !!L && L.indexOf(l) > -1; }
+function buildState() {
+  ['BT', 'TC'].forEach(function (svc) {
+    S.st[svc] = {};
+    DAYS.forEach(function (dy) { ROWS[svc].forEach(function (l) {
+      var o = S.ov[svc][dy.k] && S.ov[svc][dy.k][l];
+      S.st[svc][dy.k + '|' + l] = o === undefined ? isDefOpen(svc, dy.k, l) : !!o;
+    }); });
+  });
+  S.dirty = 0;
+}
+function changed(svc, k, l) { return S.st[svc][k + '|' + l] !== isDefOpen(svc, k, l); }
+function savedState(svc, k, l) { var o = S.ov[svc][k] && S.ov[svc][k][l]; return o === undefined ? isDefOpen(svc, k, l) : !!o; }
+function countDirty() { var n = 0; ['BT', 'TC'].forEach(function (svc) { DAYS.forEach(function (dy) { ROWS[svc].forEach(function (l) { if (S.st[svc][dy.k + '|' + l] !== savedState(svc, dy.k, l)) n++; }); }); }); S.dirty = n; }
+function locked(svc, k, l) { return !!S.booked[svc][k + '|' + l]; }
+
+function render() {
+  var h = '';
+  if (!S.authed) {
+    var cur = document.getElementById('pin'), had = cur && document.activeElement === cur, val = cur ? cur.value : PIN;
+    h += '<div class="card" style="max-width:460px;margin:0 auto"><h2>Teacher login</h2><label>Password</label><input type="password" id="pin" autocomplete="current-password" value="' + esc(val) + '">';
+    if (S.err) h += '<div class="err">' + esc(S.err) + '</div>';
+    h += '<button class="btn pri" id="login"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Please wait...' : 'Log in') + '</button></div>';
+    app.innerHTML = h; if (had) { var ni = document.getElementById('pin'); ni.focus(); try { ni.setSelectionRange(val.length, val.length); } catch (x) {} } return;
+  }
+  var svc = S.svc;
+  h += '<div class="card"><h2>Open dates &amp; times 开放日期与时段</h2><p class="hint">Tap a box to open or close one time. Tap a date at the top to open or close the whole day. Parents only see the times that are open. 点格子开关单个时段，点上方日期开关整天。家长只会看到开放的时段。</p>';
+  h += '<div class="tabs"><button data-svc="BT" class="' + (svc === 'BT' ? 'on' : '') + '">' + NAMES.BT + '</button><button data-svc="TC" class="' + (svc === 'TC' ? 'on' : '') + '">' + NAMES.TC + '</button></div>';
+  h += '<div class="legend"><span><em class="lg" style="background:#fff">x</em> Open 开放（可预约）</span><span><em class="lg" style="background:#d9f2d4"></em> Closed 关闭</span><span><em class="lg" style="background:#fff4d6;outline:2px solid #f0b429;outline-offset:-2px">1</em> Has booking 已有预约（不能关闭）</span><span><em class="lg" style="box-shadow:inset 0 0 0 3px #fb5f3b;background:#fff"></em> Changed, not saved yet 已改未保存</span></div>';
+  h += '<div class="gridbox"><table class="g"><thead><tr><th class="corner">Time 时段</th>';
+  DAYS.forEach(function (dy) { h += '<th data-day="' + dy.k + '" class="' + (dy.w === 0 || dy.w === 6 ? 'we' : '') + '">' + WD[dy.w] + '<small>' + dy.d + '/' + dy.m + '</small></th>'; });
+  h += '</tr></thead><tbody>';
+  ROWS[svc].forEach(function (l, ri) {
+    h += '<tr><th>' + (ri + 1) + '&nbsp;&nbsp;' + esc(l) + '</th>';
+    DAYS.forEach(function (dy) {
+      var on = S.st[svc][dy.k + '|' + l], lk = locked(svc, dy.k, l), diff = S.st[svc][dy.k + '|' + l] !== savedState(svc, dy.k, l);
+      var cls = 'c ' + (lk ? 'lock' : on ? 'open' : 'closed') + (diff ? ' chg' : '');
+      h += '<td class="' + cls + '" data-k="' + dy.k + '" data-l="' + esc(l) + '">' + (lk ? (S.booked[svc][dy.k + '|' + l]) : (on ? 'x' : '')) + '</td>';
+    });
+    h += '</tr>';
+  });
+  h += '</tbody></table></div>';
+  if (svc === 'TC') h += '<p class="hint">Trial Class: the number of parents per time is set in Settings. 试课每个时段几位家长，请在「Settings」里设定。</p>';
+  else h += '<p class="hint">Brain Test report collection: one parent per time (set in Settings). 领取报告每个时段几位家长，请在「Settings」里设定。</p>';
+  h += '</div>';
+  if (S.err) h += '<div class="err">' + esc(S.err) + '</div>';
+  if (S.msg) h += '<div class="okm">' + esc(S.msg) + '</div>';
+  countDirty();
+  h += '<div class="bar"><div class="grow">' + (S.dirty ? S.dirty + ' change(s) not saved yet 项改动未保存' : 'No unsaved changes 没有未保存的改动') + '</div><button class="btn sec2" id="reset"' + (S.dirty && !S.busy ? '' : ' disabled') + '>Undo 撤销</button><button class="btn pri" id="save"' + (S.dirty && !S.busy ? '' : ' disabled') + '>' + (S.busy ? 'Saving...' : 'Save 保存') + '</button></div>';
+  var keep = document.querySelector('.gridbox'), sl = keep ? keep.scrollLeft : 0, stp = keep ? keep.scrollTop : 0;
+  app.innerHTML = h;
+  var nb = document.querySelector('.gridbox'); if (nb) { nb.scrollLeft = sl; nb.scrollTop = stp; }
+}
+function toggleCell(svc, k, l) {
+  if (locked(svc, k, l)) { S.err = 'This time already has a booking, so it cannot be closed. 这个时段已有预约，不能关闭。'; S.msg = ''; return false; }
+  S.err = ''; S.msg = ''; S.st[svc][k + '|' + l] = !S.st[svc][k + '|' + l]; return true;
+}
+function toggleDay(svc, k) {
+  var free = ROWS[svc].filter(function (l) { return !locked(svc, k, l); });
+  var anyOpen = free.some(function (l) { return S.st[svc][k + '|' + l]; });
+  free.forEach(function (l) { S.st[svc][k + '|' + l] = !anyOpen; });
+  if (!anyOpen) { /* opening a day with no times: open every time of the day */ }
+  S.err = ''; S.msg = '';
+}
+function rowsToSave() {
+  var rows = [];
+  ['BT', 'TC'].forEach(function (svc) { DAYS.forEach(function (dy) { ROWS[svc].forEach(function (l) { if (changed(svc, dy.k, l)) rows.push([svc, dy.k, l, S.st[svc][dy.k + '|' + l] ? 1 : 0]); }); }); });
+  // keep overrides for dates outside this grid
+  ['BT', 'TC'].forEach(function (svc) { for (var k in S.ov[svc]) { if (!DAYS.some(function (d) { return d.k === k; })) for (var l in S.ov[svc][k]) rows.push([svc, k, l, S.ov[svc][k][l] ? 1 : 0]); } });
+  return rows;
+}
+function take(j) { S.ov = { BT: (j.avail && j.avail.BT) || {}, TC: (j.avail && j.avail.TC) || {} }; buildState(); }
+function loadBooked(cb) {
+  fetch(SUBMIT_URL + '?action=booked').then(function (r) { return r.json(); }).then(function (j) {
+    S.booked = { BT: {}, TC: {} };
+    var cnt = function (v) { return String(v).split(',').filter(Boolean).length; };
+    for (var k in (j.report || {})) S.booked.BT[k] = cnt(j.report[k]);
+    for (var k2 in (j.trial || {})) S.booked.TC[k2] = cnt(j.trial[k2]);
+    cb();
+  }).catch(function () { cb(); });
+}
+function load() {
+  S.busy = true; S.err = ''; render();
+  api({ action: 'staff_avail' }, function (j) {
+    if (j && j.ok) { S.authed = true; try { sessionStorage.setItem('gma_pin', PIN); } catch (x) {} take(j); loadBooked(function () { S.busy = false; S.loaded = true; render(); }); }
+    else { S.busy = false; S.authed = false; try { sessionStorage.removeItem('gma_pin'); } catch (x) {} S.err = (PIN || j) ? errText(j) : ''; render(); }
+  });
+}
+document.addEventListener('click', function (e) {
+  var t = e.target;
+  var td = t.closest && t.closest('td.c'); if (td && S.authed) { toggleCell(S.svc, td.dataset.k, td.dataset.l); render(); return; }
+  var th = t.closest && t.closest('th[data-day]'); if (th && S.authed) { toggleDay(S.svc, th.dataset.day); render(); return; }
+  var el = t.closest && t.closest('button'); if (!el) return;
+  if (el.id === 'login') { PIN = document.getElementById('pin').value; load(); }
+  else if (el.dataset.svc) { S.svc = el.dataset.svc; S.err = ''; S.msg = ''; render(); }
+  else if (el.id === 'reset') { buildState(); S.ovKeep = null; S.err = ''; S.msg = ''; render(); }
+  else if (el.id === 'save') {
+    S.busy = true; S.err = ''; S.msg = ''; render();
+    api({ action: 'staff_avail_save', rows: rowsToSave() }, function (j) {
+      S.busy = false;
+      if (j && j.ok) { take(j); S.msg = 'Saved. Parents see the new dates now. 已保存，家长现在看到的是新的日期。'; loadBooked(render); } else { S.err = errText(j); render(); }
+    });
+  }
+});
+window.addEventListener('beforeunload', function (e) { if (S.authed && S.dirty) { e.preventDefault(); e.returnValue = ''; } });
+document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.id === 'pin') document.getElementById('login').click(); });
+if (LOGO_URL) { var lg = document.getElementById('logo'), im = new Image(); im.className = 'brandlogo'; im.alt = ''; im.src = LOGO_URL; im.onload = function () { lg.replaceWith(im); }; }
+if (PIN) load(); else render();
+</script>
+</body>
+</html>
