@@ -48,7 +48,7 @@
 .small{font-size:12px;color:var(--muted)}
 input.s{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);font:inherit;margin-bottom:10px}
 @media(max-width:560px){.cell{min-height:54px;padding:3px}.cell .b{font-size:9.5px;padding:0 3px}.ev{grid-template-columns:1fr}}
-@media print{header.top,.tb,.chips,#cal,.noprint,input.s{display:none!important}body{background:#fff}.dayp{margin:0}.ev{break-inside:avoid}}
+@media print{header.top,.tb,.chips,#cal,.noprint,input.s{display:none!important}.tb.dhead{display:flex!important}.dayp h3{font-size:22px;color:#000}body{background:#fff}.dayp{margin:0}.ev{break-inside:avoid}}
 .navrow{max-width:640px;margin:8px auto 0;padding:0 14px;display:flex;gap:8px;align-items:center}
 .navrow a,.navrow button{padding:8px 13px;border-radius:999px;border:1.5px solid #ddd;background:#fff;color:inherit;font:inherit;font-weight:800;font-size:13.5px;text-decoration:none;cursor:pointer;white-space:nowrap}
 .navrow button{margin-left:auto}
@@ -170,7 +170,7 @@ function attHtml(e) {
 function todayView() {
   var es = S.events.filter(function (e) { return e.date === todayKey && (S.filter === 'all' || e.kind === S.filter); });
   var came = es.filter(function (e) { return e.att === 'attended'; }).length, no = es.filter(function (e) { return e.att === 'noshow'; }).length;
-  var h = '<div class="dayp"><div class="tb" style="margin-bottom:4px"><h3 style="flex:1;margin:0">Today · ' + esc(fmtDate(todayKey)) + '</h3><button class="ib noprint" id="print">Print</button></div>';
+  var h = '<div class="dayp"><div class="tb dhead" style="margin-bottom:4px"><h3 style="flex:1;margin:0">Today · ' + esc(fmtDate(todayKey)) + '</h3><button class="ib noprint" id="print">Print</button></div>';
   h += '<div class="stat"><div><b>' + es.length + '</b>booked today</div><div><b>' + came + '</b>attended</div><div><b>' + no + '</b>no-show</div><div><b>' + (es.length - came - no) + '</b>not marked</div></div>';
   if (!es.length) h += '<div class="card" style="text-align:center;color:var(--muted)">No bookings today.</div>';
   es.forEach(function (e) { h += card(e, false); });
@@ -209,7 +209,7 @@ function card(e, showDate) {
 }
 function dayView(es) {
   var t = es.filter(function (e) { return e.kind === 'trial'; }).length, r = es.length - t;
-  var h = '<div class="dayp"><div class="tb" style="margin-bottom:4px"><h3 style="flex:1;margin:0">' + esc(fmtDate(S.sel)) + '</h3><button class="ib noprint" id="print">Print</button></div><div class="small" style="margin-bottom:8px">' + t + ' trial class' + (t === 1 ? '' : 'es') + ' · ' + r + ' report collection' + (r === 1 ? '' : 's') + '</div>';
+  var h = '<div class="dayp"><div class="tb dhead" style="margin-bottom:4px"><h3 style="flex:1;margin:0">' + esc(fmtDate(S.sel)) + '</h3><button class="ib noprint" id="print">Print</button></div><div class="small" style="margin-bottom:8px">' + t + ' trial class' + (t === 1 ? '' : 'es') + ' · ' + r + ' report collection' + (r === 1 ? '' : 's') + '</div>';
   if (!es.length) h += '<div class="card" style="text-align:center;color:var(--muted)">No bookings on this day.</div>';
   es.forEach(function (e) { h += card(e, false); });
   return h + '</div>';
