@@ -345,7 +345,8 @@ return {TRIAL:T,REPORT:R}})();
 var TRIAL = DATA.TRIAL, REPORT = DATA.REPORT;
 var BASE_T=JSON.parse(JSON.stringify(TRIAL)),BASE_R=JSON.parse(JSON.stringify(REPORT));
 function mergeAvail(base,ov){var out={},k;for(k in base)out[k]=base[k].slice();for(k in (ov||{})){var cur=(out[k]||[]).slice(),m=ov[k];for(var l in m){var i=cur.indexOf(l);if(m[l]){if(i<0)cur.push(l)}else if(i>-1)cur.splice(i,1)}cur.sort(function(x,y){return range(x)[0]-range(y)[0]});if(cur.length)out[k]=cur;else delete out[k]}return out}
-function applyAvail(a){a=a||{};TRIAL=mergeAvail(BASE_T,a.TC);REPORT=mergeAvail(BASE_R,a.BT)}   // open / closed dates & times set by the teachers (Google Sheet tab "Availability")
+var AV=null,AVT={};
+function applyAvail(a){AV=(a&&a.on)?a:null;AVT={};TRIAL=BASE_T;REPORT=BASE_R;if(AV)['TCBT','TC','BT'].forEach(function(c){var o={},m=AV[c]||{};for(var d in m){var L=Object.keys(m[d]);if(L.length){L.sort(function(x,y){return range(x)[0]-range(y)[0]});o[d]=L}}AVT[c]=o})}   // open / closed dates & times set by the teachers (Google Sheet tab "Availability")
 var I = {
 en:{sub:'Book your trial class & brain test report',
 s_service:'Service',s_details:'Details',s_date:'Date & Time',s_pay:'Payment',s_confirm:'Confirm',
@@ -447,6 +448,7 @@ function delRef(m,k,r){var a=String(m[k]||'').split(',').filter(function(x){retu
 function capFor(code,date){var c=(MEM&&MEM.caps)||{},d={BT:1,TC:2,TCBT:2},o=(c.over||[]).filter(function(x){return x.date===date&&x.svc===code})[0];return o?o.cap:(c[code]||d[code])}   // parents per slot: set by teachers in the Google Sheet "Settings" tab
 function taken(kind,date,label){
 var refs=String(store()[kind][date+'|'+label]||'').split(',').filter(Boolean);
+if(AV){var cp=(AV[S.service]&&AV[S.service][date]&&AV[S.service][date][label])||0;return refs.length>=cp}   // open dates & parents per time: set by teachers on the Open Dates page
 if(kind==='report'&&S.service==='BT')return refs.length>=capFor('BT',date);   // Brain Test Report Collection
 if(kind==='report')return refs.length>=capFor('TCBT',date)||refs.some(function(r){return /^BR/.test(r)});   // report part of Trial Class + Brain Test
 return refs.length>=capFor(S.service==='TCBT'?'TCBT':'TC',date)}   // Trial Class / Trial Class + Brain Test   // Trial Class / Trial Class + Brain Test: 2 parents per slot
@@ -457,7 +459,7 @@ var r=range(trialLabel),list=REPORT[date]||[];
 for(var i=0;i<list.length;i++){var s=mins(list[i]);if(s>=r[0]&&s<r[1])return list[i]}
 return null;
 }
-function repSame(){return S.service==='TCBT'&&(unusedPrize('TC').length>0||!!upgRef())}
+function repSame(){return S.service==='TCBT'&&(!!AV||unusedPrize('TC').length>0||!!upgRef())}
 function repSel(){
 if(repSame())return null; // report time that goes with a trial class: the matching one if free, otherwise the one the parent picked
 var rf=reportFor(S.date,S.slot);
@@ -471,7 +473,7 @@ var ds=repDates(),h='<div class="card" style="margin-top:10px"><div class="sec" 
 if(S.rdate){var fl=repFree(S.rdate);h+='<label class="f">'+t('rp_slot')+'</label>'+(fl.length?'<div class="slots">'+fl.map(function(l){return '<button class="slot'+(S.rslot===l?' sel':'')+'" data-rslot="'+l+'"><b>'+l+'</b></button>'}).join('')+'</div>':'<div class="hint">'+t('rp_nofree')+'</div>')}
 return h+'</div>'}
 function kind(){return S.service==='BT'?'report':'trial'}
-function table(){return S.service==='BT'?REPORT:TRIAL}
+function table(){if(AV)return AVT[S.service]||{};return S.service==='BT'?REPORT:TRIAL}
 function needsPay(){if(!S.service)return true;var tc=unusedPrize('TC').length>0,bt=unusedPrize('BT').length>0;if(S.service==='TC')return !tc;if(S.service==='BT')return false;return !tc}
 function steps(){var a=['phone','service','details','date'];if(needsPay())a.push('pay');a.push('confirm');return a}
 function normPhone(p){var d=String(p||'').replace(/\D/g,'');if(d.charAt(0)==='0')d='6'+d;return d}

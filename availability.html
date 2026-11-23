@@ -32,6 +32,7 @@ table.g tbody th{position:sticky;left:0;background:#c8c8c8;z-index:1;text-align:
 td.c{height:34px;min-width:46px;cursor:pointer;font-weight:800;user-select:none}
 td.c.open{background:#fff;color:#222}
 td.c.closed{background:#d9f2d4;color:transparent}
+td.c.bad{background:#fbd0d0;color:#a01818;outline:2px solid #d33;outline-offset:-2px}
 td.c.lock{background:#fff4d6;color:#8a5a00;cursor:not-allowed;outline:2px solid #f0b429;outline-offset:-2px}
 td.c.chg{box-shadow:inset 0 0 0 3px #fb5f3b}
 td.c:hover{filter:brightness(.94)}
@@ -54,49 +55,100 @@ var SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbwvukSXQHKhnbMndouaYUC
 var LOGO_URL = 'logo.png';
 var PIN = ''; try { PIN = sessionStorage.getItem('gma_pin') || ''; } catch (e) {}
 var app = document.getElementById('app');
-var NAMES = { BT: 'Brain Test Report Collection 领取报告', TC: 'Trial Class 试课' };
+var NAMES = { TCBT: 'Trial Class + Brain Test Report 试课+领取报告', TC: 'Trial Class only 只试课', BT: 'Brain Test Report only 只领取报告' };
+var T3 = ['TCBT', 'TC', 'BT'];
 var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 5 minutes.', disabled: 'Teacher password is not turned on yet.' };
-var S = { authed: false, busy: false, err: '', msg: '', svc: 'BT', ov: { BT: {}, TC: {} }, st: { BT: {}, TC: {} }, booked: { BT: {}, TC: {} }, dirty: 0, loaded: false };
+var S = { authed: false, busy: false, err: '', msg: '', svc: 'TCBT', on: false, st: { TCBT: {}, TC: {}, BT: {} }, sv: { TCBT: {}, TC: {}, BT: {} }, extra: [], booked: { TCBT: {}, TC: {}, BT: {} }, cap: 2, dirty: 0, loaded: false };
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 function api(body, cb) {
   body.pin = PIN;
   var ac = window.AbortController ? new AbortController() : null, to = setTimeout(function () { if (ac) ac.abort(); }, 25000);
   fetch(SUBMIT_URL, { method: 'POST', body: JSON.stringify(body), signal: ac ? ac.signal : undefined }).then(function (r) { return r.json(); }).then(function (j) { clearTimeout(to); cb(j); }).catch(function () { clearTimeout(to); cb(null); });
 }
-function errText(j) { if (!j) return 'Could not connect. Check the internet and try again (nothing was saved).'; if (/^locked/.test(j.error || '')) return ERR.locked; if (j.error === 'booked') return 'Some slots you closed already have parent bookings. They are marked in yellow. Please keep them open (or change those bookings first).'; return ERR[j.error] || ('Error: ' + (j.error || 'unknown')); }
+function errText(j) {
+  if (!j) return 'Could not connect. Check the internet and try again (nothing was saved).';
+  if (/^locked/.test(j.error || '')) return ERR.locked;
+  if (j.error === 'booked') return 'Some times you closed already have parent bookings: ' + (j.cells || []).slice(0, 6).join('; ') + '. Please keep them open.';
+  if (j.error === 'overlap') return 'These times overlap each other (not allowed): ' + (j.cells || []).slice(0, 6).join('; ');
+  return ERR[j.error] || ('Error: ' + (j.error || 'unknown'));
+}
 
 /* ---- default dates & times (same rules as the parents' booking page) ---- */
 var EV = ['6:45pm–8:15pm', '8:30pm–10:00pm'], DAY = ['11:00am–12:30pm', '1:30pm–3:00pm', '3:30pm–5:00pm'];
 var TR = { 0: ['10:15am–11:45am', '1:30pm–3:00pm', '3:30pm–5:00pm'], 1: EV, 2: DAY, 3: EV, 4: DAY, 5: EV, 6: ['11:00am–12:30pm', '1:30pm–3:00pm', '3:30pm–5:00pm', '5:15pm–6:45pm'] };
 var HOURLY = []; for (var h = 10; h < 22; h++) { var a = h < 12 ? 'am' : 'pm', x = h % 12 || 12; HOURLY.push(x + ':00' + a + '–' + x + ':45' + a); }
-var DAYS = [], DEF = { BT: {}, TC: {} }, ROWS = { BT: HOURLY.slice(), TC: [] };
+var DAYS = [], DEF = { BT: {}, TC: {} }, BASE = { TCBT: [], TC: [], BT: HOURLY.slice() };
+function mn(l) { var m = String(l).match(/^(\d+):(\d+)\s*(am|pm)/i); if (!m) return 0; return ((+m[1] % 12) + (m[3].toLowerCase() === 'pm' ? 12 : 0)) * 60 + (+m[2]); }
+function win(svc, l) { var m = String(l).match(/(\d+):(\d+)\s*(am|pm)\s*[–-]\s*(\d+):(\d+)\s*(am|pm)/i); if (!m) return null; var s = mn(m[1] + ':' + m[2] + m[3]), e = mn(m[4] + ':' + m[5] + m[6]); return [s, svc === 'BT' ? s + 60 : e]; }
 (function () {
+  var t = new Date(Date.now() + 8 * 3600000), y = t.getUTCFullYear(), mo = t.getUTCMonth(), dd = t.getUTCDate();
   for (var i = 0; i < 60; i++) {
-    var d = new Date(Date.UTC(2026, 10, 23 + i)), w = d.getUTCDay(), k = d.toISOString().slice(0, 10);
+    var d = new Date(Date.UTC(y, mo, dd + i)), w = d.getUTCDay(), k = d.toISOString().slice(0, 10);
     DAYS.push({ k: k, w: w, d: d.getUTCDate(), m: d.getUTCMonth() + 1 });
     if ((k >= '2026-11-27' && k <= '2026-11-29') || k >= '2026-12-04') DEF.TC[k] = TR[w];
     if (k <= '2026-12-24') DEF.BT[k] = w === 0 ? HOURLY.slice(2) : w === 6 ? HOURLY.slice(0, 1) : w === 5 ? HOURLY.slice(0, 8) : HOURLY;
   }
   var seen = {}; for (var w2 in TR) TR[w2].forEach(function (l) { seen[l] = 1; });
-  function mn(l) { var m = l.match(/^(\d+):(\d+)(am|pm)/); if (!m) return 0; return ((+m[1] % 12) + (m[3] === 'pm' ? 12 : 0)) * 60 + (+m[2]); }
-  ROWS.TC = Object.keys(seen).sort(function (a, b) { return mn(a) - mn(b); });
+  BASE.TC = Object.keys(seen).sort(function (a, b) { return mn(a) - mn(b); }); BASE.TCBT = BASE.TC.slice();
 })();
+var ROWS = { TCBT: [], TC: [], BT: [] };
 var WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-function isDefOpen(svc, k, l) { var L = DEF[svc][k]; return !!L && L.indexOf(l) > -1; }
-function buildState() {
-  ['BT', 'TC'].forEach(function (svc) {
-    S.st[svc] = {};
-    DAYS.forEach(function (dy) { ROWS[svc].forEach(function (l) {
-      var o = S.ov[svc][dy.k] && S.ov[svc][dy.k][l];
-      S.st[svc][dy.k + '|' + l] = o === undefined ? isDefOpen(svc, dy.k, l) : !!o;
-    }); });
+function inGrid(k) { return k >= DAYS[0].k && k <= DAYS[DAYS.length - 1].k; }
+function key(k, l) { return k + '|' + l; }
+function bkd(svc, k, l) { return S.booked[svc][key(k, l)] || 0; }
+function capOf(svc, k, l) { return S.st[svc][key(k, l)] || 0; }
+function overlap(a, b) { return a && b && a[0] < b[1] && b[0] < a[1]; }
+function buildRows() {
+  T3.forEach(function (svc) {
+    var seen = {}, L = BASE[svc].slice(); L.forEach(function (l) { seen[l] = 1; });
+    [S.booked[svc]].forEach(function (m) { for (var kk in m) { var p = kk.split('|'); if (inGrid(p[0]) && !seen[p[1]]) { seen[p[1]] = 1; L.push(p[1]); } } });
+    L.sort(function (a, b) { return mn(a) - mn(b); }); ROWS[svc] = L;
   });
-  S.dirty = 0;
 }
-function changed(svc, k, l) { return S.st[svc][k + '|' + l] !== isDefOpen(svc, k, l); }
-function savedState(svc, k, l) { var o = S.ov[svc][k] && S.ov[svc][k][l]; return o === undefined ? isDefOpen(svc, k, l) : !!o; }
-function countDirty() { var n = 0; ['BT', 'TC'].forEach(function (svc) { DAYS.forEach(function (dy) { ROWS[svc].forEach(function (l) { if (S.st[svc][dy.k + '|' + l] !== savedState(svc, dy.k, l)) n++; }); }); }); S.dirty = n; }
-function locked(svc, k, l) { return !!S.booked[svc][k + '|' + l]; }
+function applyOpen(svc, k, l, n) {   // open one time and close (unbooked) overlapping times of the other tables; returns false if blocked by a booking
+  var w = win(svc, l), clash = [];
+  T3.forEach(function (o) { ROWS[o].forEach(function (l2) {
+    if (o === svc && l2 === l) return;
+    if (capOf(o, k, l2) > 0 && overlap(w, win(o, l2))) clash.push([o, l2]);
+  }); });
+  for (var i = 0; i < clash.length; i++) if (bkd(clash[i][0], k, clash[i][1]) > 0 && bkd(svc, k, l) === 0) return 'blocked';
+  var n2 = 0; clash.forEach(function (c) { if (bkd(c[0], k, c[1]) === 0) { S.st[c[0]][key(k, c[1])] = 0; n2++; } });
+  S.st[svc][key(k, l)] = n; return n2;
+}
+function seed() {
+  T3.forEach(function (svc) { S.st[svc] = {}; });
+  DAYS.forEach(function (dy) {
+    T3.forEach(function (svc) { ROWS[svc].forEach(function (l) { var b = bkd(svc, dy.k, l); if (b > 0) S.st[svc][key(dy.k, l)] = (svc === 'TC' ? b : 1); }); });
+    (DEF.TC[dy.k] || []).forEach(function (l) { if (!(capOf('TCBT', dy.k, l) > 0) && !(capOf('TC', dy.k, l) > 0)) applyOpen('TC', dy.k, l, 1); });
+    (DEF.BT[dy.k] || []).forEach(function (l) { if (!(capOf('BT', dy.k, l) > 0)) applyOpen('BT', dy.k, l, 1); });
+  });
+  S.extra = [];
+  T3.forEach(function (svc) { for (var kk in S.booked[svc]) { var p = kk.split('|'); if (!inGrid(p[0]) && p[0] >= DAYS[0].k) S.extra.push([svc, p[0], p[1], svc === 'TC' ? Math.max(1, S.booked[svc][kk]) : 1]); } });
+  S.sv = { TCBT: {}, TC: {}, BT: {} };
+}
+function loadAvail(a) {
+  S.extra = []; S.sv = { TCBT: {}, TC: {}, BT: {} }; S.on = !!(a && a.on);
+  if (!S.on) { buildRows(); seed(); return; }
+  T3.forEach(function (svc) { S.st[svc] = {}; for (var k in (a[svc] || {})) for (var l in a[svc][k]) {
+    if (inGrid(k)) { S.st[svc][key(k, l)] = a[svc][k][l]; if (ROWS[svc].indexOf(l) < 0 && BASE[svc].indexOf(l) < 0) BASE[svc].push(l); }
+    else S.extra.push([svc, k, l, a[svc][k][l]]);
+  } });
+  buildRows();
+  T3.forEach(function (svc) { S.sv[svc] = {}; for (var kk in S.st[svc]) S.sv[svc][kk] = S.st[svc][kk]; });
+}
+function countDirty() {
+  var n = 0; T3.forEach(function (svc) { DAYS.forEach(function (dy) { ROWS[svc].forEach(function (l) { if ((S.st[svc][key(dy.k, l)] || 0) !== (S.sv[svc][key(dy.k, l)] || 0)) n++; }); }); });
+  S.dirty = n; return n;
+}
+function locked(svc, k, l) { return bkd(svc, k, l) > 0; }
+function clashes() {   // red: more parents than allowed, or a booked time overlapping another booked time (old bookings)
+  var red = {}, n = 0;
+  DAYS.forEach(function (dy) {
+    var L = []; T3.forEach(function (svc) { ROWS[svc].forEach(function (l) { var b = bkd(svc, dy.k, l); if (b > 0) { L.push([svc, l, win(svc, l)]); if (b > Math.max(1, capOf(svc, dy.k, l))) { red[svc + '|' + key(dy.k, l)] = 1; } } }); });
+    for (var i = 0; i < L.length; i++) for (var j = i + 1; j < L.length; j++) if (overlap(L[i][2], L[j][2])) { red[L[i][0] + '|' + key(dy.k, L[i][1])] = 1; red[L[j][0] + '|' + key(dy.k, L[j][1])] = 1; }
+  });
+  for (var q in red) n++; S.clashN = n; return red;
+}
 
 function render() {
   var h = '';
@@ -107,69 +159,76 @@ function render() {
     h += '<button class="btn pri" id="login"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Please wait...' : 'Log in') + '</button></div>';
     app.innerHTML = h; if (had) { var ni = document.getElementById('pin'); ni.focus(); try { ni.setSelectionRange(val.length, val.length); } catch (x) {} } return;
   }
-  var svc = S.svc;
-  h += '<div class="card"><h2>Open dates &amp; times 开放日期与时段</h2><p class="hint">Tap a box to open or close one time. Tap a date at the top to open or close the whole day. Parents only see the times that are open. 点格子开关单个时段，点上方日期开关整天。家长只会看到开放的时段。</p>';
-  h += '<div class="tabs"><button data-svc="BT" class="' + (svc === 'BT' ? 'on' : '') + '">' + NAMES.BT + '</button><button data-svc="TC" class="' + (svc === 'TC' ? 'on' : '') + '">' + NAMES.TC + '</button></div>';
-  h += '<div class="legend"><span><em class="lg" style="background:#fff">x</em> Open 开放（可预约）</span><span><em class="lg" style="background:#d9f2d4"></em> Closed 关闭</span><span><em class="lg" style="background:#fff4d6;outline:2px solid #f0b429;outline-offset:-2px">1</em> Has booking 已有预约（不能关闭）</span><span><em class="lg" style="box-shadow:inset 0 0 0 3px #fb5f3b;background:#fff"></em> Changed, not saved yet 已改未保存</span></div>';
+  var svc = S.svc, red = clashes();
+  h += '<div class="card"><h2>Open dates &amp; times 开放日期与时段</h2><p class="hint">Tap a box to open or close one time. Tap a date at the top to open or close the whole day. Parents only see the times that are open. The three tables never overlap: opening a time closes any overlapping time in the other tables. 点格子开关单个时段，点上方日期开关整天。三个表的时间不会重叠：开一个时段，会自动关掉其他表里重叠的时段。</p>';
+  if (!S.on) h += '<div class="err" style="background:#fff4d6;color:#8a5a00">Not switched on yet. Parents still see the old dates until you press Save once. Please choose which times are for each table first. 还没启用，家长目前看到的仍是旧日期；请先设定好再按保存。</div>';
+  h += '<div class="tabs">' + T3.map(function (t) { return '<button data-svc="' + t + '" class="' + (svc === t ? 'on' : '') + '">' + NAMES[t] + '</button>'; }).join('') + '</div>';
+  h += '<div class="legend"><span><em class="lg" style="background:#fff">x</em> Open 开放</span><span><em class="lg" style="background:#d9f2d4"></em> Closed 关闭</span><span><em class="lg" style="background:#fff4d6;outline:2px solid #f0b429;outline-offset:-2px">1</em> Has booking 已有预约（不能关闭）</span><span><em class="lg" style="background:#fbd0d0;outline:2px solid #d33;outline-offset:-2px">!</em> Clash 冲突</span><span><em class="lg" style="box-shadow:inset 0 0 0 3px #fb5f3b;background:#fff"></em> Changed 已改未保存</span></div>';
+  if (svc === 'TC') h += '<div class="hint" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">Parents per time when opening 开放时每个时段可接几位家长: <select id="capsel">' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (S.cap === n ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select> (tap an open box with a different number to change it, same number to close 点已开放且数字不同的格子=改人数，数字相同=关闭)</div>';
   h += '<div class="gridbox"><table class="g"><thead><tr><th class="corner">Time 时段</th>';
   DAYS.forEach(function (dy) { h += '<th data-day="' + dy.k + '" class="' + (dy.w === 0 || dy.w === 6 ? 'we' : '') + '">' + WD[dy.w] + '<small>' + dy.d + '/' + dy.m + '</small></th>'; });
   h += '</tr></thead><tbody>';
   ROWS[svc].forEach(function (l, ri) {
     h += '<tr><th>' + (ri + 1) + '&nbsp;&nbsp;' + esc(l) + '</th>';
     DAYS.forEach(function (dy) {
-      var on = S.st[svc][dy.k + '|' + l], lk = locked(svc, dy.k, l), diff = S.st[svc][dy.k + '|' + l] !== savedState(svc, dy.k, l);
-      var cls = 'c ' + (lk ? 'lock' : on ? 'open' : 'closed') + (diff ? ' chg' : '');
-      h += '<td class="' + cls + '" data-k="' + dy.k + '" data-l="' + esc(l) + '">' + (lk ? (S.booked[svc][dy.k + '|' + l]) : (on ? 'x' : '')) + '</td>';
+      var c = capOf(svc, dy.k, l), b = bkd(svc, dy.k, l), diff = c !== (S.sv[svc][key(dy.k, l)] || 0), rd = red[svc + '|' + key(dy.k, l)];
+      var cls = 'c ' + (rd ? 'bad' : b > 0 ? 'lock' : c > 0 ? 'open' : 'closed') + (diff ? ' chg' : '');
+      var tx = b > 0 ? (svc === 'TC' ? b + '/' + c : b) : (c > 0 ? (svc === 'TC' ? c : 'x') : '');
+      if (rd && b > 0 && svc !== 'TC') tx = b;
+      h += '<td class="' + cls + '" data-k="' + dy.k + '" data-l="' + esc(l) + '">' + tx + '</td>';
     });
     h += '</tr>';
   });
   h += '</tbody></table></div>';
-  if (svc === 'TC') h += '<p class="hint">Trial Class: the number of parents per time is set in Settings. 试课每个时段几位家长，请在「Settings」里设定。</p>';
-  else h += '<p class="hint">Brain Test report collection: one parent per time (set in Settings). 领取报告每个时段几位家长，请在「Settings」里设定。</p>';
+  if (S.clashN) h += '<div class="err">' + S.clashN + ' clash(es) shown in red: old bookings that overlap each other or have too many parents. Nothing was changed automatically. 红色 = 旧预约互相重叠或人数超过上限；系统没有自动改动任何预约。</div>';
+  if (svc === 'TCBT') h += '<p class="hint">One parent per time (the Brain Test report is private). 每个时段只接一位家长（报告是隐私）。</p>';
+  else if (svc === 'BT') h += '<p class="hint">One parent per time. Each collection uses 1 hour, same consultant, so it cannot overlap a Trial Class. 每位家长1小时，同一位顾问，不能和试课重叠。</p>';
   h += '</div>';
   if (S.err) h += '<div class="err">' + esc(S.err) + '</div>';
   if (S.msg) h += '<div class="okm">' + esc(S.msg) + '</div>';
   countDirty();
-  h += '<div class="bar"><div class="grow">' + (S.dirty ? S.dirty + ' change(s) not saved yet 项改动未保存' : 'No unsaved changes 没有未保存的改动') + '</div><button class="btn sec2" id="reset"' + (S.dirty && !S.busy ? '' : ' disabled') + '>Undo 撤销</button><button class="btn pri" id="save"' + (S.dirty && !S.busy ? '' : ' disabled') + '>' + (S.busy ? 'Saving...' : 'Save 保存') + '</button></div>';
+  var canSave = (S.dirty || !S.on) && !S.busy;
+  h += '<div class="bar"><div class="grow">' + (S.dirty ? S.dirty + ' change(s) not saved yet 项改动未保存' : S.on ? 'No unsaved changes 没有未保存的改动' : 'Review, then press Save to switch on 检查后按保存启用') + '</div><button class="btn sec2" id="reset"' + (S.dirty && !S.busy ? '' : ' disabled') + '>Undo 撤销</button><button class="btn pri" id="save"' + (canSave ? '' : ' disabled') + '>' + (S.busy ? 'Saving...' : 'Save 保存') + '</button></div>';
   var keep = document.querySelector('.gridbox'), sl = keep ? keep.scrollLeft : 0, stp = keep ? keep.scrollTop : 0;
   app.innerHTML = h;
   var nb = document.querySelector('.gridbox'); if (nb) { nb.scrollLeft = sl; nb.scrollTop = stp; }
 }
+function setMsg(e, m) { S.err = e || ''; S.msg = m || ''; }
 function toggleCell(svc, k, l) {
-  if (locked(svc, k, l)) { S.err = 'This time already has a booking, so it cannot be closed. 这个时段已有预约，不能关闭。'; S.msg = ''; return false; }
-  S.err = ''; S.msg = ''; S.st[svc][k + '|' + l] = !S.st[svc][k + '|' + l]; return true;
+  var c = capOf(svc, k, l), b = bkd(svc, k, l), want = svc === 'TC' ? S.cap : 1;
+  if (c > 0 && (svc !== 'TC' || c === want)) {   // close
+    if (b > 0) { setMsg('This time already has a booking, so it cannot be closed. 这个时段已有预约，不能关闭。'); return false; }
+    S.st[svc][key(k, l)] = 0; setMsg(); return true;
+  }
+  if (c > 0 && want < b) { setMsg('There are already ' + b + ' parents booked here. 这个时段已有 ' + b + ' 位家长预约。'); return false; }
+  var r = applyOpen(svc, k, l, want);
+  if (r === 'blocked') { setMsg('An existing booking overlaps this time in another table, so it cannot be opened. 其他表里有已预约的重叠时段，不能开放。'); return false; }
+  setMsg('', r ? r + ' overlapping time(s) in other tables were closed automatically. 已自动关闭 ' + r + ' 个重叠时段。' : ''); return true;
 }
 function toggleDay(svc, k) {
   var free = ROWS[svc].filter(function (l) { return !locked(svc, k, l); });
-  var anyOpen = free.some(function (l) { return S.st[svc][k + '|' + l]; });
-  free.forEach(function (l) { S.st[svc][k + '|' + l] = !anyOpen; });
-  if (!anyOpen) { /* opening a day with no times: open every time of the day */ }
-  S.err = ''; S.msg = '';
+  var anyOpen = free.some(function (l) { return capOf(svc, k, l) > 0; });
+  if (anyOpen) { free.forEach(function (l) { S.st[svc][key(k, l)] = 0; }); setMsg(); return; }
+  var dw = DAYS.filter(function (d) { return d.k === k; })[0].w, L = svc === 'BT' ? HOURLY : TR[dw], n = 0, blocked = 0;
+  L.forEach(function (l) { if (ROWS[svc].indexOf(l) < 0) return; var r = applyOpen(svc, k, l, svc === 'TC' ? S.cap : 1); if (r === 'blocked') blocked++; else n += r; });
+  setMsg(blocked ? blocked + ' time(s) skipped because of existing bookings. 有 ' + blocked + ' 个时段因已有预约而跳过。' : '', n ? n + ' overlapping time(s) in other tables were closed automatically. 已自动关闭 ' + n + ' 个重叠时段。' : '');
 }
 function rowsToSave() {
   var rows = [];
-  ['BT', 'TC'].forEach(function (svc) { DAYS.forEach(function (dy) { ROWS[svc].forEach(function (l) { if (changed(svc, dy.k, l)) rows.push([svc, dy.k, l, S.st[svc][dy.k + '|' + l] ? 1 : 0]); }); }); });
-  // keep overrides for dates outside this grid
-  ['BT', 'TC'].forEach(function (svc) { for (var k in S.ov[svc]) { if (!DAYS.some(function (d) { return d.k === k; })) for (var l in S.ov[svc][k]) rows.push([svc, k, l, S.ov[svc][k][l] ? 1 : 0]); } });
+  T3.forEach(function (svc) { DAYS.forEach(function (dy) { ROWS[svc].forEach(function (l) { var c = capOf(svc, dy.k, l); if (c > 0) rows.push([svc, dy.k, l, svc === 'TC' ? c : 1]); }); }); });
+  S.extra.forEach(function (r) { rows.push(r); });
   return rows;
 }
-function take(j) { S.ov = { BT: (j.avail && j.avail.BT) || {}, TC: (j.avail && j.avail.TC) || {} }; buildState(); }
-function loadBooked(cb) {
-  fetch(SUBMIT_URL + '?action=booked').then(function (r) { return r.json(); }).then(function (j) {
-    S.booked = { BT: {}, TC: {} };
-    var cnt = function (v) { return String(v).split(',').filter(Boolean).length; };
-    for (var k in (j.report || {})) S.booked.BT[k] = cnt(j.report[k]);
-    for (var k2 in (j.trial || {})) S.booked.TC[k2] = cnt(j.trial[k2]);
-    cb();
-  }).catch(function () { cb(); });
-}
+function take(j) { loadAvail(j.avail); }
+function setBooked(j) { if (j && j.booked) S.booked = { TCBT: j.booked.TCBT || {}, TC: j.booked.TC || {}, BT: j.booked.BT || {} }; }
 function load() {
   S.busy = true; S.err = ''; render();
   api({ action: 'staff_avail' }, function (j) {
-    if (j && j.ok) { S.authed = true; try { sessionStorage.setItem('gma_pin', PIN); } catch (x) {} take(j); loadBooked(function () { S.busy = false; S.loaded = true; render(); }); }
+    if (j && j.ok) { S.authed = true; try { sessionStorage.setItem('gma_pin', PIN); } catch (x) {} setBooked(j); buildRows(); take(j); S.busy = false; S.loaded = true; render(); }
     else { S.busy = false; S.authed = false; try { sessionStorage.removeItem('gma_pin'); } catch (x) {} S.err = (PIN || j) ? errText(j) : ''; render(); }
   });
 }
+document.addEventListener('change', function (e) { if (e.target.id === 'capsel') { S.cap = +e.target.value; } });
 document.addEventListener('click', function (e) {
   var t = e.target;
   var td = t.closest && t.closest('td.c'); if (td && S.authed) { toggleCell(S.svc, td.dataset.k, td.dataset.l); render(); return; }
@@ -177,12 +236,12 @@ document.addEventListener('click', function (e) {
   var el = t.closest && t.closest('button'); if (!el) return;
   if (el.id === 'login') { PIN = document.getElementById('pin').value; load(); }
   else if (el.dataset.svc) { S.svc = el.dataset.svc; S.err = ''; S.msg = ''; render(); }
-  else if (el.id === 'reset') { buildState(); S.ovKeep = null; S.err = ''; S.msg = ''; render(); }
+  else if (el.id === 'reset') { T3.forEach(function (svc) { S.st[svc] = {}; for (var kk in S.sv[svc]) S.st[svc][kk] = S.sv[svc][kk]; }); S.err = ''; S.msg = ''; render(); }
   else if (el.id === 'save') {
     S.busy = true; S.err = ''; S.msg = ''; render();
     api({ action: 'staff_avail_save', rows: rowsToSave() }, function (j) {
       S.busy = false;
-      if (j && j.ok) { take(j); S.msg = 'Saved. Parents see the new dates now. 已保存，家长现在看到的是新的日期。'; loadBooked(render); } else { S.err = errText(j); render(); }
+      if (j && j.ok) { setBooked(j); take(j); S.msg = 'Saved. Parents see the new dates now. 已保存，家长现在看到的是新的日期。'; render(); } else { S.err = errText(j); render(); }
     });
   }
 });
