@@ -59,7 +59,7 @@ var app = document.getElementById('app');
 var NAMES = { TCBT: 'Trial Class + Brain Test Report 试课+领取报告', TC: 'Trial Class only 只试课', BT: 'Brain Test Report only 只领取报告' };
 var T3 = ['TCBT', 'TC', 'BT'];
 var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 5 minutes.', disabled: 'Teacher password is not turned on yet.' };
-var S = { authed: false, busy: false, err: '', msg: '', svc: 'TCBT', on: false, st: { TCBT: {}, TC: {}, BT: {} }, sv: { TCBT: {}, TC: {}, BT: {} }, extra: [], booked: { TCBT: {}, TC: {}, BT: {} }, cap: 1, month: '', dirty: 0, loaded: false };
+var S = { authed: false, busy: false, err: '', msg: '', svc: 'TCBT', on: false, st: { TCBT: {}, TC: {}, BT: {} }, sv: { TCBT: {}, TC: {}, BT: {} }, extra: [], booked: { TCBT: {}, TC: {}, BT: {} }, cap: 1, month: '', moreMon: 0, dirty: 0, loaded: false };
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 function api(body, cb) {
   body.pin = PIN;
@@ -83,7 +83,7 @@ function mn(l) { var m = String(l).match(/^(\d+):(\d+)\s*(am|pm)/i); if (!m) ret
 function win(svc, l) { var m = String(l).match(/(\d+):(\d+)\s*(am|pm)\s*[–-]\s*(\d+):(\d+)\s*(am|pm)/i); if (!m) return null; var s = mn(m[1] + ':' + m[2] + m[3]), e = mn(m[4] + ':' + m[5] + m[6]); return [s, svc === 'BT' ? s + 60 : e]; }
 (function () {
   var t = new Date(Date.now() + 8 * 3600000), y = t.getUTCFullYear(), mo = t.getUTCMonth(), dd = t.getUTCDate();
-  for (var i = 0; i < 400; i++) {
+  for (var i = 0; i < 760; i++) {
     var d = new Date(Date.UTC(y, mo, dd + i)), w = d.getUTCDay(), k = d.toISOString().slice(0, 10);
     DAYS.push({ k: k, w: w, d: d.getUTCDate(), m: d.getUTCMonth() + 1, mk: k.slice(0, 7), i: i });
     if ((k >= '2026-11-27' && k <= '2026-11-29') || k >= '2026-12-04') DEF.TC[k] = TR[w];
@@ -177,8 +177,12 @@ function render() {
   if (S.msg) h += '<div class="okm">' + esc(S.msg) + '</div>';
   var MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], months = [];
   DAYS.forEach(function (dy) { if (months.indexOf(dy.mk) < 0) months.push(dy.mk); });
+  var used = {}; T3.forEach(function (sv) { for (var kk in S.st[sv]) if (S.st[sv][kk] > 0) used[kk.slice(0, 7)] = 1; for (var k2 in S.booked[sv]) used[k2.slice(0, 7)] = 1; });
+  var allM = months, nShow = 7 + S.moreMon;   // this month + the next 6 months, then any month you add, plus every month that already has open times
+  months = allM.filter(function (m, i) { return i < nShow || used[m]; });
   if (months.indexOf(S.month) < 0) S.month = months[0];
-  h += '<div class="tabs" style="margin-top:0">' + months.map(function (m) { return '<button data-mon="' + m + '" class="' + (S.month === m ? 'on' : '') + '" style="padding:6px 12px">' + MN[+m.slice(5) - 1] + ' ' + m.slice(0, 4) + '</button>'; }).join('') + '</div>';
+  var canMore = allM.length > months.length && allM.indexOf(months[months.length - 1]) < allM.length - 1;
+  h += '<div class="tabs" style="margin-top:0">' + months.map(function (m) { return '<button data-mon="' + m + '" class="' + (S.month === m ? 'on' : '') + '" style="padding:6px 12px">' + MN[+m.slice(5) - 1] + ' ' + m.slice(0, 4) + '</button>'; }).join('') + (canMore && nShow < 24 ? '<button id="moremon" style="padding:6px 12px">+ 1 month 再加一个月</button>' : '') + '</div>';
   var VD = DAYS.filter(function (dy) { return dy.mk === S.month; });
   h += '<div class="gridbox"><table class="g"><thead><tr><th class="corner">Time 时段</th>';
   VD.forEach(function (dy) { h += '<th data-day="' + dy.k + '" class="' + (dy.w === 0 || dy.w === 6 ? 'we' : '') + '">' + WD[dy.w] + '<small>' + dy.d + '/' + dy.m + '</small></th>'; });
@@ -249,6 +253,7 @@ document.addEventListener('click', function (e) {
   var th = t.closest && t.closest('th[data-day]'); if (th && S.authed) { toggleDay(S.svc, th.dataset.day); render(); return; }
   var el = t.closest && t.closest('button'); if (!el) return;
   if (el.id === 'login') { PIN = document.getElementById('pin').value; load(); }
+  else if (el.id === 'moremon') { S.moreMon++; render(); }
   else if (el.dataset.mon) { S.month = el.dataset.mon; S.err = ''; S.msg = ''; render(); }
   else if (el.dataset.svc) { S.svc = el.dataset.svc; S.err = ''; S.msg = ''; render(); }
   else if (el.id === 'reset') { T3.forEach(function (svc) { S.st[svc] = {}; for (var kk in S.sv[svc]) S.st[svc][kk] = S.sv[svc][kk]; }); S.err = ''; S.msg = ''; render(); }
