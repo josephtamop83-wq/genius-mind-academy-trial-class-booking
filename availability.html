@@ -58,7 +58,7 @@ var app = document.getElementById('app');
 var NAMES = { TCBT: 'Trial Class + Brain Test Report 试课+领取报告', TC: 'Trial Class only 只试课', BT: 'Brain Test Report only 只领取报告' };
 var T3 = ['TCBT', 'TC', 'BT'];
 var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 5 minutes.', disabled: 'Teacher password is not turned on yet.' };
-var S = { authed: false, busy: false, err: '', msg: '', svc: 'TCBT', on: false, st: { TCBT: {}, TC: {}, BT: {} }, sv: { TCBT: {}, TC: {}, BT: {} }, extra: [], booked: { TCBT: {}, TC: {}, BT: {} }, cap: 2, dirty: 0, loaded: false };
+var S = { authed: false, busy: false, err: '', msg: '', svc: 'TCBT', on: false, st: { TCBT: {}, TC: {}, BT: {} }, sv: { TCBT: {}, TC: {}, BT: {} }, extra: [], booked: { TCBT: {}, TC: {}, BT: {} }, cap: 1, dirty: 0, loaded: false };
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 function api(body, cb) {
   body.pin = PIN;
@@ -163,8 +163,8 @@ function render() {
   h += '<div class="card"><h2>Open dates &amp; times 开放日期与时段</h2><p class="hint">Tap a box to open or close one time. Tap a date at the top to open or close the whole day. Parents only see the times that are open. The three tables never overlap: opening a time closes any overlapping time in the other tables. 点格子开关单个时段，点上方日期开关整天。三个表的时间不会重叠：开一个时段，会自动关掉其他表里重叠的时段。</p>';
   if (!S.on) h += '<div class="err" style="background:#fff4d6;color:#8a5a00">Not switched on yet. Parents still see the old dates until you press Save once. Please choose which times are for each table first. 还没启用，家长目前看到的仍是旧日期；请先设定好再按保存。</div>';
   h += '<div class="tabs">' + T3.map(function (t) { return '<button data-svc="' + t + '" class="' + (svc === t ? 'on' : '') + '">' + NAMES[t] + '</button>'; }).join('') + '</div>';
-  h += '<div class="legend"><span><em class="lg" style="background:#fff">x</em> Open 开放</span><span><em class="lg" style="background:#d9f2d4"></em> Closed 关闭</span><span><em class="lg" style="background:#fff4d6;outline:2px solid #f0b429;outline-offset:-2px">1</em> Has booking 已有预约（不能关闭）</span><span><em class="lg" style="background:#fbd0d0;outline:2px solid #d33;outline-offset:-2px">!</em> Clash 冲突</span><span><em class="lg" style="box-shadow:inset 0 0 0 3px #fb5f3b;background:#fff"></em> Changed 已改未保存</span></div>';
-  if (svc === 'TC') h += '<div class="hint" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">Parents per time when opening 开放时每个时段可接几位家长: <select id="capsel">' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (S.cap === n ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select> (tap an open box with a different number to change it, same number to close 点已开放且数字不同的格子=改人数，数字相同=关闭)</div>';
+  h += '<div class="legend"><span><em class="lg" style="background:#fff">2</em> Open (number = parents allowed) 开放（数字=可接家长数）</span><span><em class="lg" style="background:#d9f2d4"></em> Closed 关闭</span><span><em class="lg" style="background:#fff4d6;outline:2px solid #f0b429;outline-offset:-2px">1</em> Has booking 已有预约（不能关闭）</span><span><em class="lg" style="background:#fbd0d0;outline:2px solid #d33;outline-offset:-2px">!</em> Clash 冲突</span><span><em class="lg" style="box-shadow:inset 0 0 0 3px #fb5f3b;background:#fff"></em> Changed 已改未保存</span></div>';
+  h += '<div class="hint" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">Parents per time when opening 开放时每个时段可接几位家长（1-5）: <select id="capsel">' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (S.cap === n ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select> (tap a closed box to open it; tap an open box with a different number to change it, with the same number to close it 点空格=开放；点已开放且数字不同的格子=改人数；数字相同=关闭)</div>';
   h += '<div class="gridbox"><table class="g"><thead><tr><th class="corner">Time 时段</th>';
   DAYS.forEach(function (dy) { h += '<th data-day="' + dy.k + '" class="' + (dy.w === 0 || dy.w === 6 ? 'we' : '') + '">' + WD[dy.w] + '<small>' + dy.d + '/' + dy.m + '</small></th>'; });
   h += '</tr></thead><tbody>';
@@ -173,16 +173,15 @@ function render() {
     DAYS.forEach(function (dy) {
       var c = capOf(svc, dy.k, l), b = bkd(svc, dy.k, l), diff = c !== (S.sv[svc][key(dy.k, l)] || 0), rd = red[svc + '|' + key(dy.k, l)];
       var cls = 'c ' + (rd ? 'bad' : b > 0 ? 'lock' : c > 0 ? 'open' : 'closed') + (diff ? ' chg' : '');
-      var tx = b > 0 ? (svc === 'TC' ? b + '/' + c : b) : (c > 0 ? (svc === 'TC' ? c : 'x') : '');
-      if (rd && b > 0 && svc !== 'TC') tx = b;
+      var tx = b > 0 ? b + '/' + c : (c > 0 ? c : '');
       h += '<td class="' + cls + '" data-k="' + dy.k + '" data-l="' + esc(l) + '">' + tx + '</td>';
     });
     h += '</tr>';
   });
   h += '</tbody></table></div>';
   if (S.clashN) h += '<div class="err">' + S.clashN + ' clash(es) shown in red: old bookings that overlap each other or have too many parents. Nothing was changed automatically. 红色 = 旧预约互相重叠或人数超过上限；系统没有自动改动任何预约。</div>';
-  if (svc === 'TCBT') h += '<p class="hint">One parent per time (the Brain Test report is private). 每个时段只接一位家长（报告是隐私）。</p>';
-  else if (svc === 'BT') h += '<p class="hint">One parent per time. Each collection uses 1 hour, same consultant, so it cannot overlap a Trial Class. 每位家长1小时，同一位顾问，不能和试课重叠。</p>';
+  if (svc === 'TCBT') h += '<p class="hint">Tip: the Brain Test report is private, so 1 parent per time is usually best. 提示：报告涉及隐私，通常每个时段 1 位家长最合适。</p>';
+  else if (svc === 'BT') h += '<p class="hint">Each collection uses 1 hour with the same consultant, so it cannot overlap a Trial Class. 每次领取1小时，同一位顾问，不能和试课重叠。</p>';
   h += '</div>';
   if (S.err) h += '<div class="err">' + esc(S.err) + '</div>';
   if (S.msg) h += '<div class="okm">' + esc(S.msg) + '</div>';
@@ -195,7 +194,7 @@ function render() {
 }
 function setMsg(e, m) { S.err = e || ''; S.msg = m || ''; }
 function toggleCell(svc, k, l) {
-  var c = capOf(svc, k, l), b = bkd(svc, k, l), want = svc === 'TC' ? S.cap : 1;
+  var c = capOf(svc, k, l), b = bkd(svc, k, l), want = S.cap;
   if (c > 0 && (svc !== 'TC' || c === want)) {   // close
     if (b > 0) { setMsg('This time already has a booking, so it cannot be closed. 这个时段已有预约，不能关闭。'); return false; }
     S.st[svc][key(k, l)] = 0; setMsg(); return true;
@@ -210,12 +209,12 @@ function toggleDay(svc, k) {
   var anyOpen = free.some(function (l) { return capOf(svc, k, l) > 0; });
   if (anyOpen) { free.forEach(function (l) { S.st[svc][key(k, l)] = 0; }); setMsg(); return; }
   var dw = DAYS.filter(function (d) { return d.k === k; })[0].w, L = svc === 'BT' ? HOURLY : TR[dw], n = 0, blocked = 0;
-  L.forEach(function (l) { if (ROWS[svc].indexOf(l) < 0) return; var r = applyOpen(svc, k, l, svc === 'TC' ? S.cap : 1); if (r === 'blocked') blocked++; else n += r; });
+  L.forEach(function (l) { if (ROWS[svc].indexOf(l) < 0) return; var r = applyOpen(svc, k, l, S.cap); if (r === 'blocked') blocked++; else n += r; });
   setMsg(blocked ? blocked + ' time(s) skipped because of existing bookings. 有 ' + blocked + ' 个时段因已有预约而跳过。' : '', n ? n + ' overlapping time(s) in other tables were closed automatically. 已自动关闭 ' + n + ' 个重叠时段。' : '');
 }
 function rowsToSave() {
   var rows = [];
-  T3.forEach(function (svc) { DAYS.forEach(function (dy) { ROWS[svc].forEach(function (l) { var c = capOf(svc, dy.k, l); if (c > 0) rows.push([svc, dy.k, l, svc === 'TC' ? c : 1]); }); }); });
+  T3.forEach(function (svc) { DAYS.forEach(function (dy) { ROWS[svc].forEach(function (l) { var c = capOf(svc, dy.k, l); if (c > 0) rows.push([svc, dy.k, l, c]); }); }); });
   S.extra.forEach(function (r) { rows.push(r); });
   return rows;
 }

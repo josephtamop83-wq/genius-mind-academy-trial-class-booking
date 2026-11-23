@@ -70,18 +70,10 @@ function render() {
     h += '<button class="btn pri" id="login"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Please wait...' : 'Log in') + '</button></div>';
     app.innerHTML = h; if (had) { var ni = document.getElementById('pin'); ni.focus(); try { ni.setSelectionRange(val.length, val.length); } catch (x) {} } return;
   }
-  h += '<div class="card"><h2>Parents per time slot</h2><p class="small" style="color:var(--muted)">How many parents may book the same date &amp; time. Applies to new bookings and changes.</p>';
-  ['BT', 'TC', 'TCBT'].forEach(function (k) { h += '<div class="row"><div><b>' + NAMES[k] + '</b></div><select data-cap="' + k + '">' + opts(1, 3, S.caps[k], 'parent' + '(s)') + '</select></div>'; });
+  h += '<div class="card"><h2>Parents per time slot</h2><p class="small" style="color:var(--muted)">Now set on the <a href="availability.html"><b>Open Dates</b></a> page: for every date and time you choose 1 to 5 parents. 现在请在「Open Dates」页面为每个日期和时段设定 1 到 5 位家长。</p>';
   h += '</div><div class="card"><h2>Date changes</h2>';
   h += '<div class="row"><div><b>Changes allowed per booking</b><small>0 = parents cannot change</small></div><select id="mc">' + opts(0, 10, S.maxChanges) + '</select></div>';
   h += '<div class="row"><div><b>Lock before appointment</b><small>Hours before the booking when changes stop</small></div><select id="lh">' + opts(0, 240, S.lockHours).replace(/>(\d+)</g, '>$1 h<') + '</select></div></div>';
-  h += '<div class="card"><h2>Special dates (optional)</h2><p class="small" style="color:var(--muted)">Use a different number for one date only, e.g. a busy Saturday.</p>';
-  S.over.forEach(function (o, i) {
-    h += '<div class="ov"><input type="date" data-od="' + i + '" value="' + esc(o.date) + '"><select data-os="' + i + '">';
-    ['BT', 'TC', 'TCBT'].forEach(function (k) { h += '<option value="' + k + '"' + (o.svc === k ? ' selected' : '') + '>' + NAMES[k] + '</option>'; });
-    h += '</select><select data-oc="' + i + '">' + opts(1, 3, o.cap, 'parent(s) per slot') + '</select><button class="x" data-del="' + i + '" type="button">&times;</button></div>';
-  });
-  h += '<button class="btn sec2" id="addov" type="button" style="margin-top:10px">+ Add a special date</button></div>';
   h += '<div class="card"><h2>Follow-up teachers (up to 10)</h2><p class="small" style="color:var(--muted)">Name and WhatsApp number of each teacher / sales person. Teachers pick themselves for each parent on the Spin &amp; Win teacher page.</p>';
   for (var t = 0; t < 10; t++) { var T = S.teachers[t] || {}; h += '<div class="ov tr"><b style="width:74px">Teacher ' + (t + 1) + '</b><input type="text" data-tn="' + t + '" placeholder="Name" value="' + esc(T.name || '') + '" style="flex:1;min-width:110px"><input type="tel" data-tp="' + t + '" placeholder="Phone" value="' + esc(T.phone || '') + '" style="flex:1;min-width:130px"></div>'; }
   h += '</div>';
@@ -95,6 +87,7 @@ function readForm() {
   S.maxChanges = parseInt(document.getElementById('mc').value, 10); S.lockHours = parseInt(document.getElementById('lh').value, 10);
   S.teachers = []; for (var t = 0; t < 10; t++) S.teachers.push({ n: t + 1, name: document.querySelector('[data-tn="' + t + '"]').value.trim(), phone: document.querySelector('[data-tp="' + t + '"]').value.trim() });
   S.over.forEach(function (o, i) {
+    if (!document.querySelector('[data-od="' + i + '"]')) return;
     o.date = document.querySelector('[data-od="' + i + '"]').value; o.svc = document.querySelector('[data-os="' + i + '"]').value; o.cap = parseInt(document.querySelector('[data-oc="' + i + '"]').value, 10);
   });
 }
