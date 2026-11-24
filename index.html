@@ -446,9 +446,16 @@ function refCount(v){return v?String(v).split(',').filter(Boolean).length:0}
 function addRef(m,k,r){m[k]=m[k]?m[k]+','+r:r}
 function delRef(m,k,r){var a=String(m[k]||'').split(',').filter(function(x){return x&&x!==r});if(a.length)m[k]=a.join(',');else delete m[k]}
 function capFor(code,date){var c=(MEM&&MEM.caps)||{},d={BT:1,TC:2,TCBT:2},o=(c.over||[]).filter(function(x){return x.date===date&&x.svc===code})[0];return o?o.cap:(c[code]||d[code])}   // parents per slot: set by teachers in the Google Sheet "Settings" tab
+function catOf(r){return /^TB/.test(r)?'TCBT':/^BR/.test(r)?'BT':'TC'}
+function crossTaken(kind,date,label){   // another kind of booking already sits at an overlapping time: this kind is closed there (same family and your own booking do not count)
+var me=S.service,m0=mins(label),w=me==='BT'?[m0,m0+60]:range(label),own=(S.existing&&S.existing.ref)||'',st=store();
+for(var kd in {trial:1,report:1}){var M=st[kd]||{};for(var k in M){var p=k.split('|');if(p[0]!==date)continue;
+var rs=String(M[k]).split(',').filter(function(r){return r&&r!==own&&catOf(r)!==me});if(!rs.length)continue;
+var w2=kd==='report'?[mins(p[1]),mins(p[1])+60]:range(p[1]);if(w[0]<w2[1]&&w2[0]<w[1])return true}}
+return false}
 function taken(kind,date,label){
 var refs=String(store()[kind][date+'|'+label]||'').split(',').filter(Boolean);
-if(AV){var cp=(AV[S.service]&&AV[S.service][date]&&AV[S.service][date][label])||0;return refs.length>=cp}   // open dates & parents per time: set by teachers on the Open Dates page
+if(AV){var cp=(AV[S.service]&&AV[S.service][date]&&AV[S.service][date][label])||0;return refs.length>=cp||crossTaken(kind,date,label)}   // open dates & parents per time: set by teachers on the Open Dates page
 if(kind==='report'&&S.service==='BT')return refs.length>=capFor('BT',date);   // Brain Test Report Collection
 if(kind==='report')return refs.length>=capFor('TCBT',date)||refs.some(function(r){return /^BR/.test(r)});   // report part of Trial Class + Brain Test
 return refs.length>=capFor(S.service==='TCBT'?'TCBT':'TC',date)}   // Trial Class / Trial Class + Brain Test   // Trial Class / Trial Class + Brain Test: 2 parents per slot
