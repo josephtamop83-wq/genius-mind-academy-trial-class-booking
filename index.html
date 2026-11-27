@@ -386,7 +386,7 @@ demo:'DEMO mode: this booking was saved only in this browser. Set SUBMIT_URL to 
 new_booking:'Make another booking',
 e_service:'Please choose a service.',e_req:'Please fill in all required fields.',e_phone:'Please enter a valid Malaysian mobile number.',e_email:'Please enter a valid email.',
 e_kids:'Please add {min}–{max} children and fill in each child\'s name, gender and age (age must be 4 to 15).',e_consent:'Please tick the consent box.',
-e_slot:'Please choose a date and a time slot.',e_slip:'Please upload your bank slip.',e_taken:'Sorry, that slot was just taken. Please choose another.',e_send:'Could not send your booking. Please try again.'},
+e_slot:'Please choose a date and a time slot.',e_slip:'Please upload your bank slip.',e_taken:'Sorry, that slot was just taken. Please choose another.',e_soon:'Sorry, bookings close 12 hours before the class starts. Please choose a later time.',lead12:'Bookings close 12 hours before the class starts.',e_send:'Could not send your booking. Please try again.'},
 zh:{sub:'预约试课与领取脑测报告',
 s_service:'服务',s_details:'资料',s_date:'日期时间',s_pay:'付款',s_confirm:'确认',
 h_service:'选择服务',p_service_free:'Spin &amp; Win：请为您的免费试课或脑测预约日期',p_service:'试课优惠，只需 <span class="rm39">RM39</span>！',
@@ -425,7 +425,7 @@ demo:'演示模式：此预约只保存在这个浏览器里。请设置 SUBMIT_
 new_booking:'再预约一次',
 e_service:'请选择服务。',e_req:'请填写所有必填项。',e_phone:'请输入有效的马来西亚手机号码。',e_email:'请输入有效的电邮。',
 e_kids:'请添加 {min}–{max} 位孩子，并填写每位孩子的姓名、性别和年龄（年龄须为 4 至 15 岁）。',e_consent:'请勾选同意框。',
-e_slot:'请选择日期和时段。',e_slip:'请上传银行单。',e_taken:'抱歉，该时段刚被预约，请重新选择。',e_send:'提交失败，请重试。'}
+e_slot:'请选择日期和时段。',e_slip:'请上传银行单。',e_taken:'抱歉，该时段刚被预约，请重新选择。',e_soon:'抱歉，距离开课不足12小时已无法预约，请选择较晚的时间。',lead12:'开课前12小时截止预约。',e_send:'提交失败，请重试。'}
 };
 var STATES=['Johor','Kedah','Kelantan','Melaka','Negeri Sembilan','Pahang','Penang','Perak','Perlis','Sabah','Sarawak','Selangor','Terengganu','Kuala Lumpur','Labuan','Putrajaya'];
 var S = {lang:'en',service:null,step:0,looked:'',welcome:'',existing:null,home:false,bookings:[],prizes:[],maxSpins:3,
@@ -453,7 +453,10 @@ for(var kd in {trial:1,report:1}){var M=st[kd]||{};for(var k in M){var p=k.split
 var rs=String(M[k]).split(',').filter(function(r){return r&&r!==own&&catOf(r)!==me});if(!rs.length)continue;
 var w2=kd==='report'?[mins(p[1]),mins(p[1])+60]:range(p[1]);if(w[0]<w2[1]&&w2[0]<w[1])return true}}
 return false}
+var LEAD_H=12;   // parents cannot book a time that starts in less than 12 hours (Kuala Lumpur time)
+function soon(date,label){var m=String(label).match(/(\d+):(\d+)\s*(am|pm)/i);if(!m)return false;var hh=parseInt(m[1],10)%12+(m[3].toLowerCase()==='pm'?12:0),st=Date.parse(date+'T'+('0'+hh).slice(-2)+':'+m[2]+':00+08:00');return !isNaN(st)&&st-Date.now()<LEAD_H*3600000}
 function taken(kind,date,label){
+if(soon(date,label))return true;
 var refs=String(store()[kind][date+'|'+label]||'').split(',').filter(Boolean);
 if(AV){var cp=(AV[S.service]&&AV[S.service][date]&&AV[S.service][date][label])||0;return refs.length>=cp||crossTaken(kind,date,label)}   // open dates & parents per time: set by teachers on the Open Dates page
 if(kind==='report'&&S.service==='BT')return refs.length>=capFor('BT',date);   // Brain Test Report Collection
@@ -591,7 +594,7 @@ if(slots){var free=slots.filter(function(l){return !taken(k,key,l)}).length;dot=
 else{var dow=new Date(y,m-1,d).getDay();if(dow===1&&key>=tk)sub='<small>'+(S.lang==='zh'?'休息':'Closed')+'</small>'}
 h+='<button class="'+cls+'"'+(dis?' disabled':'')+' data-date="'+key+'">'+d+dot+sub+'</button>';
 }
-h+='</div><div class="legend"><span><i style="background:var(--ok)"></i>'+t('avail')+'</span><span><i style="background:var(--bad)"></i>'+t('full')+'</span><span><i style="background:var(--off)"></i>'+t('closed')+'</span></div></div>';
+h+='</div><div class="legend"><span><i style="background:var(--ok)"></i>'+t('avail')+'</span><span><i style="background:var(--bad)"></i>'+t('full')+'</span><span><i style="background:var(--off)"></i>'+t('closed')+'</span></div><div class="hint" style="margin-top:8px">'+t('lead12')+'</div></div>';
 if(S.date){
 h+='<div class="sec" style="margin-top:6px">'+t('slots')+' · '+esc(fmtDate(S.date))+'</div><div class="slots">';
 tb[S.date].forEach(function(l){var tk2=taken(k,S.date,l),own=S.mode==='edit-date'&&S.existing&&(S.existing.service==='BT'?S.existing.reportDate:S.existing.date)===S.date&&(S.existing.service==='BT'?S.existing.reportSlot:S.existing.slot)===l;
@@ -821,6 +824,7 @@ if(j&&j.ok){if(j.ref)b.ref=j.ref;b.duplicateReport=!!j.duplicateReport;b.waSent=
 throw (j&&j.error)||'err';
 }).catch(function(e){S.busy=false;
 if(e==='taken'){S.err=t('e_taken');S.step=steps().indexOf('date');S.slot=null;stopHold();loadRemote(render);return}
+if(e==='soon'){S.err=t('e_soon');S.step=steps().indexOf('date');S.slot=null;stopHold();loadRemote(render);return}
 if(e==='phone_used'){S.err=t('e_used');render();return}
 S.err=t('e_send');render()});
 }
@@ -890,6 +894,7 @@ S.err='';S.busy=true;render();
 editApi(body,function(j){S.busy=false;
 if(j&&j.ok){if(S.usePrize){S.usePrize=false;S.prizes=S.prizes.map(function(p){return p.key==='BT'&&p.status==='Won'&&!p.ref?Object.assign({},p,{ref:j.booking.ref}):p})}S.bookings=S.bookings.map(function(x){return x.ref===j.booking.ref?j.booking:x});S.existing=j.booking;S.mode=null;stopHold();S.date=null;S.slot=null;S.rdate=null;S.rslot=null;render();toast(t('saved'));window.scrollTo(0,0);loadRemote(render);return}
 if(j&&j.error==='taken'){S.err=t('e_taken');S.slot=null;stopHold();loadRemote(render);return}
+if(j&&j.error==='soon'){S.err=t('e_soon');S.slot=null;stopHold();loadRemote(render);return}
 if(j&&(j.error==='limit'||j.error==='toolate')){S.mode=null;S.err='';stopHold();S.existing.changesLeft=j.error==='limit'?0:S.existing.changesLeft;S.existing.tooLate=j.error==='toolate';S.bookings=S.bookings.map(function(x){return x.ref===S.existing.ref?S.existing:x});render();return}
 S.err=t('e_send');render()});
 }

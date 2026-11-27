@@ -202,7 +202,7 @@ function card(e, showDate) {
   h += '<div>' + (b.prizes || []).map(function (p) { return '<span class="tag p">🎁 ' + esc(p) + '</span>'; }).join('');
   if (b.clash) h += '<span class="tag c">Report time clash - call customer</span>';
   else if (b.service === 'TCBT' && !b.reportSlot && !b.sameTrial && e.kind === 'trial') h += '<span class="tag c">No report time - arrange with customer</span>';
-  h += '</div><div class="meta">' + esc(SVC[b.service] || '') + ' · ' + esc(b.ref) + '</div>' + (b.made ? '<div class="meta"><b>Transaction Date:</b> ' + esc(fmtMade(b.made)) + '</div>' : '') + '<div class="meta"><b>Follow-up:</b> ' + (b.teacher ? esc(b.teacher.name) + (b.teacher.phone ? ' · ' + esc(fmtPhone(b.teacher.phone)) : '') + (b.teacher.status ? ' · ' + esc(b.teacher.status) : '') : '<span style="color:#b45309">not assigned</span>') + '</div>';
+  h += '</div><div class="meta">' + esc(SVC[b.service] || '') + ' · ' + esc(b.ref) + '</div><div class="meta"><b>Contact:</b> ' + esc(fmtPhone(b.phone)) + '</div>' + (b.made ? '<div class="meta"><b>Transaction Date:</b> ' + esc(fmtMade(b.made)) + '</div>' : '') + '<div class="meta"><b>Follow-up:</b> ' + (b.teacher ? esc(b.teacher.name) + (b.teacher.phone ? ' · ' + esc(fmtPhone(b.teacher.phone)) : '') + (b.teacher.status ? ' · ' + esc(b.teacher.status) : '') : '<span style="color:#b45309">not assigned</span>') + '</div>';
   h += attHtml(e);
   h += '<div class="act noprint"><a class="wa" href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a><a href="tel:+' + esc(b.phone) + '">Call ' + esc(fmtPhone(b.phone)) + '</a></div>';
   return h + '</div></div>';
