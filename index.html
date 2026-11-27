@@ -590,7 +590,7 @@ h+='<div class="dow">'+names.map(function(x){return '<div>'+x+'</div>'}).join(''
 for(var i=0;i<first;i++)h+='<div></div>';
 for(var d=1;d<=n;d++){
 var key=dkey(y,m,d),slots=tb[key],cls='day'+(S.date===key?' sel':'')+(key===tk?' today':''),dis=!slots,dot='',sub='';
-if(slots){var free=slots.filter(function(l){return !taken(k,key,l)}).length;dot='<i class="'+(free?'ok':'full')+'"></i>';if(!free)dis=true}
+if(slots){var free=slots.filter(function(l){return !taken(k,key,l)}).length,allSoon=slots.every(function(l){return soon(key,l)});dot=allSoon?'':'<i class="'+(free?'ok':'full')+'"></i>';if(!free)dis=true}
 else{var dow=new Date(y,m-1,d).getDay();if(dow===1&&key>=tk)sub='<small>'+(S.lang==='zh'?'休息':'Closed')+'</small>'}
 h+='<button class="'+cls+'"'+(dis?' disabled':'')+' data-date="'+key+'">'+d+dot+sub+'</button>';
 }
@@ -598,7 +598,7 @@ h+='</div><div class="legend"><span><i style="background:var(--ok)"></i>'+t('ava
 if(S.date){
 h+='<div class="sec" style="margin-top:6px">'+t('slots')+' · '+esc(fmtDate(S.date))+'</div><div class="slots">';
 tb[S.date].forEach(function(l){var tk2=taken(k,S.date,l),own=S.mode==='edit-date'&&S.existing&&(S.existing.service==='BT'?S.existing.reportDate:S.existing.date)===S.date&&(S.existing.service==='BT'?S.existing.reportSlot:S.existing.slot)===l;
-h+='<button class="slot'+(S.slot===l?' sel':'')+(tk2?' taken':'')+'" data-slot="'+l+'"'+(tk2?' disabled':'')+'><b>'+l+'</b><span>'+(own?t('current_slot'):tk2?t('taken'):t('free_slot'))+'</span></button>'});
+h+='<button class="slot'+(S.slot===l?' sel':'')+(tk2?' taken':'')+'" data-slot="'+l+'"'+(tk2?' disabled':'')+'><b>'+l+'</b><span>'+(own?t('current_slot'):tk2?(soon(S.date,l)?t('closed'):t('taken')):t('free_slot'))+'</span></button>'});
 h+='</div>';
 if(S.slot&&S.service==='TCBT'){
 var rf=reportFor(S.date,S.slot),rs=repSel();
