@@ -59,7 +59,7 @@ var app = document.getElementById('app');
 var NAMES = { TCBT: 'Trial Class + Brain Test Report 试课+领取报告', TC: 'Trial Class only 只试课', BT: 'Brain Test Report only 只领取报告' };
 var T3 = ['TCBT', 'TC', 'BT'];
 var ERR = { auth: 'Wrong password.', locked: 'Too many wrong passwords. Try again in 5 minutes.', disabled: 'Teacher password is not turned on yet.' };
-var S = { authed: false, busy: false, err: '', msg: '', svc: 'TCBT', on: false, st: { TCBT: {}, TC: {}, BT: {} }, sv: { TCBT: {}, TC: {}, BT: {} }, extra: [], booked: { TCBT: {}, TC: {}, BT: {} }, cap: 1, month: '', moreMon: 0, dirty: 0, loaded: false };
+var S = { lead: 0, leadSel: 0, leadMsg: '', authed: false, busy: false, err: '', msg: '', svc: 'TCBT', on: false, st: { TCBT: {}, TC: {}, BT: {} }, sv: { TCBT: {}, TC: {}, BT: {} }, extra: [], booked: { TCBT: {}, TC: {}, BT: {} }, cap: 1, month: '', moreMon: 0, dirty: 0, loaded: false };
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 function api(body, cb) {
   body.pin = PIN;
@@ -172,6 +172,7 @@ function render() {
     app.innerHTML = h; if (had) { var ni = document.getElementById('pin'); ni.focus(); try { ni.setSelectionRange(val.length, val.length); } catch (x) {} } return;
   }
   var svc = S.svc, red = clashes();
+  h += '<div class="card"><h2>Booking cut-off 预约截止时间</h2><p class="hint">Parents cannot make a new booking, or change a booking, when the time is less than this many hours away. Teachers can still book for parents. 距离开课不足这个小时数，家长就不能新订，也不能改期；老师仍可代订。</p><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><select id="leadsel">' + [[0, 'Off 不限制'], [6, '6 hours 6小时'], [12, '12 hours 12小时'], [24, '24 hours 24小时'], [48, '48 hours 48小时']].map(function (o) { return '<option value="' + o[0] + '"' + (S.leadSel === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select><button id="leadsave" class="btn"' + (S.leadSel === S.lead ? ' disabled' : '') + '>Save cut-off 保存</button><span class="hint" style="margin:0">Now 目前: ' + (S.lead ? S.lead + ' hours 小时' : 'Off 不限制') + '</span></div>' + (S.leadMsg ? '<div class="okm">' + esc(S.leadMsg) + '</div>' : '') + '</div>';
   h += '<div class="card"><h2>Open dates &amp; times 开放日期与时段</h2><p class="hint">Tap a box to open or close one time. Tap a date at the top to open or close the whole day. Parents only see the times that are open. The three tables can all be set for the same time. When the first booking comes in, the other two kinds are closed at that time automatically (the lock icon). Only Trial Class only can take more parents (up to 5); the other two take exactly 1. 点格子开关单个时段，点上方日期开关整天。三个表可以设同一个时间；一旦有人先预约，其他两种在该时间会自动关闭（锁）。只有「只试课」可以接多位（最多5位），其他两种固定1位。</p>';
   if (!S.on) h += '<div class="err" style="background:#fff4d6;color:#8a5a00">Not switched on yet. Parents still see the old dates until you press Save once. Please choose which times are for each table first. 还没启用，家长目前看到的仍是旧日期；请先设定好再按保存。</div>';
   h += '<div class="tabs">' + T3.map(function (t) { return '<button data-svc="' + t + '" class="' + (svc === t ? 'on' : '') + '">' + NAMES[t] + '</button>'; }).join('') + '</div>';
@@ -241,7 +242,7 @@ function rowsToSave() {
   S.extra.forEach(function (r) { rows.push(r); });
   return rows;
 }
-function take(j) { loadAvail(j.avail); }
+function take(j) { loadAvail(j.avail); if (j && j.lead != null) { S.lead = +j.lead || 0; S.leadSel = S.lead; } }
 function setBooked(j) { if (j && j.booked) S.booked = { TCBT: j.booked.TCBT || {}, TC: j.booked.TC || {}, BT: j.booked.BT || {} }; }
 function load() {
   S.busy = true; S.err = ''; render();
@@ -250,7 +251,7 @@ function load() {
     else { S.busy = false; S.authed = false; try { sessionStorage.removeItem('gma_pin'); } catch (x) {} S.err = (PIN || j) ? errText(j) : ''; render(); }
   });
 }
-document.addEventListener('change', function (e) { if (e.target.id === 'capsel') { S.cap = +e.target.value; } });
+document.addEventListener('change', function (e) { if (e.target.id === 'capsel') { S.cap = +e.target.value; } if (e.target.id === 'leadsel') { S.leadSel = +e.target.value; S.leadMsg = ''; render(); } });
 document.addEventListener('click', function (e) {
   var t = e.target;
   var td = t.closest && t.closest('td.c'); if (td && S.authed) { toggleCell(S.svc, td.dataset.k, td.dataset.l); render(); return; }
@@ -258,6 +259,12 @@ document.addEventListener('click', function (e) {
   var el = t.closest && t.closest('button'); if (!el) return;
   if (el.id === 'login') { PIN = document.getElementById('pin').value; load(); }
   else if (el.id === 'moremon') { S.moreMon++; render(); }
+  else if (el.id === 'leadsave') {
+    api({ action: 'staff_lead', hours: S.leadSel }, function (j) {
+      if (j && j.ok) { S.lead = +j.lead || 0; S.leadSel = S.lead; S.leadMsg = S.lead ? 'Saved. Cut-off is now ' + S.lead + ' hours. 已保存，现在是开课前 ' + S.lead + ' 小时截止。' : 'Saved. No cut-off. 已保存，不设截止时间。'; S.err = ''; } else { S.err = errText(j); }
+      render();
+    });
+  }
   else if (el.dataset.mon) { S.month = el.dataset.mon; S.err = ''; S.msg = ''; render(); }
   else if (el.dataset.svc) { S.svc = el.dataset.svc; S.err = ''; S.msg = ''; render(); }
   else if (el.id === 'reset') { T3.forEach(function (svc) { S.st[svc] = {}; for (var kk in S.sv[svc]) S.st[svc][kk] = S.sv[svc][kk]; }); S.err = ''; S.msg = ''; render(); }
