@@ -453,8 +453,8 @@ for(var kd in {trial:1,report:1}){var M=st[kd]||{};for(var k in M){var p=k.split
 var rs=String(M[k]).split(',').filter(function(r){return r&&r!==own&&catOf(r)!==me});if(!rs.length)continue;
 var w2=kd==='report'?[mins(p[1]),mins(p[1])+60]:range(p[1]);if(w[0]<w2[1]&&w2[0]<w[1])return true}}
 return false}
-var LEAD_H=12;   // parents cannot book a time that starts in less than 12 hours (Kuala Lumpur time)
-function soon(date,label){var m=String(label).match(/(\d+):(\d+)\s*(am|pm)/i);if(!m)return false;var hh=parseInt(m[1],10)%12+(m[3].toLowerCase()==='pm'?12:0),st=Date.parse(date+'T'+('0'+hh).slice(-2)+':'+m[2]+':00+08:00');return !isNaN(st)&&st-Date.now()<LEAD_H*3600000}
+var LEAD_H=0;   // parents cannot book a time that starts in less than 12 hours (Kuala Lumpur time)
+function soon(date,label){if(!LEAD_H)return false;var m=String(label).match(/(\d+):(\d+)\s*(am|pm)/i);if(!m)return false;var hh=parseInt(m[1],10)%12+(m[3].toLowerCase()==='pm'?12:0),st=Date.parse(date+'T'+('0'+hh).slice(-2)+':'+m[2]+':00+08:00');return !isNaN(st)&&st-Date.now()<LEAD_H*3600000}
 function taken(kind,date,label){
 if(soon(date,label))return true;
 var refs=String(store()[kind][date+'|'+label]||'').split(',').filter(Boolean);
@@ -594,7 +594,7 @@ if(slots){var free=slots.filter(function(l){return !taken(k,key,l)}).length,allS
 else{var dow=new Date(y,m-1,d).getDay();if(dow===1&&key>=tk)sub='<small>'+(S.lang==='zh'?'休息':'Closed')+'</small>'}
 h+='<button class="'+cls+'"'+(dis?' disabled':'')+' data-date="'+key+'">'+d+dot+sub+'</button>';
 }
-h+='</div><div class="legend"><span><i style="background:var(--ok)"></i>'+t('avail')+'</span><span><i style="background:var(--bad)"></i>'+t('full')+'</span><span><i style="background:var(--off)"></i>'+t('closed')+'</span></div><div class="hint" style="margin-top:8px">'+t('lead12')+'</div></div>';
+h+='</div><div class="legend"><span><i style="background:var(--ok)"></i>'+t('avail')+'</span><span><i style="background:var(--bad)"></i>'+t('full')+'</span><span><i style="background:var(--off)"></i>'+t('closed')+'</span></div>'+(LEAD_H?'<div class="hint" style="margin-top:8px">'+t('lead12')+'</div>':'')+'</div>';
 if(S.date){
 h+='<div class="sec" style="margin-top:6px">'+t('slots')+' · '+esc(fmtDate(S.date))+'</div><div class="slots">';
 tb[S.date].forEach(function(l){var tk2=taken(k,S.date,l),own=S.mode==='edit-date'&&S.existing&&(S.existing.service==='BT'?S.existing.reportDate:S.existing.date)===S.date&&(S.existing.service==='BT'?S.existing.reportSlot:S.existing.slot)===l;
